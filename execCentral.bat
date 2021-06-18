@@ -1,0 +1,1 @@
+java -cp C2Commander.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties

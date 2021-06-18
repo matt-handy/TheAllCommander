@@ -1,0 +1,48 @@
+<project>
+
+<path id="class.path">
+  <fileset dir="tmp">
+    <include name="**/*.jar" />
+  </fileset>
+</path>
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes">
+        <classpath refid="class.path" />
+        </javac>
+        <javac srcdir="integration_test" destdir="build/classes">
+        <classpath refid="class.path" />
+        </javac>
+        <javac srcdir="test" destdir="build/classes">
+        <classpath refid="class.path" />
+        </javac>
+    </target>
+    
+    <target name="jar">
+        <mkdir dir="build/deploy"/>
+        <copy file="execCommander.bat" todir="build/deploy" />
+        <copy file="execCentral.bat" todir="build/deploy" />
+        <copy file="execTestLauncher.bat" todir="build/deploy" />
+        <copy file="test\test.properties" todir="build/deploy" />
+        <copy file="testkey.jks" todir="build/deploy" />
+        <copy todir="build/deploy">
+  			<fileset dir="tmp"/>
+    	</copy>
+        <jar destfile="build/deploy/C2Central.jar" basedir="build/classes">
+            <manifest>
+                <attribute name="Main-Class" value="c2.Runner"/>
+            </manifest>
+        </jar>
+        <jar destfile="build/deploy/C2Commander.jar" basedir="build/classes">
+            <manifest>
+                <attribute name="Main-Class" value="c2.LocalConnection"/>
+            </manifest>
+        </jar>
+    </target>
+
+</project>
