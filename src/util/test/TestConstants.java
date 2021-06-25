@@ -25,6 +25,7 @@ public class TestConstants {
 	private static final String I_SIMPLESTAGER_TEST_EXE = "simplestager.testexe";
 	private static final String I_CPPHTTPDAEMON_TEST_EXE = "cpphttpdaemon.testexe";
 	private static final String I_CPPDNSDAEMON_TEST_EXE = "cppdnsdaemon.testexe";
+	private static final String I_CPPSMTPDAEMON_TEST_EXE = "cppsmtpdaemon.testexe";
 	private static final String I_CSHARPHTTPDAEMON_TEST_EXE = "csharphttpdaemon.testexe";
 	private static final String I_CSHARPDNSDAEMON_TEST_EXE = "csharpdnsdaemon.testexe";
 	private static final String I_CSHARPSMTPDAEMON_TEST_EXE = "csharpsmtpdaemon.testexe";
@@ -56,6 +57,7 @@ public class TestConstants {
 	public static String SIMPLESTAGER_TEST_EXE;
 	public static String CPPHTTPDAEMON_TEST_EXE;
 	public static String CPPDNSDAEMON_TEST_EXE;
+	public static String CPPSMTPDAEMON_TEST_EXE;
 	public static String CSHARPHTTPDAEMON_TEST_EXE;
 	public static String CSHARPDNSDAEMON_TEST_EXE;
 	public static String CSHARPSMTPDAEMON_TEST_EXE;
@@ -94,6 +96,7 @@ public class TestConstants {
 			PROCESSHOLLOWER_TEST_EXE = prop.getProperty(I_PROCESSHOLLOWER_TEST_EXE);
 			CPPHTTPDAEMON_TEST_EXE = prop.getProperty(I_CPPHTTPDAEMON_TEST_EXE);
 			CPPDNSDAEMON_TEST_EXE = prop.getProperty(I_CPPDNSDAEMON_TEST_EXE);
+			CPPSMTPDAEMON_TEST_EXE = prop.getProperty(I_CPPSMTPDAEMON_TEST_EXE);
 			CSHARPHTTPDAEMON_TEST_EXE = prop.getProperty(I_CSHARPHTTPDAEMON_TEST_EXE);
 			CSHARPDNSDAEMON_TEST_EXE = prop.getProperty(I_CSHARPDNSDAEMON_TEST_EXE);
 			CSHARPSMTPDAEMON_TEST_EXE = prop.getProperty(I_CSHARPSMTPDAEMON_TEST_EXE);
