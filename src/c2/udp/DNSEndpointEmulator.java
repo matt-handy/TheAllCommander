@@ -119,7 +119,7 @@ public class DNSEndpointEmulator extends C2Interface {
 						String sessionUID = hostname+":"+username+":"+protocol;
 		        		Integer sessionId = io.getSessionId(sessionUID);
 		        		if(sessionId == null) {
-		        			sessionId = io.addSession(sessionUID, username, hostname);
+		        			sessionId = io.addSession(sessionUID, username, hostname, protocol);
 		        		}
 		        		
 		        		

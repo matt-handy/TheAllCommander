@@ -23,6 +23,8 @@ public class Constants {
 	public static final String DAEMONCONTEXTPAYLOAD = "daemon.context.payload";
 	public static final String DAEMONCONTEXTHOLLOWERPAYLOAD = "daemon.context.hollower.payload";
 	public static final String DAEMONCONTEXTCSHARPPAYLOAD = "daemon.context.csharp.payload";
+	public static final String DAEMONCONTEXTGETSESSIONS = "daemon.context.getsessions";
+	public static final String DAEMONCONTEXTCMDREST = "daemon.context.cmdrest";
 	
 	
 	public static final String DAEMONLZLOGGER = "daemon.lz.logger";

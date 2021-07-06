@@ -112,7 +112,7 @@ public class GenericTCPInitiator extends C2Interface {
 						String sessionUID = hostname + ":" + username + ":Native" + os;
 						Integer sessionId = ioManager.getSessionId(sessionUID);
 						if (sessionId == null) {
-							sessionId = ioManager.addSession(sessionUID, username, hostname);
+							sessionId = ioManager.addSession(sessionUID, username, hostname, "Native");
 						}
 						TCPShellHandler shellHandler = new TCPShellHandler(ioManager, wsr, newSession, sessionId,
 								hostname, username, lz, OS.WINDOWS);
@@ -172,7 +172,7 @@ public class GenericTCPInitiator extends C2Interface {
 		String sessionUID = hostname + ":" + username + ":NativeLinux";
 		Integer sessionId = ioManager.getSessionId(sessionUID);
 		if (sessionId == null) {
-			sessionId = ioManager.addSession(sessionUID, username, hostname);
+			sessionId = ioManager.addSession(sessionUID, username, hostname, "NativeLinux");
 		}
 		TCPShellHandler shellHandler = new TCPShellHandler(ioManager, lsr, s, sessionId, hostname, username, lz,
 				OS.LINUX);

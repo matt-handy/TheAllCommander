@@ -9,10 +9,17 @@ public class Session {
 	private Queue<String> returnString = new ConcurrentLinkedDeque<String>();
 	public final int id;
 	public final String uid;
+	public final String hostname;
+	public final String username;
+	public final String protocol;
 	
-	public Session(int id, String uid) {
+	public Session(int id, String hostname, String username, String protocol) {
 		this.id = id;
+		String uid = hostname+":"+username+":"+protocol;
 		this.uid = uid;
+		this.hostname = hostname;
+		this.username = username;
+		this.protocol = protocol;
 	}
 	
 	public synchronized String pollCommand(){

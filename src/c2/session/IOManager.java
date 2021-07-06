@@ -68,7 +68,7 @@ public class IOManager {
 				e.printStackTrace();
 			}
 		}
-		sessions.put(1, new Session(1, "default"));
+		sessions.put(1, new Session(1, "default", "default", "default"));
 		this.logRoot = logRoot;
 		this.cl = cl;
 	}
@@ -125,14 +125,14 @@ public class IOManager {
 	}
 	
 	//Available sessions are added by HTTPS Listener
-	public synchronized int addSession(String uid, String username, String hostname){
+	public synchronized int addSession(String uid, String username, String hostname, String protocol){
 		for(Session session : sessions.values()) {
 			if(session.uid.contentEquals(uid)) {
 				throw new IllegalArgumentException("Session Id Already Exists");
 			}
 		}
 		int newSessionId = nextSessionId++;
-		sessions.put(newSessionId, new Session(newSessionId, uid));
+		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol));
 		
 		if(!cl.getDefaultCommands().isEmpty()) {
 			for(String cmd : cl.getDefaultCommands()) {

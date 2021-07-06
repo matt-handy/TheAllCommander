@@ -126,15 +126,15 @@ public class RunnerTestGeneric {
 		System.out.println(output);
 		if (isLinux) {
 			assertTrue(output.contains(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX)
-					|| output.equals("1:default"));
+					|| output.equals("1:default:default:default"));
 		} else {
 			if(isRemote) {
 				assertTrue(output.contains(baseIndex + ":")
-						|| output.equals("1:default"));
+						|| output.equals("1:default:default:default"));
 			}else {
 			assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
 					|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
-					output.equals("1:default"));
+					output.equals("1:default:default:default"));
 			}
 		}
 		System.out.println("Reading second session id...");
@@ -142,15 +142,15 @@ public class RunnerTestGeneric {
 		System.out.println(output);
 		if (isLinux) {
 			assertTrue(output.contains(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX)
-					|| output.equals("1:default"));
+					|| output.equals("1:default:default:default"));
 		} else {
 			if(isRemote) {
 				assertTrue(output.contains(baseIndex + ":")
-						|| output.equals("1:default"));
+						|| output.equals("1:default:default:default"));
 			}else {
 			assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
 					|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
-					output.equals("1:default"));
+					output.equals("1:default:default:default"));
 			}
 		}
 	}
@@ -622,7 +622,7 @@ public class RunnerTestGeneric {
 		bw.write("cat " + targetFile + System.lineSeparator());
 		bw.flush();
 		String output = br.readLine();
-		assertEquals(output, "java -cp C2Commander.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+		assertEquals(output, "java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
 		output = br.readLine();
 		if (config.lang.equals("Native") && config.os != TestConfiguration.OS.LINUX) {
 			assertTrue(output.startsWith("C:\\"));
@@ -637,9 +637,9 @@ public class RunnerTestGeneric {
 			bw.flush();
 			output = br.readLine();
 			if (config.os == TestConfiguration.OS.LINUX && config.lang.equals("Native")) {
-				assertEquals(output, "     1\tjava -cp C2Commander.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+				assertEquals(output, "     1\tjava -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
 			} else {
-				assertEquals(output, "1: java -cp C2Commander.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+				assertEquals(output, "1: java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
 			}
 			output = br.readLine();
 			assertEquals(output, "");
