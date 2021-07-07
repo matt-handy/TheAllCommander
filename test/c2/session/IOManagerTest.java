@@ -34,7 +34,7 @@ class IOManagerTest {
 		try {
 			IOManager ioManager = new IOManager(Paths.get("test", "log"), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 			
-			int id = ioManager.addSession("fake:fake:fake", "fake", "fake", "fake");
+			int id = ioManager.addSession("fake", "fake", "fake");
 
 			assertEquals(id, 2);
 			assertEquals(ioManager.getSessionId("fake:fake:fake"), 2);
@@ -51,7 +51,7 @@ class IOManagerTest {
 			
 			assertEquals(ioManager.pollIO(id), null);
 			
-			id = ioManager.addSession("afake:afake:afake", "afake", "afake", "afake");
+			id = ioManager.addSession("afake", "afake", "afake");
 			assertEquals(id, 3);
 			assertEquals(ioManager.getSessionId("afake:afake:afake"), 3);
 			
@@ -84,7 +84,7 @@ class IOManagerTest {
 			ioManager.sendIO(3, "Stuff");
 		});
 
-		int id = ioManager.addSession("fake:otherfake:moarfake", "fake", "otherfake", "moarfake");
+		int id = ioManager.addSession("fake", "otherfake", "moarfake");
 		assertEquals(id, 2);
 
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {

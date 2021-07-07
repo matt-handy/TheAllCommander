@@ -27,6 +27,14 @@ public class KeyloggerProcessor {
 		writers.clear();
 	}
 
+	/**
+	* C2Interface instances use this method to write entries in a keylogger registry. They are free to define UID in any
+	* manner desired. 
+	*
+	* @param  UID  A C2Interface defined field. It can be anything, as long as the C2Interface is internally consistent
+	* @param  entry The information captured from the keylogger
+	* @return  returns true if the entry was written to disk, false otherwise
+	*/
 	public boolean writeEntry(String UID, String entry) {
 		try {
 			FileWriter fw;

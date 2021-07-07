@@ -221,7 +221,7 @@ class WindowsRDPStandalone {
 			CommandLoader cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
 			io = new IOManager(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH)), cl);
 
-			sessionId = io.addSession("UID", "noone", "testHost", "protocol");
+			sessionId = io.addSession("noone", "testHost", "protocol");
 		} catch (IOException ex) {
 			System.out.println("Unable to load config file");
 		}
@@ -245,7 +245,7 @@ class WindowsRDPStandalone {
 
 	@Test
 	void testValidateClientsideChiselDeployed() {
-		int id = io.addSession("user:host", "user", "host", "protocol");
+		int id = io.addSession("user", "host", "protocol");
 		
 		//Flush the command buffer
 		String cmd = io.pollCommand(id);
@@ -379,7 +379,7 @@ class WindowsRDPStandalone {
 
 	@Test
 	void testEnableRDP() {
-		int id = io.addSession("user:host", "user", "host", "protocol");
+		int id = io.addSession("user", "host", "protocol");
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		ClientResponseEmulator em = new ClientResponseEmulator(io, id, true, true);
 		exec.submit(em);
@@ -428,7 +428,7 @@ class WindowsRDPStandalone {
 	
 	@Test
 	void testServersideChiselStart() {
-		int id = io.addSession("user:host", "user", "host", "protocol");
+		int id = io.addSession("user", "host", "protocol");
 		
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		ClientResponseEmulator em = new ClientResponseEmulator(io, id, true, true);

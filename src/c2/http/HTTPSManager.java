@@ -326,7 +326,7 @@ class ScreenshotHandler implements HttpHandler {
         		String sessionUID = hostname+":"+username+":"+protocol;
         		sessionId = io.getSessionId(sessionUID);
         		if(sessionId == null) {
-        			sessionId = io.addSession(sessionUID, username, hostname, protocol);
+        			sessionId = io.addSession(username, hostname, protocol);
         		}
         	}
         	

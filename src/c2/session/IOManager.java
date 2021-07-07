@@ -73,6 +73,13 @@ public class IOManager {
 		this.cl = cl;
 	}
 	
+	/**
+	* C2Interface implementations use these method to query the next command to be sent to connected daemons.
+	* The C2Interface is responsible for determining what the applicable sessionId is prior to invocation 
+	*
+	* @param sessionId The Id of the session to check for a command
+	* @return with a String containing the next command, or null if no commands are available
+	*/
 	public synchronized String pollCommand(int sessionId){
 		if(sessions.containsKey(sessionId)){
 			String command = sessions.get(sessionId).pollCommand(); 
@@ -82,6 +89,13 @@ public class IOManager {
 		}
 	}
 	
+	/**
+	* TheAllCommander and implementations of AbstractCommandMacro use this method to place a command in the queue
+	* for transmission to a client 
+	*
+	* @param sessionId The Id of the session
+	* @param command The command to be sent
+	*/
 	public synchronized void sendCommand(int sessionId, String command){
 		if(sessions.containsKey(sessionId)){
 			Session session = sessions.get(sessionId);
@@ -97,6 +111,15 @@ public class IOManager {
 		}
 	}
 	
+	/**
+	* TheAllCommander and AbstractCommandMacro implementations use these method to query for responses received from 
+	* a client. The general concept is that sendCommand is invoked, and then pollIO is checked to see if a response
+	* has been received. The call is non-blocking, and the AbstractCommandMacro is free to wait as long or little as
+	* necessary before inferring silence as an outcome. 
+	*
+	* @param sessionId The Id of the session to check for a response
+	* @return with a String containing the next IO, or null if no commands are available
+	*/
 	public synchronized String pollIO(int sessionId){
 		if(sessions.containsKey(sessionId)){
 			return sessions.get(sessionId).pollIO();
@@ -105,12 +128,19 @@ public class IOManager {
 		}
 	}
 	
-	public synchronized void sendIO(int sessionId, String command){
+	/**
+	* C2Interface implementations use this method to send a response back to the commanding session.
+	* The C2Interface is responsible for determining what the applicable sessionId is prior to invocation 
+	*
+	* @param sessionId The Id of the session to check for a command
+	* @param response the response message to be sent
+	*/
+	public synchronized void sendIO(int sessionId, String response){
 		if(sessions.containsKey(sessionId)){
 			Session session = sessions.get(sessionId);
-			session.sendIO(command);
+			session.sendIO(response);
 			try {
-				writeReceivedIO(command, session);
+				writeReceivedIO(response, session);
 			} catch (Exception e) {
 				System.out.println("Can't write to log file");
 				e.printStackTrace();
@@ -124,10 +154,18 @@ public class IOManager {
 		return new HashSet<Session>(sessions.values());
 	}
 	
-	//Available sessions are added by HTTPS Listener
-	public synchronized int addSession(String uid, String username, String hostname, String protocol){
+	/**
+	* C2Interface implementations use this method to add a new session and retrieve a session ID
+	* that can be used for further communication with the class. 
+	*
+	* @param username The username of the connecting session
+	* @param hostname The hostname of the connecting session
+	* @param protocol The protocol of the connecting session
+	* @return an int representing the registered session ID.
+	*/
+	public synchronized int addSession(String username, String hostname, String protocol){
 		for(Session session : sessions.values()) {
-			if(session.uid.contentEquals(uid)) {
+			if(session.uid.contentEquals(hostname + ":" + username + ":" + protocol)) {
 				throw new IllegalArgumentException("Session Id Already Exists");
 			}
 		}
@@ -173,10 +211,23 @@ public class IOManager {
 		return sessions.get(id);
 	}
 	
+	/**
+	* C2Interface implementations can use this method to de-register a session ID if a client will not be 
+	* connecting again under the same session 
+	*
+	* @param sessionId The sessionID to remove
+	*/
 	public synchronized void removeSession(int sessionId){
 		sessions.remove(sessionId);
 	}
 	
+	/**
+	* Command macro implementations can use this method to return all IO that has been sent from the connected client 
+	* in a single String 
+	*
+	* @param sessionId The sessionID to query
+	* @return The assembled sum of all return IO.
+	*/
 	public String readAllMultilineCommands(int sessionId) {
 		String nextIo = pollIO(sessionId);
 		StringBuilder sb = new StringBuilder();
@@ -188,6 +239,13 @@ public class IOManager {
 		return sb.toString();
 	}
 	
+	/**
+	* Command macro implementations can use this method wait up to the configurable Max Response Wait interval
+	* for input from the client 
+	*
+	* @param sessionId The sessionID to query
+	* @return The assembled sum of all return IO.
+	*/
 	public String awaitMultilineCommands(int sessionId) {
 		String nextIo = readAllMultilineCommands(sessionId);
 		int counter = 0;

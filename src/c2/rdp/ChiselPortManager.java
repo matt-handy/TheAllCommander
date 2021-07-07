@@ -14,9 +14,9 @@ import java.util.Set;
  * new session, or removed session, it will save the configuration file.
  * 
  * The file has the format:
- * Client Session ID: <Client session ID>
- * Server forward port: <int> //This is the locally bound port for the RDP client
- * Server incoming port: <int> //This is the open port to which the client will connect
+ * Client Session ID: String based client session ID
+ * Server forward port: integer //This is the locally bound port for the RDP client
+ * Server incoming port: integer //This is the open port to which the client will connect
  *
  */
 public class ChiselPortManager {

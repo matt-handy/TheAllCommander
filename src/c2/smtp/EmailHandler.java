@@ -203,7 +203,7 @@ public class EmailHandler extends C2Interface {
 				} else {
 					Integer sessionId = io.getSessionId(sessionUID);
 					if (sessionId == null) {
-						sessionId = io.addSession(sessionUID, username, hostname, protocol);
+						sessionId = io.addSession(username, hostname, protocol);
 						sessionToEmails.put(sessionUID, nextEmail.sender);
 					}
 					io.sendIO(sessionId, nextEmail.body);
