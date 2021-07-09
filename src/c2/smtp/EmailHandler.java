@@ -217,6 +217,7 @@ public class EmailHandler extends C2Interface {
 	}
 
 	public boolean sendEmail(String subject, String txtMessage, String address) {
+		//System.out.println("Sending an email: " + subject + " - " + txtMessage + " address - " + address);
 		try {
 			// create a MimeMessage object
 			Message message = new MimeMessage(session);

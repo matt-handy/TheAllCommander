@@ -78,6 +78,9 @@ public class SessionHandler implements Runnable {
 						stayAlive = false;
 						socket.close();
 					}else{
+						//if(!latestOutput.endsWith("\n") && !latestOutput.endsWith("\r")) {
+						//	latestOutput += System.lineSeparator();
+						//}
 						bw.write(latestOutput);
 						bw.flush();
 					}

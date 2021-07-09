@@ -118,49 +118,53 @@ public class RunnerTestGeneric {
 		assertTrue(output.startsWith(SessionHandler.NEW_SESSION_BANNER));
 
 	}
-	
-	public static void validateTwoSessionBanner(Socket remote, OutputStreamWriter bw, BufferedReader br, boolean isLinux, int baseIndex, boolean isRemote) throws IOException {
+
+	public static void validateTwoSessionBanner(Socket remote, OutputStreamWriter bw, BufferedReader br,
+			boolean isLinux, int baseIndex, boolean isRemote) throws IOException {
 		String output = br.readLine();
 		assertEquals(output, SessionInitiator.AVAILABLE_SESSION_BANNER);
 		output = br.readLine();
 		System.out.println(output);
 		if (isLinux) {
-			assertTrue(output.contains(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX)
-					|| output.equals("1:default:default:default"));
+			assertTrue(
+					output.contains(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX)
+							|| output.equals("1:default:default:default"));
 		} else {
-			if(isRemote) {
-				assertTrue(output.contains(baseIndex + ":")
-						|| output.equals("1:default:default:default"));
-			}else {
-			assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
-					|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
-					output.equals("1:default:default:default"));
+			if (isRemote) {
+				assertTrue(output.contains(baseIndex + ":") || output.equals("1:default:default:default"));
+			} else {
+				assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
+						|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++
+																														// Daemon
+						output.equals("1:default:default:default"));
 			}
 		}
 		System.out.println("Reading second session id...");
 		output = br.readLine();
 		System.out.println(output);
 		if (isLinux) {
-			assertTrue(output.contains(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX)
-					|| output.equals("1:default:default:default"));
+			assertTrue(
+					output.contains(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX)
+							|| output.equals("1:default:default:default"));
 		} else {
-			if(isRemote) {
-				assertTrue(output.contains(baseIndex + ":")
-						|| output.equals("1:default:default:default"));
-			}else {
-			assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
-					|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
-					output.equals("1:default:default:default"));
+			if (isRemote) {
+				assertTrue(output.contains(baseIndex + ":") || output.equals("1:default:default:default"));
+			} else {
+				assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
+						|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++
+																														// Daemon
+						output.equals("1:default:default:default"));
 			}
 		}
 	}
 
-	public static void connectionSetupGeneric(Socket remote, OutputStreamWriter bw, BufferedReader br, boolean isLinux, boolean isRemote)
-			throws Exception {
+	public static void connectionSetupGeneric(Socket remote, OutputStreamWriter bw, BufferedReader br, boolean isLinux,
+			boolean isRemote) throws Exception {
 		connectionSetupGeneric(remote, bw, br, isLinux, 2, isRemote);
 	}
-	
-	public static void connectionSetupGeneric(Socket remote, OutputStreamWriter bw, BufferedReader br, boolean isLinux, int baseIndex, boolean isRemote) throws IOException {
+
+	public static void connectionSetupGeneric(Socket remote, OutputStreamWriter bw, BufferedReader br, boolean isLinux,
+			int baseIndex, boolean isRemote) throws IOException {
 		validateTwoSessionBanner(remote, bw, br, isLinux, baseIndex, isRemote);
 
 		bw.write(baseIndex + System.lineSeparator());
@@ -229,10 +233,10 @@ public class RunnerTestGeneric {
 		assertTrue(output.contains("<DIR>          ."));
 		output = br.readLine();
 		assertTrue(output.contains("<DIR>          .."));
-		//Sub out the hidden elements
+		// Sub out the hidden elements
 		for (int idx = 0; idx < getFilesInFolder(TestConstants.TEST_EXECUTION_ROOT) - 2; idx++)
 			br.readLine();
-		
+
 		output = br.readLine();
 		if (!output.contains("bytes")) {
 			output = br.readLine();
@@ -332,41 +336,43 @@ public class RunnerTestGeneric {
 			bw.flush();
 
 			String output = br.readLine();
+			// System.out.println("Username: " + output);
 			if (config.os == TestConfiguration.OS.LINUX) {
 				assertEquals("Username: " + TestConstants.USERNAME_LINUX, output);
 			} else {
-				if(config.isRemote()) {
+				if (config.isRemote()) {
 					assertTrue(output.startsWith("Username: "));
-				}else {
+				} else {
 					assertEquals("Username: " + System.getProperty("user.name"), output);
 				}
 			}
 			output = br.readLine();
-
+			// System.out.println("Home Dir: " + output);
 			if (config.lang.equals("C++")) {
 				assertEquals(output, "Home Directory: Not supported");
 			} else {
 				if (config.os == TestConfiguration.OS.LINUX) {
 					assertEquals(output, "Home Directory: /home/" + TestConstants.USERNAME_LINUX);
 				} else {
-					if(config.isRemote()) {
+					if (config.isRemote()) {
 						assertTrue(output.startsWith("Home Directory: C:\\Users\\"));
-					}else {
+					} else {
 						assertEquals(output, "Home Directory: " + System.getProperty("user.home"));
 					}
 				}
 			}
 			output = br.readLine();
+			// System.out.println("Hostname: " + output);
 			if (config.os == TestConfiguration.OS.LINUX) {
 				assertEquals(output, "Hostname: " + TestConstants.HOSTNAME_LINUX);
 			} else {
 				if (config.lang.equals("C++")) {
 					assertEquals(output, "Hostname: " + InetAddress.getLocalHost().getHostName().toUpperCase());
 				} else {
-					if(config.isRemote()) {
+					if (config.isRemote()) {
 						assertTrue(output.startsWith("Hostname: "));
-					}else {
-					assertEquals(output, "Hostname: " + InetAddress.getLocalHost().getHostName());
+					} else {
+						assertEquals(output, "Hostname: " + InetAddress.getLocalHost().getHostName());
 					}
 				}
 			}
@@ -381,22 +387,28 @@ public class RunnerTestGeneric {
 				assertEquals(output, TestConstants.EXECUTIONROOT_LINUX);
 				// testdir
 			} else if (config.lang.equals("Native")) {
-				if(config.isRemote()) {
+				if (config.isRemote()) {
 					assertTrue(output.startsWith("C:\\Users\\"));
-				}else {
+				} else {
 					assertEquals(output, TestConstants.TEST_EXECUTION_ROOT);
 				}
 			} else {
 				if (config.isExecInRoot()) {
 					assertEquals(output, TestConstants.TEST_EXECUTION_ROOT);
+					System.out.println("dir test");
 					testRootDirEnum(br, bw);
 				} else {
-					assertEquals(output,
-							TestConstants.TEST_EXECUTION_ROOT + "\\localAgent\\csc");
+					assertEquals(output, TestConstants.TEST_EXECUTION_ROOT + "\\localAgent\\csc");
+					System.out.println("dir test");
 					testCscDirEnum(br, bw);
 				}
 			}
 
+			if(config.lang.equals("python") && config.protocol.equals("SMTP")) {
+				System.out.println("Flushing");
+				br.readLine();//Flush a bad line feed
+			}
+			
 			System.out.println("uplink test");
 			if (config.os == TestConfiguration.OS.LINUX) {
 				bw.write("uplink test_uplink" + System.lineSeparator());
@@ -412,18 +424,18 @@ public class RunnerTestGeneric {
 				}
 				bw.flush();
 				output = br.readLine();
-				if(config.lang.equals("C++")) {
+				if (config.lang.equals("C++")) {
 					assertEquals(output,
 							"<control> uplinked test\\default_commands OmFsbA0KcHdkDQo6dXNlci1tYXR0ZQ0KY2QgLi4NCnB3ZA0KOmhvc3QtR0xBTURSSU5HDQpwd2QNCmNkIC4NCnB3ZA==");
-				}else {
-				assertEquals(output,
-						"<control> uplinked default_commands OmFsbA0KcHdkDQo6dXNlci1tYXR0ZQ0KY2QgLi4NCnB3ZA0KOmhvc3QtR0xBTURSSU5HDQpwd2QNCmNkIC4NCnB3ZA==");
+				} else {
+					assertEquals(output,
+							"<control> uplinked default_commands OmFsbA0KcHdkDQo6dXNlci1tYXR0ZQ0KY2QgLi4NCnB3ZA0KOmhvc3QtR0xBTURSSU5HDQpwd2QNCmNkIC4NCnB3ZA==");
 				}
 			}
 
 			if (config.os != TestConfiguration.OS.LINUX) {
 				System.out.println("Testing download");
-				
+
 				byte[] fileBytes = Files.readAllBytes(Paths.get("test\\default_commands"));
 				byte[] encoded = Base64.getEncoder().encode(fileBytes);
 				String encodedString = new String(encoded, StandardCharsets.US_ASCII);
@@ -436,16 +448,17 @@ public class RunnerTestGeneric {
 				output = br.readLine();
 				assertEquals(output, "File written: default_commands");
 
-				if(config.isRemote()) {
+				if (config.isRemote()) {
 					bw.write("uplink msbuild.txt" + System.lineSeparator());
 					bw.flush();
 					output = br.readLine();
-					assertEquals(output, "<control> uplinked msbuild.txt PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+");
+					assertEquals(output,
+							"<control> uplinked msbuild.txt PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+");
 					bw.write("del msbuild.txt" + System.lineSeparator());
 					bw.flush();
-					output = br.readLine();//Blank line
-					output = br.readLine();//Prompt
-				}else {
+					output = br.readLine();// Blank line
+					output = br.readLine();// Prompt
+				} else {
 					assertTrue(Files.exists(Paths.get("default_commands")));
 					byte[] newFileBytes = Files.readAllBytes(Paths.get("default_commands"));
 					assertEquals(newFileBytes.length, fileBytes.length);
@@ -453,7 +466,7 @@ public class RunnerTestGeneric {
 						assertEquals(fileBytes[idx], newFileBytes[idx]);
 					}
 					Files.delete(Paths.get("default_commands"));
-				}	
+				}
 			} else if (config.os == TestConfiguration.OS.LINUX) {
 				System.out.println("Download test executing");
 				byte[] fileBytes = Files.readAllBytes(Paths.get("execCentral.bat"));
@@ -476,7 +489,8 @@ public class RunnerTestGeneric {
 						"<control> uplinked execCentral.bat amF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVz");
 			}
 
-			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++") || config.lang.equals("python")) && config.os != TestConfiguration.OS.LINUX) {
+			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
+					|| config.lang.equals("python")) && config.os != TestConfiguration.OS.LINUX) {
 				System.out.println("Screenshot test");
 				bw.write("screenshot" + System.lineSeparator());
 				bw.flush();
@@ -561,54 +575,56 @@ public class RunnerTestGeneric {
 		}
 	}
 
-	static void testClipboard(BufferedReader br, OutputStreamWriter bw, String lang, boolean isRemote) throws IOException {
+	static void testClipboard(BufferedReader br, OutputStreamWriter bw, String lang, boolean isRemote)
+			throws IOException {
 		System.out.println("Testing clipboard");
 		bw.write("clipboard" + System.lineSeparator());
 		bw.flush();
 		String output = br.readLine();
 		assertEquals(output, "Clipboard captured");
 
-		if(!isRemote) {//TODO: In project for remote test mgmt daemon, get hostname and add to cleanup here
-		File dir = new File("test");
+		if (!isRemote) {// TODO: In project for remote test mgmt daemon, get hostname and add to cleanup
+						// here
+			File dir = new File("test");
 
-		File[] matches = dir.listFiles(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				String hostname;
-				try {
-					hostname = InetAddress.getLocalHost().getHostName();
-					if (lang.equals("C++")) {
-						hostname = hostname.toUpperCase();
+			File[] matches = dir.listFiles(new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					String hostname;
+					try {
+						hostname = InetAddress.getLocalHost().getHostName();
+						if (lang.equals("C++")) {
+							hostname = hostname.toUpperCase();
+						}
+						// The file name will be hostname-pid to start
+						if (lang.equalsIgnoreCase("Native")) {
+							return name.startsWith(hostname);
+						} else {
+							return name.startsWith(hostname) && name.matches(".*\\d.*");
+						}
+					} catch (UnknownHostException e) {
+						return false;
 					}
-					// The file name will be hostname-pid to start
-					if (lang.equalsIgnoreCase("Native")) {
-						return name.startsWith(hostname);
-					} else {
-						return name.startsWith(hostname) && name.matches(".*\\d.*");
-					}
-				} catch (UnknownHostException e) {
-					return false;
 				}
-			}
-		});
-		assertTrue(matches.length > 0);
-		File[] clipboard = matches[0].listFiles(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				return name.startsWith("Clipboard");
-			}
-		});
-		assertEquals(clipboard.length, 1);
+			});
+			assertTrue(matches.length > 0);
+			File[] clipboard = matches[0].listFiles(new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					return name.startsWith("Clipboard");
+				}
+			});
+			assertEquals(clipboard.length, 1);
 
-		try {
-			Files.walk(matches[0].toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-		} catch (IOException e2) {
-			e2.printStackTrace();
-			fail("Cannot clean up harvester");
-		}
+			try {
+				Files.walk(matches[0].toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile)
+						.forEach(File::delete);
+			} catch (IOException e2) {
+				e2.printStackTrace();
+				fail("Cannot clean up harvester");
+			}
 		}
 	}
 
-	static void testCat(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
-			throws IOException {
+	static void testCat(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
 		// Test simple CAT reading a file
 		System.out.println("General cat test - reading file");
 		String targetFileRoot = "execCentral.bat";
@@ -622,7 +638,9 @@ public class RunnerTestGeneric {
 		bw.write("cat " + targetFile + System.lineSeparator());
 		bw.flush();
 		String output = br.readLine();
-		assertEquals(output, "java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+		assertEquals(output,
+				"java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+		System.out.println("reading flush");
 		output = br.readLine();
 		if (config.lang.equals("Native") && config.os != TestConfiguration.OS.LINUX) {
 			assertTrue(output.startsWith("C:\\"));
@@ -637,9 +655,11 @@ public class RunnerTestGeneric {
 			bw.flush();
 			output = br.readLine();
 			if (config.os == TestConfiguration.OS.LINUX && config.lang.equals("Native")) {
-				assertEquals(output, "     1\tjava -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+				assertEquals(output,
+						"     1\tjava -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
 			} else {
-				assertEquals(output, "1: java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+				assertEquals(output,
+						"1: java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
 			}
 			output = br.readLine();
 			assertEquals(output, "");
@@ -692,12 +712,12 @@ public class RunnerTestGeneric {
 				assertEquals(output, "");
 				if (config.lang.equals("Native")) {
 					output = br.readLine();
-					if(config.isRemote()) {
+					if (config.isRemote()) {
 						assertTrue(output.startsWith("C:\\Users\\"));
-					}else {
+					} else {
 						assertEquals(output, "");
 					}
-					
+
 				}
 			}
 
@@ -762,15 +782,15 @@ public class RunnerTestGeneric {
 				assertEquals(output, "");
 				// output = br.readLine();
 				// assertEquals(output, "");
-				
-				if(config.os != TestConfiguration.OS.LINUX) {
+
+				if (config.os != TestConfiguration.OS.LINUX) {
 					bw.write("del newFile.txt" + System.lineSeparator());
 					bw.flush();
 					output = br.readLine();
 					assertTrue(output.startsWith("C:\\Users\\"));
-					output = br.readLine();//newline flush
-					output = br.readLine();//prompt flush
-				}else {
+					output = br.readLine();// newline flush
+					output = br.readLine();// prompt flush
+				} else {
 					bw.write("rm newFile.txt" + System.lineSeparator());
 					bw.flush();
 					output = br.readLine();

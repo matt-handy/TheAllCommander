@@ -15,6 +15,7 @@ public class RunnerTestPython extends ClientServerTest {
 	void testLocal() {
 		testHTTPS();
 		testDNS();
+		testEmail();
 	}
 	
 	public static void testHTTPS() {
@@ -34,6 +35,17 @@ public class RunnerTestPython extends ClientServerTest {
 		spawnClient(clientCmd);
 		
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "DNS");
+		RunnerTestGeneric.test(testConfig);
+		
+		teardown();
+	}
+	
+	public static void testEmail() {
+		initiateServer();
+		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "emailAgent.py\"";
+		spawnClient(clientCmd);
+		
+		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "SMTP");
 		RunnerTestGeneric.test(testConfig);
 		
 		teardown();
