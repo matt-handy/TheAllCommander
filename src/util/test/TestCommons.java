@@ -54,7 +54,8 @@ public class TestCommons {
 			}
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			//Don't worry about it
+			//ex.printStackTrace();
 		}
 
 		cleanupKeylogger();

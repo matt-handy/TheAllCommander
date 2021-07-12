@@ -121,7 +121,7 @@ public class RunnerTestDaemonHarvestCookiesNative {
 
 			System.out.println("Testing nominal all cookies");
 			// Check that the cookies are in local storage
-			Time.sleepWrapped(40000);
+			Time.sleepWrapped(75000);
 			
 			assertTrue(Files.exists(Paths.get(firefoxAssets)));
 			assertTrue(Files.exists(Paths.get(firefoxKeysDb)));
@@ -190,7 +190,7 @@ public class RunnerTestDaemonHarvestCookiesNative {
 			Files.deleteIfExists(Paths.get(realChromeCookies));
 			bw.write(CommandMacroManager.HARVEST_COOKIES_CMD + System.lineSeparator());
 			bw.flush();
-			Time.sleepWrapped(45000);
+			Time.sleepWrapped(75000);
 			// Check that the cookies are in local storage
 			
 			assertTrue(Files.exists(Paths.get(firefoxAssets)));

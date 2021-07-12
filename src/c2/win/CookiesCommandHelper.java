@@ -144,9 +144,11 @@ public class CookiesCommandHelper {
 		
 		String dirResponse = io.readAllMultilineCommands(sessionId);
 		int counter = 0;
+		//System.out.println("Response: " + dirResponse.length());
 		while(dirResponse.length() == 0 && counter < Constants.getConstants().getMaxResponseWait()) {
 			Time.sleepWrapped(Constants.getConstants().getRepollForResponseInterval());
 			dirResponse = io.readAllMultilineCommands(sessionId);
+			//System.out.println("Repoll Response: " + dirResponse.length());
 			counter += Constants.getConstants().getRepollForResponseInterval();
 		}
 		dirResponse = dirResponse.replaceAll("\n", "").replaceAll("\r", "");

@@ -68,7 +68,7 @@ public class RunnerTestGeneric {
 			if (lang.equals("C++")) {
 				hostname = hostname.toUpperCase();
 			}
-			Path path = Paths.get("test", hostname);
+			Path path = Paths.get("test", hostname + "-screen");
 			if (Files.exists(path)) {
 				Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 			}
@@ -424,7 +424,7 @@ public class RunnerTestGeneric {
 				}
 				bw.flush();
 				output = br.readLine();
-				if (config.lang.equals("C++")) {
+				if (config.lang.equals("C++") || config.lang.equals("Native")) {
 					assertEquals(output,
 							"<control> uplinked test\\default_commands OmFsbA0KcHdkDQo6dXNlci1tYXR0ZQ0KY2QgLi4NCnB3ZA0KOmhvc3QtR0xBTURSSU5HDQpwd2QNCmNkIC4NCnB3ZA==");
 				} else {
@@ -486,7 +486,7 @@ public class RunnerTestGeneric {
 				bw.flush();
 				output = br.readLine();
 				assertEquals(output,
-						"<control> uplinked execCentral.bat amF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVz");
+						"<control> uplinked execCentral.bat amF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2dzb24tMi44LjcuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVz");
 			}
 
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
@@ -851,7 +851,7 @@ public class RunnerTestGeneric {
 			bw.flush();
 			output = br.readLine();
 			assertEquals(output,
-					"<control> uplinked execCentral.bat.tmp amF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVzamF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVz");
+					"<control> uplinked execCentral.bat.tmp amF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2dzb24tMi44LjcuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVzamF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2dzb24tMi44LjcuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVz");
 			bw.write("rm execCentral.bat.tmp" + System.lineSeparator());
 			bw.flush();
 		} else {

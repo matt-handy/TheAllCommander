@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import c2.nativeshell.RunnerTestNativeLinuxDaemon;
 import c2.nativeshell.RunnerTestNativeWindowsDaemon;
+import c2.python.RunnerTestKeyloggerDNS;
+import c2.python.RunnerTestKeyloggerEmail;
+import c2.python.RunnerTestKeyloggerHTTPS;
 import c2.python.RunnerTestPython;
 import c2.smtp.EmailHandlerTester;
 import c2.udp.UDPServerTest;
@@ -32,6 +35,11 @@ class MasterLinearTest {
 		UDPServerTest.test();
 		EmailHandlerTester.test();
 		
+		//Test Keyloggers
+		RunnerTestKeyloggerHTTPS.test();
+		RunnerTestKeyloggerDNS.test();
+		RunnerTestKeyloggerEmail.test();
+		
 		//Testing Linux
 		System.out.println("Testing Linux Native Shell");
 		RunnerTestNativeLinuxDaemon.test();
@@ -44,6 +52,7 @@ class MasterLinearTest {
 		System.out.println("Testing Python");
 		RunnerTestPython.testHTTPS();
 		RunnerTestPython.testDNS();
+		RunnerTestPython.testEmail();
 		
 		//Macro command execution tests
 		try {

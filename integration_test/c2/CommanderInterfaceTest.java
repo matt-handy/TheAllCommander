@@ -57,7 +57,7 @@ class CommanderInterfaceTest extends ClientServerTest {
 			String output = br.readLine();
 			assertEquals(output, SessionInitiator.AVAILABLE_SESSION_BANNER);
 			output = br.readLine();
-			assertEquals(output, "1:default");
+			assertEquals(output, "1:default:default:default");
 			bw.write("2" + System.lineSeparator());
 			bw.flush();
 			output = br.readLine();
