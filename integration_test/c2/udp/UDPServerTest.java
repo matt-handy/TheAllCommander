@@ -42,9 +42,8 @@ public class UDPServerTest extends ClientServerTest {
 
 			if(Boolean.parseBoolean(prop.getProperty(Constants.WIREENCRYPTTOGGLE))) {
 				System.out.println("Initializing with AES");
-				byte[] iv = Base64.getDecoder().decode(prop.getProperty(Constants.WIREENCRYPTIV));
 				byte[] key = Base64.getDecoder().decode(prop.getProperty(Constants.WIREENCRYPTKEY));
-				encryptor = new AESEncryptor(iv, key);
+				encryptor = new AESEncryptor(key);
 			}
 
 		} catch (IOException ex) {

