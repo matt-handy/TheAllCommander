@@ -257,4 +257,89 @@ public class IOManager {
 		return nextIo;
 	}
 	
+	/**
+	* This method is used by the user interface front end to queue traffic for transmission to the remote host for
+	* forwarding to the remote socket. 
+	*
+	* @param sessionId The sessionID to to send traffic
+	* @param forwardUrl The <ip>:<port> to which the base64Forward data should be sent
+	* @param base64Forward The traffic received from the local port, to be forwarded to the remote host
+	* @throws IllegalArgumentException in response to invalid sessionId
+	*/
+	public synchronized void forwardTCPTraffic(int sessionId, String forwardUrl, String base64Forward) {
+		if(sessions.containsKey(sessionId)){
+			sessions.get(sessionId).forwardTCPTraffic(forwardUrl, base64Forward); 
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
+	/**
+	* This method returns a set of all address:port forwards allocated to a session 
+	*
+	* @param sessionId The sessionID check for available forwards
+	* @return the set of available forward addresses
+	* @throws IllegalArgumentException in response to invalid sessionId
+	*/
+	public synchronized Set<String> availableForwards(int sessionId){
+		if(sessions.containsKey(sessionId)){
+			return sessions.get(sessionId).availableForwards(); 
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
+	/**
+	* This method is used by C2Interface implementations to pull forwarded TCP traffic which has been queued
+	* for transmission and forward it.  
+	*
+	* @param sessionId The sessionID to to receive traffic
+	* @param forwardUrl The <ip>:<port> to which the base64Forward data should be sent
+	* @return Base64 encoded information to be send to the remote client for forwarding
+	* @throws IllegalArgumentException in response to invalid sessionId
+	*/
+	public synchronized String grabForwardedTCPTraffic(int sessionId, String forwardUrl) {
+		if(sessions.containsKey(sessionId)){
+			String returnedPackets = sessions.get(sessionId).grabForwardedTCPTraffic(forwardUrl); 
+			return returnedPackets;
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
+	/**
+	* This method is used by the user interface front end to pull traffic which has been received from
+	* the remote port forward and sends it on to the client.   
+	*
+	* @param sessionId The sessionID to to receive traffic
+	* @param forwardUrl The <ip>:<port> to which the base64Forward data should be sent
+	* @return Base64 encoded information to be send to the local forwarded port
+	* @throws IllegalArgumentException in response to invalid sessionId
+	*/
+	public synchronized String receiveForwardedTCPTraffic(int sessionId, String forwardUrl) {
+		if(sessions.containsKey(sessionId)){
+			String returnedPackets = sessions.get(sessionId).receiveForwardedTCPTraffic(forwardUrl); 
+			return returnedPackets;
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
+	/**
+	* This method is used by C2Interface implementations to queue forwarded traffic received from the remote
+	* port forward daemon for transmission to the local forward port.
+	*
+	* @param sessionId The sessionID to to receive traffic
+	* @param forwardUrl The <ip>:<port> to which the base64Forward data should be sent
+	* @param Base64 encoded information to be send to the local client for forwarding
+	* @throws IllegalArgumentException in response to invalid sessionId
+	*/
+	public synchronized void queueForwardedTCPTraffic(int sessionId, String forwardUrl, String base64Forward) {
+		if(sessions.containsKey(sessionId)){
+			sessions.get(sessionId).queueForwardedTCPTraffic(forwardUrl, base64Forward); 
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
 }

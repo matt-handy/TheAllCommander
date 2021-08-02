@@ -18,13 +18,15 @@ public class SessionHandler implements Runnable {
 	private String sessionName;
 	private boolean stayAlive = true;
 	private CommandMacroManager cmm;
-
-	public SessionHandler(IOManager ioManager, Socket socket, int sessionId, String sessionName, CommandMacroManager cmm) {
+	private ServersideCommandPreprocessor preprocessor;
+	
+	public SessionHandler(IOManager ioManager, Socket socket, int sessionId, String sessionName, CommandMacroManager cmm, ServersideCommandPreprocessor preprocessor) {
 		this.ioManager = ioManager;
 		this.socket = socket;
 		this.sessionId = sessionId;
 		this.cmm = cmm;
 		this.sessionName = sessionName;
+		this.preprocessor = preprocessor;
 	}
 	
 	public void stop() {
@@ -43,6 +45,12 @@ public class SessionHandler implements Runnable {
 			while (!Thread.interrupted() && stayAlive) {
 				if(br.ready()) {
 					String command = br.readLine();
+					CommandPreprocessorOutcome outcome = preprocessor.processCommand(command, sessionId);
+					if(!outcome.outcome) {
+						bw.write(outcome.message + System.lineSeparator());
+						bw.flush();
+						continue;
+					}
 					if(Constants.DEBUG) {
 						System.out.println("Received command for session: " + sessionId + ": " + command);
 					}

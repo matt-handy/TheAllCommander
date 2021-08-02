@@ -47,6 +47,8 @@ public class Constants {
 	
 	public static final String NEWLINE = "\n";
 	
+	public static final String PORT_FORWARD_NO_DATA = "<No Data>";
+	
 	private Constants() {
 		
 	}

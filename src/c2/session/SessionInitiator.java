@@ -20,11 +20,14 @@ public class SessionInitiator implements Runnable {
 	private CountDownLatch stopLatch = new CountDownLatch(1);
 	private CommandMacroManager cmm;
 	
+	private ServersideCommandPreprocessor preprocessor;
+	
 	public SessionInitiator(SessionManager sessionManager, IOManager ioManager, int port, CommandMacroManager cmm) {
 		this.sessionManager = sessionManager;
 		this.ioManager = ioManager;
 		this.port = port;
 		this.cmm = cmm;
+		preprocessor = new ServersideCommandPreprocessor(ioManager);
 	}
 	
 	public void stop() {
@@ -86,7 +89,7 @@ public class SessionInitiator implements Runnable {
 							}
 						
 							if (sessionName != null) {
-								sessionManager.addSession(new SessionHandler(ioManager, newSession, sessionId, sessionName, cmm));
+								sessionManager.addSession(new SessionHandler(ioManager, newSession, sessionId, sessionName, cmm, preprocessor));
 							} else {
 								bw.write("Invalid Session id, bye-bye!");
 								newSession.close();

