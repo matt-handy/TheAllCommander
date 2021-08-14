@@ -43,14 +43,14 @@ public class Session {
 		returnString.offer(io);
 	}
 	
-	public void forwardTCPTraffic(String forwardUrl, String base64Forward) {
+	public synchronized void forwardTCPTraffic(String forwardUrl, String base64Forward) {
 		if(!portForwardOutboundQueues.containsKey(forwardUrl)) {
 			portForwardOutboundQueues.put(forwardUrl, new ConcurrentLinkedDeque<>());
 		}
 		portForwardOutboundQueues.get(forwardUrl).add(base64Forward);
 	}
 	
-	public String grabForwardedTCPTraffic(String forwardUrl) {
+	public synchronized String grabForwardedTCPTraffic(String forwardUrl) {
 		if(!portForwardOutboundQueues.containsKey(forwardUrl)) {
 			return null;
 		}else {
@@ -58,7 +58,7 @@ public class Session {
 		}
 	}
 	
-	public String receiveForwardedTCPTraffic(String forwardUrl) {
+	public synchronized String receiveForwardedTCPTraffic(String forwardUrl) {
 		if(!portForwardInboundQueues.containsKey(forwardUrl)) {
 			return null;
 		}else {
@@ -66,10 +66,11 @@ public class Session {
 		}
 	}
 	
-	public void queueForwardedTCPTraffic(String forwardUrl, String base64Forward) {
+	public synchronized void queueForwardedTCPTraffic(String forwardUrl, String base64Forward) {
 		if(!portForwardInboundQueues.containsKey(forwardUrl)) {
 			portForwardInboundQueues.put(forwardUrl, new ConcurrentLinkedDeque<>());
 		}
+		System.out.println("Placing in queue");
 		portForwardInboundQueues.get(forwardUrl).add(base64Forward);
 	}
 	

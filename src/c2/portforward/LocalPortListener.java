@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -37,26 +38,34 @@ public class LocalPortListener implements Runnable {
 		ReturnLooper returnlooper = null;
 		OutwardLooper outwardLooper = null;
 		while (stayAlive) {
-			if (needNewConnection) {
-				if (acceptNewConnection()) {
-					needNewConnection = false;
-					if (outwardLooper == null) {
-						outwardLooper = new OutwardLooper();
-						service.submit(outwardLooper);
-					}
-					if (returnlooper == null) {
-						returnlooper = new ReturnLooper();
-						System.out.println("Submitting looper");
-						service.submit(returnlooper);
-					}
+			// We're going to keep listening for an incoming connection, and will allow a
+			// new connection
+			// to supersede prior ones
+			if (acceptNewConnection()) {
+				needNewConnection = false;
+				if (outwardLooper != null) {
+					outwardLooper.kill();
+
 				}
-			} else {
-				Time.sleepWrapped(100);
+				
+				if (returnlooper != null) {
+					returnlooper.kill();
+				}
+				try {
+					outwardLooper = new OutwardLooper(newSession.getInputStream());
+					returnlooper = new ReturnLooper(newSession.getOutputStream());
+					System.out.println("Submitting looper");
+					service.submit(outwardLooper);
+					service.submit(returnlooper);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
 			}
 
 		}
 	}
-	
+
 	public void kill() {
 		stayAlive = false;
 	}
@@ -85,59 +94,101 @@ public class LocalPortListener implements Runnable {
 	}
 
 	private class OutwardLooper implements Runnable {
+		private boolean die = false;
+		private CountDownLatch deathLatch = new CountDownLatch(1);
+		private InputStream inputStream;
+		
+		public OutwardLooper(InputStream inputStream) {
+			this.inputStream = inputStream;
+		}
+		
 		public void run() {
 			System.out.println("Running forward");
-			InputStream inputStream = null;
-			while (stayAlive) {
+			try {
+				while (stayAlive && !die) {
 
-				try {
-					if (inputStream == null) {
-						inputStream = newSession.getInputStream();
-					}
 					byte[] reply = new byte[100000];
 					int bytesRead;
 					if (-1 != (bytesRead = inputStream.read(reply))) {
 						String base64Forward = Base64.getEncoder().encodeToString(Arrays.copyOf(reply, bytesRead));
-						System.out.println("Forwarding to " + remoteForwardAddr + " at " + sessionId);
+						System.out.println("Local forwarding to " + remoteForwardAddr + " at " + sessionId + " : " + base64Forward);
 						io.forwardTCPTraffic(sessionId, remoteForwardAddr, base64Forward);
+						System.out.println("Local forwarded to " + remoteForwardAddr + " at " + sessionId + " : " + base64Forward);
 					}
 					Time.sleepWrapped(1);
-				} catch (IOException ex) {
-					needNewConnection = true;
-					inputStream = null;
-				}
-			}
 
+				}
+			} catch (IOException ex) {
+				System.out.println("Exception!!!");
+				needNewConnection = true;
+				inputStream = null;
+			}
+			deathLatch.countDown();
+			System.out.println("Forward loop closing");
+
+		}
+
+		public void kill() {
+			System.out.println("Forward looper die");
+			die = true;
+			try {
+				deathLatch.await();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
 	private class ReturnLooper implements Runnable {
+		private boolean die = false;
+		private OutputStream outputStream;
+		private CountDownLatch deathLatch = new CountDownLatch(1);
+		
+		public ReturnLooper(OutputStream outputStream) {
+			this.outputStream = outputStream;
+		}
+
 		public void run() {
-			OutputStream outputStream = null;
+			
 
 			System.out.println("Running Return");
-			while (stayAlive) {
-				try {
-					if (outputStream == null) {
-						outputStream = newSession.getOutputStream();
-					}
-					
+			try {
+				while (stayAlive && !die) {
+
+					//System.out.println("Checking: " + sessionId + " " + remoteForwardAddr);
 					String response = io.receiveForwardedTCPTraffic(sessionId, remoteForwardAddr);
+					//System.out.println("Returning: " + sessionId + " " + remoteForwardAddr);
 					if (response != null) {
 						System.out.println("Received: " + sessionId + " " + remoteForwardAddr);
+						System.out.println(response);
+						System.out.println("Received: " + sessionId + " " + remoteForwardAddr + " : " + response);
 						byte[] traffic = Base64.getDecoder().decode(response);
 						System.out.println("Writing");
 						outputStream.write(traffic);
 						outputStream.flush();
 						System.out.println("Written");
 					}
-					Time.sleepWrapped(10);
-				} catch (IOException ex) {
-					//Why no signal that the socket is bad? Only need to signal that once.
-					outputStream = null;
-				}
-			}
+					Time.sleepWrapped(100);
 
+				}
+			} catch (IOException ex) {
+				// Why no signal that the socket is bad? Only need to signal that once.
+				ex.printStackTrace();
+			}
+			deathLatch.countDown();
+			System.out.println("Return loop closing");
+		}
+
+		public void kill() {
+			System.out.println("Return looper die");
+			die = true;
+			try {
+				deathLatch.await();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 

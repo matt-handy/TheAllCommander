@@ -49,6 +49,7 @@ public class PortForwardHandler implements HttpHandler {
 				} else if (t.getRequestMethod().equals("POST")) {
 					byte[] data = t.getRequestBody().readAllBytes();
 					String b64Data = new String(data);
+					System.out.println("Queuing: " + sessionId + " : " + forwardRequest +  " : " + b64Data);
 					io.queueForwardedTCPTraffic(sessionId, forwardRequest, b64Data);
 				}
 				t.sendResponseHeaders(200, response.getBytes().length);

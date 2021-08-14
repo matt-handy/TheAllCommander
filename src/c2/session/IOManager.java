@@ -29,6 +29,8 @@ public class IOManager {
 	
 	private CommandLoader cl;
 	
+	private ServersideCommandPreprocessor preprocessor;
+	
 	private void writeReceivedIO(String io, Session session) throws Exception {
 		String message = "Received IO: '" + io + "'";
 		writeLog(message, session);
@@ -71,6 +73,11 @@ public class IOManager {
 		sessions.put(1, new Session(1, "default", "default", "default"));
 		this.logRoot = logRoot;
 		this.cl = cl;
+		this.preprocessor = new ServersideCommandPreprocessor(this);
+	}
+	
+	public ServersideCommandPreprocessor getCommandPreprocessor() {
+		return preprocessor;
 	}
 	
 	/**
@@ -98,6 +105,12 @@ public class IOManager {
 	*/
 	public synchronized void sendCommand(int sessionId, String command){
 		if(sessions.containsKey(sessionId)){
+			CommandPreprocessorOutcome outcome = preprocessor.processCommand(command, sessionId);
+			if(!outcome.outcome) {
+				sendIO(sessionId, outcome.message + System.lineSeparator());
+				return;
+			}
+			
 			Session session = sessions.get(sessionId);
 			session.sendCommand(command);
 			try {

@@ -24,22 +24,25 @@ import org.junit.jupiter.api.Test;
 
 import c2.Constants;
 import c2.RunnerTestGeneric;
+import c2.smtp.EmailHandlerTester;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.TestConfiguration;
 import util.test.TestConstants;
 
-class PythonPortForwardTest  extends ClientServerTest {
+public class PythonPortForwardTest  extends ClientServerTest {
 
 	public static final String INCOMING_TEST_STR = "This is an incoming transmission";
 	public static final String OUTGOING_TEST_STR = "This is an outgoing transmission";
 	
-	static class DummyRemoteService implements Runnable {
+	public static class DummyRemoteService implements Runnable {
 
 		final int port;
+		final int counter;
 
-		DummyRemoteService(int port) {
+		public DummyRemoteService(int port, int counter) {
 			this.port = port;
+			this.counter = counter;
 		}
 
 		@Override
@@ -50,11 +53,13 @@ class PythonPortForwardTest  extends ClientServerTest {
 				Socket incoming = ss.accept();
 				
 				byte[] incomingData = new byte[4096];
+				System.out.println("Dummy thread reading");
 				int bytesRead = incoming.getInputStream().read(incomingData);
+				System.out.println("Dummy thread read");
 				String dataFeed = new String(Arrays.copyOf(incomingData, bytesRead));
-				assertEquals(INCOMING_TEST_STR, dataFeed);
+				assertEquals(INCOMING_TEST_STR + counter, dataFeed);
 				
-				incoming.getOutputStream().write(OUTGOING_TEST_STR.getBytes());
+				incoming.getOutputStream().write((OUTGOING_TEST_STR + counter).getBytes());
 				incoming.getOutputStream().flush();
 				
 				incoming.close();
@@ -69,11 +74,12 @@ class PythonPortForwardTest  extends ClientServerTest {
 
 	@Test
 	void test() {
-		testLocal();
+		testHTTPS();
 		testDNS();
+		testEmail();
 	}
 
-	static void testLocal() {
+	public static void testHTTPS() {
 		initiateServer();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "httpsAgent.py\"";
 		spawnClient(clientCmd);
@@ -84,12 +90,24 @@ class PythonPortForwardTest  extends ClientServerTest {
 		teardown();
 	}
 	
-	static void testDNS() {
+	public static void testDNS() {
 		initiateServer();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "dnsAgent.py\"";
 		spawnClient(clientCmd);
 		
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "DNS");
+		testProxy(testConfig);
+		
+		teardown();
+	}
+	
+	public static void testEmail() {
+		EmailHandlerTester.flushC2Emails();
+		initiateServer();
+		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "emailAgent.py\"";
+		spawnClient(clientCmd);
+		
+		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "SMTP");
 		testProxy(testConfig);
 		
 		teardown();
@@ -109,7 +127,7 @@ class PythonPortForwardTest  extends ClientServerTest {
 		}
 		
 		ExecutorService service = Executors.newCachedThreadPool();
-		DummyRemoteService drs = new DummyRemoteService(9001);
+		DummyRemoteService drs = new DummyRemoteService(9001, 1);
 		service.submit(drs);
 
 		try {
@@ -148,26 +166,42 @@ class PythonPortForwardTest  extends ClientServerTest {
 			bw.write("proxy 127.0.0.1 9001 9002" + System.lineSeparator());
 			bw.flush();
 			
+			String confirm = br.readLine();
+			assertEquals("Proxy established", confirm);
+			
+			bw.write("confirm_client_proxy 127.0.0.1:9001" + System.lineSeparator());
+			bw.flush();
+			confirm = br.readLine();
+			assertEquals("yes", confirm);
+			
 			Time.sleepWrapped(1500);
 			
-			Socket socket = new Socket(InetAddress.getLocalHost(), 9002);
-			assertTrue(socket.isConnected());
-			socket.getOutputStream().write(INCOMING_TEST_STR.getBytes());
-			socket.getOutputStream().flush();
+			testProxyMessage(9002, 1);
 			
-			byte[] incomingData = new byte[4096];
-			int bytesRead = socket.getInputStream().read(incomingData);
-			String dataFeed = new String(Arrays.copyOf(incomingData, bytesRead));
-			assertEquals(OUTGOING_TEST_STR, dataFeed);
+			//The old DummyRemoteService will die once it has ack'd the first command. 
+			//start a new one, and see if there will be a reconnect.
+			drs = new DummyRemoteService(9001, 2);
+			service.submit(drs);
 			
-			socket.close();
+			Time.sleepWrapped(1000);//Let the new dummy connect and let the client reconnect to it
 			
-			//TODO Test killproxy on client side
+			testProxyMessage(9002, 2);
+			
 			bw.write("killproxy 127.0.0.1 9001" + System.lineSeparator());
 			bw.flush();
+			
+			confirm = br.readLine();
+			assertEquals("proxy terminated", confirm);
+			
+			bw.write("confirm_client_proxy 127.0.0.1:9001" + System.lineSeparator());
+			bw.flush();
+			confirm = br.readLine();
+			assertEquals("no", confirm);
+			
 			Time.sleepWrapped(1000);
 			try {
-				socket = new Socket(InetAddress.getLocalHost(), 9002);
+				@SuppressWarnings("unused") //We expect not to use that, socket exists only to throw exception
+				Socket socket = new Socket(InetAddress.getLocalHost(), 9002);
 				fail();//This socket can't connect here
 			}catch(ConnectException ex) {
 				assertEquals("Connection refused: connect", ex.getMessage());
@@ -190,5 +224,27 @@ class PythonPortForwardTest  extends ClientServerTest {
 		}
 	}
 
-	
+	public static void testProxyMessage(int port, int counter) throws IOException {
+		Socket socket = new Socket(InetAddress.getLocalHost(), port);
+		assertTrue(socket.isConnected());
+		
+		Time.sleepWrapped(500);//Let all the threads start
+		
+		System.out.println("Firing test message");
+		socket.getOutputStream().write((INCOMING_TEST_STR + counter).getBytes());
+		socket.getOutputStream().flush();
+		
+		byte[] incomingData = new byte[4096];
+		System.out.println("Reading Test Return");
+		int bytesRead = socket.getInputStream().read(incomingData);
+		System.out.println("Read Test Return");
+		String dataFeed = new String(Arrays.copyOf(incomingData, bytesRead));
+		assertEquals(OUTGOING_TEST_STR + counter, dataFeed);
+		
+		Time.sleepWrapped(1000);//Let the other thread die, then let the client detect that this message can't be sent
+		socket.getOutputStream().write(INCOMING_TEST_STR.getBytes());
+		socket.getOutputStream().flush();
+		
+		socket.close();
+	}
 }

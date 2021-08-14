@@ -51,7 +51,11 @@ cat
 proxy <Remote IP> <port> <local port>
 	This command binds a TCP listener to <local port> on the TheAllCommander's command server. The remote daemon will
 	open a socket to host <Remote IP> at <port>, and will function as a TCP proxy. This mode is currently supported for 
-	HTTP and DNS client modes.
+	HTTP, DNS, and email clients.
+killproxy <Remote IP> <port>
+	Terminates the associated proxy on the server and client
+confirm_client_proxy <ip>:<port>
+	Responds with "yes" or "no" depending on if a proxy is running on the daemon 	
 
 ## Server based macro commands
 The following commands are implemented serverside, where the server translates the instructions into

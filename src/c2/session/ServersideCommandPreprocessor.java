@@ -21,6 +21,11 @@ public class ServersideCommandPreprocessor {
 	private Map<String, LocalPortListener> listenerMap = new HashMap<>();
 	private ExecutorService threadRunner = Executors.newCachedThreadPool();
 
+	public synchronized boolean haveActiveForward(int sessionId, String forwardIdentifier) {
+		String listenerUID = sessionId + ":" + forwardIdentifier;
+		return listenerMap.containsKey(listenerUID);
+	}
+	
 	public synchronized CommandPreprocessorOutcome processCommand(String command, int sessionId) {
 		if (command.startsWith("proxy")) {
 			String args[] = command.split(" ");

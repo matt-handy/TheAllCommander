@@ -116,6 +116,8 @@ class WindowsRDPStandalone {
 								+ "Ok.");
 					}else if(command.startsWith("<LAUNCH> start /b C:\\Users\\matte\\AppData\\Roaming\\nw_helper")) {
 						session.sendIO(sessionId, "Process launched");
+					}else if(command.startsWith("proxy 127.0.0.1 3389")) {
+						session.sendIO(sessionId, PROXY_UP_SUCCESS);
 					}
 					commands.add(command);
 				}
@@ -126,7 +128,8 @@ class WindowsRDPStandalone {
 		
 	}
 	
-	
+	public static final String PROXY_UP_SUCCESS = "Proxy established";
+	public static final String PROXY_UP_FAILURE = "Cannot connect to specified host";
 
 	public static final String RDP_REG_QUERY_NEG_OUT = "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\r\n"
 			+ "    AllowRemoteRPC    REG_DWORD    0x0\r\n" + "    DelayConMgrTimeout    REG_DWORD    0x0\r\n"
@@ -243,7 +246,6 @@ class WindowsRDPStandalone {
 		assertEquals(WindowsRDPManager.LOCAL_CHISEL_EXEC, "binaries\\chisel.exe");
 	}
 
-	@Test
 	void testValidateClientsideChiselDeployed() {
 		int id = io.addSession("user", "host", "protocol");
 		
@@ -259,7 +261,7 @@ class WindowsRDPStandalone {
 		
 		Time.sleepWrapped(1000);
 		RDPSessionInfo info = new RDPSessionInfo("user:host", 48001, 48002);
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		
 		//This will cause the check for an installed binary to fail and return false.
 		assertFalse(rdp.validateClientsideChiselBinaryDeployed(id, info));
@@ -275,10 +277,9 @@ class WindowsRDPStandalone {
 
 	}
 
-	@Test
 	void testInstallClientsideChisel() {
 		RDPSessionInfo info = new RDPSessionInfo("narf", 48001, 48002);
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		try {
 			//Assume both reg key and binary need installation
 			rdp.installClientsideChisel(sessionId, info, true, true);
@@ -299,7 +300,7 @@ class WindowsRDPStandalone {
 
 	@Test
 	void testIsClientElevated() {
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		io.sendIO(sessionId, "Access is denied.");
 		assertFalse(rdp.isClientElevated(sessionId));
 		io.sendIO(sessionId, "There are no entries in the list.");
@@ -316,12 +317,12 @@ class WindowsRDPStandalone {
 	void testValidateClientRDPEnabled() {
 		// Test when true
 		io.sendIO(sessionId, RDP_REG_QUERY_POS_OUT);
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		assertTrue(rdp.validateClientRDPEnabled(sessionId));
 
 		// Test when false
 		io.sendIO(sessionId, RDP_REG_QUERY_NEG_OUT);
-		rdp = new WindowsRDPManager(io, 48000, 10);
+		rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		assertFalse(rdp.validateClientRDPEnabled(sessionId));
 
 		// Flush commands
@@ -335,12 +336,12 @@ class WindowsRDPStandalone {
 	void testValidateUserInRDPGroup() {
 		// Test when true
 		io.sendIO(sessionId, AFFIRM_USER_RDP_OUT);
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		assertTrue(rdp.validateUserInRDPGroup(sessionId, "haxor"));
 
 		// Test when false
 		io.sendIO(sessionId, NO_USER_RDP_OUT);
-		rdp = new WindowsRDPManager(io, 48000, 10);
+		rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		assertFalse(rdp.validateUserInRDPGroup(sessionId, "haxor"));
 
 		// Flush commands
@@ -354,7 +355,7 @@ class WindowsRDPStandalone {
 	void testAddUserToRDPGroup() {
 		// Test when true
 		io.sendIO(sessionId, NET_USER_SUCCESS);
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		try {
 			rdp.addUserToRDPGroup(sessionId, "haxor");
 		} catch (Exception e) {
@@ -377,6 +378,23 @@ class WindowsRDPStandalone {
 		assertEquals(out, "net localgroup \"Remote Desktop Users\" haxor /add");
 	}
 
+	@Test 
+	void testStartProxy(){
+		//Test positive case
+		io.sendIO(sessionId, PROXY_UP_SUCCESS);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
+		RDPSessionInfo info = new RDPSessionInfo("narf", 48001, 48002);
+		assertTrue(rdp.startNewProxy(info, sessionId));
+		String cmd = io.pollCommand(sessionId);
+		assertEquals("proxy 127.0.0.1 3389 " + info.localForwardPort, cmd);
+		
+		//Test negative case
+		io.sendIO(sessionId, PROXY_UP_FAILURE);
+		assertFalse(rdp.startNewProxy(info, sessionId));
+		cmd = io.pollCommand(sessionId);
+		assertEquals("proxy 127.0.0.1 3389 " + info.localForwardPort, cmd);
+	}
+	
 	@Test
 	void testEnableRDP() {
 		int id = io.addSession("user", "host", "protocol");
@@ -388,7 +406,7 @@ class WindowsRDPStandalone {
 		
 		// Test when true
 		System.out.println("Testing RDP");
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		try {
 			rdp.enableRDP(id);
 		} catch (Exception e) {
@@ -406,12 +424,11 @@ class WindowsRDPStandalone {
 		}
 	}
 
-	@Test
 	void testValidateClientsideChiselRunning() {
 		String expectedCmd = "powershell -c \"Get-WmiObject Win32_Process -Filter \"\"name = 'chisel.exe'\"\"\"";
 
 		io.sendIO(sessionId, CORRECT_CLIENT_CHISEL_QUERY);
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		RDPSessionInfo info = new RDPSessionInfo("barf", 8001, 8000);
 		assertTrue(rdp.validateClientsideChiselRunning(sessionId, info));
 
@@ -426,7 +443,6 @@ class WindowsRDPStandalone {
 		assertEquals(out, expectedCmd);
 	}
 	
-	@Test
 	void testServersideChiselStart() {
 		int id = io.addSession("user", "host", "protocol");
 		
@@ -436,7 +452,7 @@ class WindowsRDPStandalone {
 		
 		Time.sleepWrapped(1000);
 		
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10);
+		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
 		try {
 			rdp.startup();
 		} catch (Exception e) {

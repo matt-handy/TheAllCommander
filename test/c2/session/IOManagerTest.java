@@ -20,6 +20,8 @@ import util.test.TestCommons;
 
 class IOManagerTest {
 
+	final String REMOTE_FORWARD_NAME = "localhost:8000";
+	
 	@BeforeEach
 	void setUp() throws Exception {
 		TestCommons.pretestCleanup();
@@ -99,6 +101,19 @@ class IOManagerTest {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			ioManager.sendIO(3, "Stuff");
 		});
+	}
+	
+	@Test
+	void testPortForwardQueues() {
+		IOManager ioManager = new IOManager(Paths.get("test", "log"), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
+		int id = ioManager.addSession("fake", "fake", "fake");
+		ioManager.forwardTCPTraffic(id, REMOTE_FORWARD_NAME, "This is a test string");
+		String forwardedData = ioManager.grabForwardedTCPTraffic(id, REMOTE_FORWARD_NAME);
+		assertEquals("This is a test string", forwardedData);
+		
+		ioManager.queueForwardedTCPTraffic(id, REMOTE_FORWARD_NAME, "This is a return test string");
+		String returnedData = ioManager.receiveForwardedTCPTraffic(id, REMOTE_FORWARD_NAME);
+		assertEquals("This is a return test string", returnedData);
 	}
 
 }

