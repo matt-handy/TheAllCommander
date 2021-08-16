@@ -103,6 +103,11 @@ public class Runner {
 				Integer.parseInt(properties.getProperty(Constants.DAEMONRESPONSEREPOLLINTERVAL)));
 		theOnlyOne.setTextOverTCPStaticWait(
 				Integer.parseInt(properties.getProperty(Constants.DAEMONTEXTOVERTCPSTATICWAIT)));
+		theOnlyOne.setExpectedMaxClientReportingInterval(
+				Integer.parseInt(properties.getProperty(Constants.EXPECTEDMAXCLIENTREPORTINGINTERVAL)));
+		theOnlyOne.setMultiplesOfExpectedMaxClientReportingToWait(
+				Integer.parseInt(properties.getProperty(Constants.MULTIPLESEXPECTEDMAXCLIENTREPORTINGINTERVAL)));
+		
 
 		int listenPort = Integer.parseInt(properties.getProperty(Constants.COMMANDERPORT));
 		System.out.println("Listening for instructions on: " + listenPort);

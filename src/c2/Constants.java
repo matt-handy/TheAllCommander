@@ -39,7 +39,6 @@ public class Constants {
 	public static final String HUBCMDDEFAULTS = "hub.cmd.defaults";
 	
 	public static final String WIREENCRYPTTOGGLE = "wire.encrypt.toggle";
-	public static final String WIREENCRYPTIV = "wire.encrypt.iv";
 	public static final String WIREENCRYPTKEY = "wire.encrypt.key";
 	
 	public static final String COMMSERVICES = "commservices";
@@ -66,6 +65,9 @@ public class Constants {
 	public static final String DAEMONRESPONSEREPOLLINTERVAL = "daemon.responserepollinterval";
 	public static final String DAEMONTEXTOVERTCPSTATICWAIT = "daemon.textovertcpstaticwait";
 	
+	public static final String EXPECTEDMAXCLIENTREPORTINGINTERVAL = "daemon.reportinginterval.expectedmaxclient";
+	public static final String MULTIPLESEXPECTEDMAXCLIENTREPORTINGINTERVAL = "daemon.reportinginterval.multiplesexpectedmaxclient";
+	
 	//When looping to wait for response from client, wait no longer than...
 	private int maxResponseWait = 10000;
 	//When looping to wait for response from client, wait this long between polls
@@ -74,6 +76,9 @@ public class Constants {
 	//ip, wait this long...
 	private int textOverTCPStaticWait = 500;
 
+	private int expectedMaxClientReportingInterval = 2000;
+	private int multiplesOfExpectedMaxClientReportingToWait = 5;
+	
 	public int getMaxResponseWait() {
 		return maxResponseWait;
 	}
@@ -92,4 +97,18 @@ public class Constants {
 	public void setTextOverTCPStaticWait(int textOverTCPStaticWait) {
 		this.textOverTCPStaticWait = textOverTCPStaticWait;
 	}
+	public int getExpectedMaxClientReportingInterval() {
+		return expectedMaxClientReportingInterval;
+	}
+	public void setExpectedMaxClientReportingInterval(int expectedMaxClientReportingInterval) {
+		this.expectedMaxClientReportingInterval = expectedMaxClientReportingInterval;
+	}
+	public int getMultiplesOfExpectedMaxClientReportingToWait() {
+		return multiplesOfExpectedMaxClientReportingToWait;
+	}
+	public void setMultiplesOfExpectedMaxClientReportingToWait(int multiplesOfExpectedMaxClientReportingToWait) {
+		this.multiplesOfExpectedMaxClientReportingToWait = multiplesOfExpectedMaxClientReportingToWait;
+	}
+	
+	
 }

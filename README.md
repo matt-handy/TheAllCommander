@@ -13,7 +13,7 @@ TheAllCommander does not provide malware agents for use in an engagement - this 
 # Concept of Operations
 The central server, TheAllCommander, receives incoming connections on a variety of communications protocols. Current, it supports HTTP, HTTPS, Email, text over TCP, and UDP (DNS traffic emulation). This allows for a single server to control local daemons over any of those protocols. TheAllCommander can be controlled from either a LocalConnection terminal based interface or TheAllCommanderFE, an Angular application developed to allow a GUI for inputing commands. All commands, listed below, are translated by TheAllCommander into a platform specific format if needed, and then transmitted to the local daemon. 
 
-Daemons are uniquely identified by the combination of user account, hostname, and protocol. Therefore multiple daemons can exist on a target system via different protocols, or via different user permission levels.
+Daemons are uniquely identified by the combination of user account, hostname, and protocol. Therefore multiple daemons can exist on a target system via different protocols, or via different user permission levels. It is also possible to spawn a daemon that identifies itself with a UID, which is specified as a unique identifier consisting of 16 alphanumeric characters. If a UID is specified for the daemon, the server will check to see if there is a prior session for the daemon's combination of hostname, user id, and protocol. If there is such a session, but the other daemon has not been in contact with the server within the configurable expected contact time, then the new daemon will assume the session of the previous one. However, if the other session is still active, then the server will allow both sessions to exist simultaneously. See the HTTPS handler reference implementation for details.
 
 # Interfaces
 There are several key classes which are described in detail in the Javadoc for this project.
@@ -102,8 +102,10 @@ macros=c2.session.macro.CookieDeletionMacro,c2.session.macro.CookieHarvesterMacr
 
 The following configuration elements are used to toggle the use of encrypting the payload for DNS/UDP emulated traffic
 wire.encrypt.toggle=true
-wire.encrypt.iv=AQIDBAUGBgUEAwIBBwcHBw==
 wire.encrypt.key=AQIDBAUGBwgJCgsMDQ4PEA==
+
+daemon.reportinginterval.expectedmaxclient
+daemon.reportinginterval.multiplesexpectedmaxclient
 
 # Building
 TBD

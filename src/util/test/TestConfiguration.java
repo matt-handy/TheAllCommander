@@ -13,7 +13,7 @@ public class TestConfiguration {
 	}
 
 	private boolean execInRoot = true;
-	private boolean isSMBChild = false;
+	private boolean testSecondaryClient = false;
 	private boolean testTwoClients = false;
 	private String serverConfigFile = "test.properties";
 	private boolean isRemote = false;
@@ -26,12 +26,12 @@ public class TestConfiguration {
 		this.execInRoot = execInRoot;
 	}
 
-	public boolean isSMBChild() {
-		return isSMBChild;
+	public boolean isTestSecondaryClient() {
+		return testSecondaryClient;
 	}
 
-	public void setSMBChild(boolean isSMBChild) {
-		this.isSMBChild = isSMBChild;
+	public void setTestSecondaryClient(boolean testSecondaryClient) {
+		this.testSecondaryClient = testSecondaryClient;
 	}
 
 	public boolean isTestTwoClients() {

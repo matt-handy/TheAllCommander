@@ -24,9 +24,12 @@ class DNSAgent(LocalAgent):
 	pid = os.getpid()
 	username = getpass.getuser()
     
-	q = queue.Queue()
+	
     
-	forwardQueues = {}
+	def __init__(self):
+		LocalAgent.__init__(self)    
+		self.q = queue.Queue()
+		self.forwardQueues = {}
 
 	def pollForward(self, forwardID):
 		if not forwardID in self.forwardQueues:
@@ -51,7 +54,7 @@ class DNSAgent(LocalAgent):
 			if forwardID:
 				lmessage = "<portForward>" + forwardID + "<pf>" + lmessage
 
-			header = lhostname + "<spl>" + lusername + "<spl>" + str(lpid) + "<spl>" + lprotocol + "<spl>" + lmessage
+			header = lhostname + "<spl>" + lusername + "<spl>" + str(lpid) + "<spl>" + lprotocol + "<spl>"  + self.daemonUID +  "<spl>" + lmessage
 			try:
 				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 				server_address = ('localhost', 8001)

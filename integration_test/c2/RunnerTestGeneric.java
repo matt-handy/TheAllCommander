@@ -78,8 +78,8 @@ public class RunnerTestGeneric {
 		}
 	}
 
-	public static void connectionSetupGenericSMB(Socket remote, OutputStreamWriter bw, BufferedReader br,
-			boolean testSMB) throws Exception {
+	public static void connectionSetupGenericTwoClient(Socket remote, OutputStreamWriter bw, BufferedReader br,
+			boolean testSecond) throws Exception {
 		String output = br.readLine();
 		assertEquals(output, SessionInitiator.AVAILABLE_SESSION_BANNER);
 		output = br.readLine();
@@ -87,7 +87,7 @@ public class RunnerTestGeneric {
 				|| output.contains("2:" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
 				output.contains("3:" + InetAddress.getLocalHost().getHostName())
 				|| output.contains("3:" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
-				output.equals("1:default"));
+				output.equals("1:default:default:default"));
 		System.out.println(output);
 		System.out.println("Reading second session id...");
 		output = br.readLine();
@@ -96,7 +96,7 @@ public class RunnerTestGeneric {
 				|| output.contains("2:" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
 				output.contains("3:" + InetAddress.getLocalHost().getHostName())
 				|| output.contains("3:" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
-				output.equals("1:default"));
+				output.equals("1:default:default:default"));
 
 		System.out.println("Reading third session id...");
 		output = br.readLine();
@@ -105,9 +105,9 @@ public class RunnerTestGeneric {
 				|| output.contains("2:" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
 				output.contains("3:" + InetAddress.getLocalHost().getHostName())
 				|| output.contains("3:" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
-				output.equals("1:default"));
+				output.equals("1:default:default:default"));
 
-		if (testSMB) {
+		if (testSecond) {
 			bw.write("3" + System.lineSeparator());
 		} else {
 			bw.write("2" + System.lineSeparator());
@@ -318,7 +318,7 @@ public class RunnerTestGeneric {
 			System.out.println("Setting up test commander session...");
 			try {
 				if (config.isTestTwoClients()) {
-					connectionSetupGenericSMB(remote, bw, br, config.isSMBChild());
+					connectionSetupGenericTwoClient(remote, bw, br, config.isTestSecondaryClient());
 				} else {
 					connectionSetupGeneric(remote, bw, br, config.os == TestConfiguration.OS.LINUX, config.isRemote());
 				}

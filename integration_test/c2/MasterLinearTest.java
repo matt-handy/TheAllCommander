@@ -56,6 +56,10 @@ class MasterLinearTest {
 		RunnerTestPython.testDNS();
 		RunnerTestPython.testEmail();
 		
+		System.out.println("Testing Python multiple sessions");
+		RunnerTestPython.testHTTPSTwoSessions();
+		RunnerTestPython.testDNSTwoSessions();
+		
 		//Port forward
 		PythonPortForwardTest.testHTTPS();
 		PythonPortForwardTest.testDNS();

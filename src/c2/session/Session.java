@@ -1,10 +1,13 @@
 package c2.session;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
+
+import c2.Constants;
 
 public class Session {
 
@@ -18,6 +21,9 @@ public class Session {
 	public final String username;
 	public final String protocol;
 	
+	private String daemonUID = null;
+	private Date lastContactTime = new Date();//Assumption is valid, session created on new contact.
+	
 	public Session(int id, String hostname, String username, String protocol) {
 		this.id = id;
 		String uid = hostname+":"+username+":"+protocol;
@@ -25,6 +31,39 @@ public class Session {
 		this.hostname = hostname;
 		this.username = username;
 		this.protocol = protocol;
+	}
+	
+	public Session(int id, String hostname, String username, String protocol, String daemonUID) {
+		this.id = id;
+		String uid = hostname+":"+username+":"+protocol+":"+daemonUID;
+		this.uid = uid;
+		this.hostname = hostname;
+		this.username = username;
+		this.protocol = protocol;
+		this.daemonUID = daemonUID;
+	}
+	
+	public void updateSessionContactTime() {
+		lastContactTime = new Date();
+	}
+	
+	public boolean isContactLate() {
+		Date currentTime = new Date();
+		long diffInMillis = currentTime.getTime() - lastContactTime.getTime();
+		Constants theOnlyOne = Constants.getConstants();
+		if(diffInMillis > theOnlyOne.getExpectedMaxClientReportingInterval() * theOnlyOne.getMultiplesOfExpectedMaxClientReportingToWait()) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
+	public void updateDaemonUID(String daemonUID) {
+		this.daemonUID = daemonUID;
+	}
+	
+	public String getDaemonUID() {
+		return daemonUID;
 	}
 	
 	public String pollCommand(){
