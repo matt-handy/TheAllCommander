@@ -62,8 +62,10 @@ public class PythonPortForwardTest  extends ClientServerTest {
 				incoming.getOutputStream().write((OUTGOING_TEST_STR + counter).getBytes());
 				incoming.getOutputStream().flush();
 				
+				System.out.println("Closing dummy");
 				incoming.close();
 				ss.close();
+				System.out.println("Closed dummy");
 			} catch (IOException ex) {
 				ex.printStackTrace();
 				fail(ex.getMessage());
@@ -177,7 +179,10 @@ public class PythonPortForwardTest  extends ClientServerTest {
 			Time.sleepWrapped(1500);
 			
 			testProxyMessage(9002, 1);
+
+			Time.sleepWrapped(3000);
 			
+			System.out.println("Starting next listener");
 			//The old DummyRemoteService will die once it has ack'd the first command. 
 			//start a new one, and see if there will be a reconnect.
 			drs = new DummyRemoteService(9001, 2);

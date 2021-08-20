@@ -490,7 +490,7 @@ public class RunnerTestGeneric {
 			}
 
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
-					|| config.lang.equals("python")) && config.os != TestConfiguration.OS.LINUX) {
+					|| config.lang.equals("python") || config.lang.equals("Java")) && config.os != TestConfiguration.OS.LINUX) {
 				System.out.println("Screenshot test");
 				bw.write("screenshot" + System.lineSeparator());
 				bw.flush();
@@ -522,6 +522,11 @@ public class RunnerTestGeneric {
 			}
 
 			// TODO: PS test
+			// TODO: Test "cat <bad file>"
+			// TODO: Test "cat -n with a bad flag"
+			// TODO: Test malformed download
+			// TODO: test uplink nonexistent file
+			// TODO: cat >>file and >file with nonexistent file
 
 			bw.close();
 			br.close();
@@ -640,12 +645,14 @@ public class RunnerTestGeneric {
 		String output = br.readLine();
 		assertEquals(output,
 				"java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+		if(!config.lang.equals("Java")) {
 		System.out.println("reading flush");
 		output = br.readLine();
 		if (config.lang.equals("Native") && config.os != TestConfiguration.OS.LINUX) {
 			assertTrue(output.startsWith("C:\\"));
 		} else {
 			assertEquals(output, "");
+		}
 		}
 
 		if (!config.lang.equals("Native") || config.os == TestConfiguration.OS.LINUX) {
@@ -661,12 +668,15 @@ public class RunnerTestGeneric {
 				assertEquals(output,
 						"1: java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
 			}
-			output = br.readLine();
-			assertEquals(output, "");
+			if(!config.lang.equals("Java")) {
+				output = br.readLine();
+				assertEquals(output, "");
+			}
 		}
 
 		// Test CAT writing to new file
-		if (config.lang.equals("Native") || config.lang.equals("C++") || config.lang.equals("python")) {// || isLinux) {
+		if (config.lang.equals("Native") || config.lang.equals("C++") || config.lang.equals("python") ||
+				config.lang.equals("Java")) {// || isLinux) {
 			if (config.isExecInRoot()) {
 				bw.write("cat >newFile.txt" + System.lineSeparator());
 			} else {

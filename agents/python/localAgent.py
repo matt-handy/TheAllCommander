@@ -387,7 +387,8 @@ class LocalAgent:
 			elif len(elements) == 3:
 				if elements[1] != '-n':
 					self.postResponse("No valid cat interpretation")            
-				self.readFile(elements[2], True)
+				else:
+					self.readFile(elements[2], True)
 			elif len(elements) == 4:
 				if elements[2] == '>':
 					try:

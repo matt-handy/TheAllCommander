@@ -8,7 +8,7 @@ import util.Time;
 
 public class ClientServerTest {
 
-	private static ExecutorService service;
+	protected static ExecutorService service;
 	
 	public static final String DEFAULT_SERVER_CONFIG = "test.properties";
 	

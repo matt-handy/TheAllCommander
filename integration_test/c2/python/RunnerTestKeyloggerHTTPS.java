@@ -82,11 +82,12 @@ public class RunnerTestKeyloggerHTTPS extends ClientServerTest{
 			String fileString = fileContent.toString();
 			//Python keylogger not smart enough for windows
 			//assertTrue(fileString.contains("Window:"));
-			assertTrue(fileString.contains("g"));
+			assertTrue(fileString.contains("g") || fileString.contains("G"));
 			assertTrue(fileString.contains("8"));
 			assertTrue(fileString.contains("9"));
-			assertTrue(fileString.contains("h"));
-			assertTrue(fileString.indexOf("g") < fileString.indexOf("8"));
+			assertTrue(fileString.contains("h") || fileString.contains("H"));
+			assertTrue((fileString.indexOf("g") < fileString.indexOf("8"))
+					|| (fileString.indexOf("G") < fileString.indexOf("8")));
 			assertTrue(fileString.indexOf("8") < fileString.indexOf("9"));
 			br.close();
 		} catch (FileNotFoundException e1) {
