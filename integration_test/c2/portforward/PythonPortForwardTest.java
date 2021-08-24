@@ -30,11 +30,11 @@ import util.test.ClientServerTest;
 import util.test.TestConfiguration;
 import util.test.TestConstants;
 
-public class PythonPortForwardTest  extends ClientServerTest {
+public class PythonPortForwardTest extends ClientServerTest {
 
 	public static final String INCOMING_TEST_STR = "This is an incoming transmission";
 	public static final String OUTGOING_TEST_STR = "This is an outgoing transmission";
-	
+
 	public static class DummyRemoteService implements Runnable {
 
 		final int port;
@@ -51,17 +51,17 @@ public class PythonPortForwardTest  extends ClientServerTest {
 			try {
 				ServerSocket ss = new ServerSocket(port);
 				Socket incoming = ss.accept();
-				
+
 				byte[] incomingData = new byte[4096];
 				System.out.println("Dummy thread reading");
 				int bytesRead = incoming.getInputStream().read(incomingData);
 				System.out.println("Dummy thread read");
 				String dataFeed = new String(Arrays.copyOf(incomingData, bytesRead));
 				assertEquals(INCOMING_TEST_STR + counter, dataFeed);
-				
+
 				incoming.getOutputStream().write((OUTGOING_TEST_STR + counter).getBytes());
 				incoming.getOutputStream().flush();
-				
+
 				System.out.println("Closing dummy");
 				incoming.close();
 				ss.close();
@@ -83,35 +83,38 @@ public class PythonPortForwardTest  extends ClientServerTest {
 
 	public static void testHTTPS() {
 		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "httpsAgent.py\"";
+		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python"
+				+ File.separator + "httpsAgent.py\"";
 		spawnClient(clientCmd);
-		
+
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "HTTPS");
 		testProxy(testConfig);
-		
+
 		teardown();
 	}
-	
+
 	public static void testDNS() {
 		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "dnsAgent.py\"";
+		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python"
+				+ File.separator + "dnsAgent.py\"";
 		spawnClient(clientCmd);
-		
+
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "DNS");
 		testProxy(testConfig);
-		
+
 		teardown();
 	}
-	
+
 	public static void testEmail() {
 		EmailHandlerTester.flushC2Emails();
 		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "emailAgent.py\"";
+		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python"
+				+ File.separator + "emailAgent.py\"";
 		spawnClient(clientCmd);
-		
+
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "SMTP");
 		testProxy(testConfig);
-		
+
 		teardown();
 	}
 
@@ -127,7 +130,7 @@ public class PythonPortForwardTest  extends ClientServerTest {
 			System.out.println("Unable to load config file");
 			fail(ex.getMessage());
 		}
-		
+
 		ExecutorService service = Executors.newCachedThreadPool();
 		DummyRemoteService drs = new DummyRemoteService(9001, 1);
 		service.submit(drs);
@@ -165,53 +168,60 @@ public class PythonPortForwardTest  extends ClientServerTest {
 				assertEquals(output, "Daemon alive");
 			}
 
-			bw.write("proxy 127.0.0.1 9001 9002" + System.lineSeparator());
+			String testIp = null;
+			if (config.os == TestConfiguration.OS.LINUX) {
+				testIp = TestConstants.PORT_FORWARD_TEST_IP_LINUX;
+			} else {
+				testIp = TestConstants.PORT_FORWARD_TEST_IP_LOCAL;
+			}
+
+			bw.write("proxy " + testIp + " 9001 9002" + System.lineSeparator());
 			bw.flush();
-			
+
 			String confirm = br.readLine();
 			assertEquals("Proxy established", confirm);
-			
-			bw.write("confirm_client_proxy 127.0.0.1:9001" + System.lineSeparator());
+
+			bw.write("confirm_client_proxy " + testIp + ":9001" + System.lineSeparator());
 			bw.flush();
 			confirm = br.readLine();
 			assertEquals("yes", confirm);
-			
+
 			Time.sleepWrapped(1500);
-			
-			testProxyMessage(9002, 1);
+
+			testProxyMessage(9002, 1, config);
 
 			Time.sleepWrapped(3000);
-			
+
 			System.out.println("Starting next listener");
-			//The old DummyRemoteService will die once it has ack'd the first command. 
-			//start a new one, and see if there will be a reconnect.
+			// The old DummyRemoteService will die once it has ack'd the first command.
+			// start a new one, and see if there will be a reconnect.
 			drs = new DummyRemoteService(9001, 2);
 			service.submit(drs);
-			
-			Time.sleepWrapped(1000);//Let the new dummy connect and let the client reconnect to it
-			
-			testProxyMessage(9002, 2);
-			
-			bw.write("killproxy 127.0.0.1 9001" + System.lineSeparator());
+
+			Time.sleepWrapped(1000);// Let the new dummy connect and let the client reconnect to it
+
+			testProxyMessage(9002, 2, config);
+
+			bw.write("killproxy " + testIp + " 9001" + System.lineSeparator());
 			bw.flush();
-			
+
 			confirm = br.readLine();
 			assertEquals("proxy terminated", confirm);
-			
-			bw.write("confirm_client_proxy 127.0.0.1:9001" + System.lineSeparator());
+
+			bw.write("confirm_client_proxy " + testIp + ":9001" + System.lineSeparator());
 			bw.flush();
 			confirm = br.readLine();
 			assertEquals("no", confirm);
-			
+
 			Time.sleepWrapped(1000);
 			try {
-				@SuppressWarnings("unused") //We expect not to use that, socket exists only to throw exception
+				@SuppressWarnings("unused") // We expect not to use that, socket exists only to throw exception
 				Socket socket = new Socket(InetAddress.getLocalHost(), 9002);
-				fail();//This socket can't connect here
-			}catch(ConnectException ex) {
+				fail();// This socket can't connect here
+			} catch (ConnectException ex) {
 				assertEquals("Connection refused: connect", ex.getMessage());
 			}
-			
+
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 
@@ -229,27 +239,35 @@ public class PythonPortForwardTest  extends ClientServerTest {
 		}
 	}
 
-	public static void testProxyMessage(int port, int counter) throws IOException {
+	public static void testProxyMessage(int port, int counter, TestConfiguration config) throws IOException {
 		Socket socket = new Socket(InetAddress.getLocalHost(), port);
 		assertTrue(socket.isConnected());
-		
-		Time.sleepWrapped(500);//Let all the threads start
-		
+
+		Time.sleepWrapped(500);// Let all the threads start
+
 		System.out.println("Firing test message");
 		socket.getOutputStream().write((INCOMING_TEST_STR + counter).getBytes());
 		socket.getOutputStream().flush();
-		
+
 		byte[] incomingData = new byte[4096];
 		System.out.println("Reading Test Return");
 		int bytesRead = socket.getInputStream().read(incomingData);
 		System.out.println("Read Test Return");
 		String dataFeed = new String(Arrays.copyOf(incomingData, bytesRead));
 		assertEquals(OUTGOING_TEST_STR + counter, dataFeed);
-		
-		Time.sleepWrapped(1000);//Let the other thread die, then let the client detect that this message can't be sent
+
+		Time.sleepWrapped(1000);// Let the other thread die, then let the client detect that this message can't
+								// be sent
 		socket.getOutputStream().write(INCOMING_TEST_STR.getBytes());
 		socket.getOutputStream().flush();
-		
+
+		if (config.os == TestConfiguration.OS.LINUX) {
+			// Linux needs a second message to figure out the socket is dead.
+			Time.sleepWrapped(1000);
+			socket.getOutputStream().write(INCOMING_TEST_STR.getBytes());
+			socket.getOutputStream().flush();
+		}
+
 		socket.close();
 	}
 }

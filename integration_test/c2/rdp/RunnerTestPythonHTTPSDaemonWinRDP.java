@@ -27,6 +27,8 @@ import c2.session.CommandMacroManager;
 import c2.win.WindowsCmdLineHelper;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
 import util.test.TestConstants;
 
 public class RunnerTestPythonHTTPSDaemonWinRDP extends ClientServerTest {
@@ -111,7 +113,8 @@ public class RunnerTestPythonHTTPSDaemonWinRDP extends ClientServerTest {
 			*/
 			
 			//Try connecting to local server port and xmitting data to receiver
-			PythonPortForwardTest.testProxyMessage(40000, 1);
+			TestConfiguration config = new TestConfiguration(OS.WINDOWS, "N/A", "N/A");
+			PythonPortForwardTest.testProxyMessage(40000, 1, config);
 			
 			// Test that the "log" is output to the client at the end, and that the RDP
 			// group and user were not added

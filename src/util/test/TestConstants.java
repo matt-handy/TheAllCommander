@@ -41,6 +41,9 @@ public class TestConstants {
 	
 	private static final String I_PYTHON_EXE = "python.exe";
 	
+	private static final String I_PORT_FORWARD_TEST_IP_LOCAL="portforward.testip.local";
+	private static final String I_PORT_FORWARD_TEST_IP_LINUX="portforward.testip.linux";
+	
 	public static String USERNAME_LINUX;
 	public static String HOSTNAME_LINUX;
 	public static String EXECUTIONROOT_LINUX;
@@ -72,6 +75,10 @@ public class TestConstants {
 	public static String SMBCLIENT_CSHARPHTTPDAEMON_TEST_EXE;
 	
 	public static String PYTHON_EXE;
+	
+	public static String PORT_FORWARD_TEST_IP_LOCAL;
+	public static String PORT_FORWARD_TEST_IP_LINUX;
+	
 	static {
 		try (InputStream input = new FileInputStream("test" + File.separator + "test_config.properties")) {
 
@@ -115,6 +122,9 @@ public class TestConstants {
 			SMBCLIENT_CSHARPDNSDAEMON_TEST_EXE = prop.getProperty(I_SMBCLIENT_CSHARPDNSDAEMON_TEST_EXE);
 			
 			PYTHON_EXE = prop.getProperty(I_PYTHON_EXE);
+			
+			PORT_FORWARD_TEST_IP_LOCAL = prop.getProperty(I_PORT_FORWARD_TEST_IP_LOCAL);
+			PORT_FORWARD_TEST_IP_LINUX = prop.getProperty(I_PORT_FORWARD_TEST_IP_LINUX);
 		} catch (IOException ex) {
 			System.out.println("Unable to load config file");
 			fail(ex.getMessage());
