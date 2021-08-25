@@ -9,6 +9,7 @@ A portable framework for executing tests of an environments ability to detect no
 ## What TheAllCommander is not...
 TheAllCommander does not natively sling exploits - this is not trying to be Metasploit.
 TheAllCommander does not provide malware agents for use in an engagement - this is not trying to be Cobalt Strike. 
+	Note: TheAllCommander daemon announces itself with a warning in the Windows Event Log. It is <em>not</em> intended for red team engagements.
 
 # Concept of Operations
 The central server, TheAllCommander, receives incoming connections on a variety of communications protocols. Current, it supports HTTP, HTTPS, Email, text over TCP, and UDP (DNS traffic emulation). This allows for a single server to control local daemons over any of those protocols. TheAllCommander can be controlled from either a LocalConnection terminal based interface or TheAllCommanderFE, an Angular application developed to allow a GUI for inputing commands. All commands, listed below, are translated by TheAllCommander into a platform specific format if needed, and then transmitted to the local daemon. 

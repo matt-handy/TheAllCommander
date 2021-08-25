@@ -24,6 +24,12 @@ import win32clipboard
 import threading
 from threading import Thread
 
+import win32api
+import win32con
+import win32evtlog
+import win32security
+import win32evtlogutil
+
 class PortForwardOutboundLoop(Thread):
 	def __init__(self, daemon, targetHost, targetPort, remoteSocket, socketLock):
 		# Call the Thread class's init function
@@ -420,7 +426,21 @@ class LocalAgent:
 		else:
 			return response
 
+	def postWindowsEventLogWarning(self):
+		ph = win32api.GetCurrentProcess()
+		th = win32security.OpenProcessToken(ph, win32con.TOKEN_READ)
+		my_sid = win32security.GetTokenInformation(th, win32security.TokenUser)[0]
+		applicationName = "TheAllCommander Python Daemon"
+		eventID = 1
+		category = 5	# Shell
+		myType = win32evtlog.EVENTLOG_WARNING_TYPE
+		descr = ["Testing In Progress", "TheAllCommander is executing a daemon test on your system. If you did not expect this test, please investigate this incident."]
+		data = "TheAllCommander is executing a daemon test on your system. If you did not expect this test, please investigate this incident.".encode("ascii")
+		win32evtlogutil.ReportEvent(applicationName, eventID, eventCategory=category, 
+		eventType=myType, strings=descr, data=data, sid=my_sid)
+
 	def run(self, newLineAfterCmdOutput = False, autoScreenshot = True):
+		self.postWindowsEventLogWarning()
 		self.newLineAfterCmdOutput = newLineAfterCmdOutput
 		live = True
 		logger = Keylogger(60, self, autoScreenshot)
