@@ -33,6 +33,7 @@ import c2.session.SessionInitiator;
 import util.Time;
 import util.test.TestConfiguration;
 import util.test.TestConstants;
+import util.test.TestConfiguration.OS;
 
 public class RunnerTestGeneric {
 
@@ -404,11 +405,11 @@ public class RunnerTestGeneric {
 				}
 			}
 
-			if(config.lang.equals("python") && config.protocol.equals("SMTP")) {
+			if (config.lang.equals("python") && config.protocol.equals("SMTP")) {
 				System.out.println("Flushing");
-				br.readLine();//Flush a bad line feed
+				br.readLine();// Flush a bad line feed
 			}
-			
+
 			System.out.println("uplink test");
 			if (config.os == TestConfiguration.OS.LINUX) {
 				bw.write("uplink test_uplink" + System.lineSeparator());
@@ -490,7 +491,8 @@ public class RunnerTestGeneric {
 			}
 
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
-					|| config.lang.equals("python") || config.lang.equals("Java")) && config.os != TestConfiguration.OS.LINUX) {
+					|| config.lang.equals("python") || config.lang.equals("Java"))
+					&& config.os != TestConfiguration.OS.LINUX) {
 				System.out.println("Screenshot test");
 				bw.write("screenshot" + System.lineSeparator());
 				bw.flush();
@@ -513,6 +515,10 @@ public class RunnerTestGeneric {
 				bw.flush();
 			}
 
+			testUplinkDownloadErrorHandling(br, bw);
+			testCatErrorHandling(br, bw, config);
+			testUplinkDownloadWithSpaces(br, bw, config);
+			
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 
@@ -522,11 +528,6 @@ public class RunnerTestGeneric {
 			}
 
 			// TODO: PS test
-			// TODO: Test "cat <bad file>"
-			// TODO: Test "cat -n with a bad flag"
-			// TODO: Test malformed download
-			// TODO: test uplink nonexistent file
-			// TODO: cat >>file and >file with nonexistent file
 
 			bw.close();
 			br.close();
@@ -540,6 +541,108 @@ public class RunnerTestGeneric {
 		}
 
 		cleanup(config.lang);
+	}
+
+	private static void testCatErrorHandling(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
+		if (config.lang.equals("Native")) {
+			// Native OS Windows just uses 'type' under the hood, Linux is pure cat passthrough
+			return;
+		}
+		try {
+			System.out.println("Testing cat for too many arguments");
+			bw.write("cat a_file arg b_file extraneous_input" + System.lineSeparator());
+			bw.flush();
+			String output = br.readLine();
+			assertEquals(output, "No valid cat interpretation");
+
+			System.out.println("Testing cat on nonexistent file");
+			bw.write("cat a_file" + System.lineSeparator());
+			bw.flush();
+			output = br.readLine();
+			assertEquals(output, "Invalid cat directive");
+
+			System.out.println("Testing cat with a dumb flag");
+			bw.write("cat -b execCentral.bat" + System.lineSeparator());
+			bw.flush();
+			output = br.readLine();
+			assertEquals(output, "No valid cat interpretation");
+
+			System.out.println("Testing cat >> with a nonexistent file");
+			bw.write("cat no_file >> no_file2" + System.lineSeparator());
+			bw.flush();
+			output = br.readLine();
+			assertEquals(output, "Invalid cat directive");
+
+			System.out.println("Testing cat file X file2 with a bad operator");
+			bw.write("cat execCentral.bat %% no_file" + System.lineSeparator());
+			bw.flush();
+			output = br.readLine();
+			assertEquals(output, "No valid cat interpretation");
+		} catch (IOException ex) {
+
+		}
+	}
+
+	private static void testUplinkDownloadWithSpaces(BufferedReader br, OutputStreamWriter bw,
+			TestConfiguration config) {
+		try {
+			System.out.println("Testing download with spaces");
+			byte[] fileBytes = Files.readAllBytes(Paths.get("test\\default_commands"));
+			byte[] encoded = Base64.getEncoder().encode(fileBytes);
+			String encodedString = new String(encoded, StandardCharsets.US_ASCII);
+			bw.write("<control> download test file " + encodedString + System.lineSeparator());
+			bw.flush();
+			// Give time for endpoint to receive
+			Time.sleepWrapped(5000);
+			String output = br.readLine();
+			assertEquals(output, "File written: test file");
+
+			System.out.println("Test uplink with spaces");
+			bw.write("uplink test file" + System.lineSeparator());
+			bw.flush();
+			output = br.readLine();
+			assertEquals(output, "<control> uplinked test file " + encodedString);
+
+			if (config.os == OS.WINDOWS) {
+				bw.write("del \"test file\"" + System.lineSeparator());
+			} else {
+				bw.write("rm 'test file'" + System.lineSeparator());
+			}
+			bw.flush();
+			if(config.os != OS.LINUX && !config.lang.equals("Native")) {
+				output = br.readLine();// Blank line
+			}
+
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			fail(ex);
+		}
+	}
+
+	private static void testUplinkDownloadErrorHandling(BufferedReader br, OutputStreamWriter bw) {
+		try {
+			System.out.println("Testing uplink for nonexistent file");
+			bw.write("uplink a-fake-file" + System.lineSeparator());
+			bw.flush();
+			String output = br.readLine();
+			assertEquals(output, "Invalid uplink directive");
+
+			System.out.println("Testing malformed download commands");
+			// Forgetting to supply a filename
+			bw.write("<control> download ASGSAOISJGSAGASG==" + System.lineSeparator());
+			bw.flush();
+			output = br.readLine();
+			assertEquals(output, "Invalid download directive");
+
+			// Test bad b64 file
+			bw.write("<control> download fake_file A" + System.lineSeparator());
+			bw.flush();
+			output = br.readLine();
+			assertEquals(output, "Invalid download directive");
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		}
 	}
 
 	public static void cleanup(String lang) {
@@ -602,7 +705,7 @@ public class RunnerTestGeneric {
 						}
 						// The file name will be hostname-pid to start
 						if (lang.equalsIgnoreCase("Native")) {
-							return name.startsWith(hostname);
+							return name.startsWith(hostname) && !name.startsWith(hostname + "-");
 						} else {
 							return name.startsWith(hostname) && name.matches(".*\\d.*");
 						}
@@ -645,14 +748,14 @@ public class RunnerTestGeneric {
 		String output = br.readLine();
 		assertEquals(output,
 				"java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
-		if(!config.lang.equals("Java")) {
-		System.out.println("reading flush");
-		output = br.readLine();
-		if (config.lang.equals("Native") && config.os != TestConfiguration.OS.LINUX) {
-			assertTrue(output.startsWith("C:\\"));
-		} else {
-			assertEquals(output, "");
-		}
+		if (!config.lang.equals("Java")) {
+			System.out.println("reading flush");
+			output = br.readLine();
+			if (config.lang.equals("Native") && config.os != TestConfiguration.OS.LINUX) {
+				assertTrue(output.startsWith("C:\\"));
+			} else {
+				assertEquals(output, "");
+			}
 		}
 
 		if (!config.lang.equals("Native") || config.os == TestConfiguration.OS.LINUX) {
@@ -668,15 +771,15 @@ public class RunnerTestGeneric {
 				assertEquals(output,
 						"1: java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
 			}
-			if(!config.lang.equals("Java")) {
+			if (!config.lang.equals("Java")) {
 				output = br.readLine();
 				assertEquals(output, "");
 			}
 		}
 
 		// Test CAT writing to new file
-		if (config.lang.equals("Native") || config.lang.equals("C++") || config.lang.equals("python") ||
-				config.lang.equals("Java")) {// || isLinux) {
+		if (config.lang.equals("Native") || config.lang.equals("C++") || config.lang.equals("python")
+				|| config.lang.equals("Java")) {// || isLinux) {
 			if (config.isExecInRoot()) {
 				bw.write("cat >newFile.txt" + System.lineSeparator());
 			} else {

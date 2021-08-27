@@ -306,12 +306,24 @@ class LocalAgent:
 			#f = open(".\\received", 'wb+')
 			#f.write(binary)
 			#f.close()
-			ctrl, cmd, localname, data = response.split(" ")
-			binary = base64.decodebytes(data.encode('ascii'))
-			f = open(".\\" + localname, 'wb+')
-			f.write(binary)
-			f.close()
-			self.postResponse("File written: " + localname)
+			elements = response.split(" ")
+			if len(elements) >= 4:
+				try:
+					binary = base64.decodebytes(elements[len(elements) - 1].encode('ascii'))
+					filename = elements[2]
+					idx = 3
+					while idx < (len(elements) - 1):
+						filename = filename + " " + elements[idx]
+						idx = idx + 1
+					f = open(filename, 'wb+')
+					f.write(binary)
+					f.close()
+					self.postResponse("File written: " + filename)
+				except Exception as e:
+					self.postResponse("Invalid download directive")
+					print("Shutting down {}".format(e), file=sys.stderr)
+			else:
+				self.postResponse("Invalid download directive")
 			return None
 		elif response.startswith("uplink "):
 			filename = response[len("uplink "):]
