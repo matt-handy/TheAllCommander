@@ -104,7 +104,7 @@ public class SessionInitiator implements Runnable {
 				} catch (IOException e) {
 					e.printStackTrace();
 					newSession.close();
-				}
+				} 
 			}
 			ss.close();
 			stopLatch.countDown();

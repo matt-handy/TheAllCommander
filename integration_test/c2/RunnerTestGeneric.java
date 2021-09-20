@@ -332,11 +332,21 @@ public class RunnerTestGeneric {
 				assertEquals(output, "Daemon alive");
 			}
 
+			System.out.println("cd test");
+			bw.write("cd tmp" + System.lineSeparator());
+			bw.flush();
+			bw.write("cd .." + System.lineSeparator());
+			bw.flush();
+			String output = br.readLine();
+			assertEquals(Paths.get(TestConstants.TEST_EXECUTION_ROOT, "tmp").toAbsolutePath().toString(), output);
+			output = br.readLine();
+			assertEquals(Paths.get(TestConstants.TEST_EXECUTION_ROOT).toAbsolutePath().toString(), output);
+			
 			System.out.println("getUID test");
 			bw.write("getuid" + System.lineSeparator());
 			bw.flush();
 
-			String output = br.readLine();
+			output = br.readLine();
 			// System.out.println("Username: " + output);
 			if (config.os == TestConfiguration.OS.LINUX) {
 				assertEquals("Username: " + TestConstants.USERNAME_LINUX, output);

@@ -56,7 +56,18 @@ proxy <Remote IP> <port> <local port>
 killproxy <Remote IP> <port>
 	Terminates the associated proxy on the server and client
 confirm_client_proxy <ip>:<port>
-	Responds with "yes" or "no" depending on if a proxy is running on the daemon 	
+	Responds with "yes" or "no" depending on if a proxy is running on the daemon
+harvest_pwd
+	Uploads all files and directories, recursively, from the pwd of the daemon. Works on Python implementation. Currently
+	this implementation is rudamentary and uses a simple TCP socket, but will evolve to model more sophisticated attacks for
+	robust detection testing.
+kill_all_harvests
+	Terminates all currently open harvest operations
+listActiveHarvests
+	Lists with an index all currently active harvests
+kill_harvest <index>
+	Supplied with an index from "listActiveHarvests", this command kills a specific directory harvest		
+	 	
 
 ## Server based macro commands
 The following commands are implemented serverside, where the server translates the instructions into

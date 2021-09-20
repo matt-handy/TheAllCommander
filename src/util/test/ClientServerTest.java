@@ -9,6 +9,7 @@ import util.Time;
 public class ClientServerTest {
 
 	protected static ExecutorService service;
+	protected static ServerRunner runner;
 	
 	public static final String DEFAULT_SERVER_CONFIG = "test.properties";
 	
@@ -20,7 +21,7 @@ public class ClientServerTest {
 		service = Executors.newFixedThreadPool(4);
 		
 		TestCommons.pretestCleanup();
-		ServerRunner runner = new ServerRunner(propName);
+		runner = new ServerRunner(propName);
 		service.submit(runner);
 		runner.main.awaitFullStartup();
 	}
@@ -42,11 +43,11 @@ public class ClientServerTest {
 
 		service.submit(runner2);
 		//Give time for the daemons to make contact, especially important for SMB
-		Time.sleepWrapped(1000);
+		Time.sleepWrapped(3000);
 	}
 	
 	protected static void teardown() {
 		service.shutdownNow();
-		Time.sleepWrapped(4000);
+		runner.main.awaitFullShutdown();
 	}
 }

