@@ -91,50 +91,70 @@ The tags within the default commands file are as follows. The tag proceeds comma
 
 # Configuration
 The execCentral.bar script provides a properties file. Most of the values in this properties file do not need to be changed, however they all the user an enormous level of freedom to modify many elements of TheAllCommander's function. Key configuration elements are listed below:
+
 daemon.port=8000 				HTTPS port
+
 daemon.dns.port=8001			DNS/UDP emulation port
+
 daemon.http.port=8002			HTTP port
+
 daemon.nativeshell.port=8003	Port for text over TCP port. A single receiver is used for all text over TCP, 
 								TheAllCommander dynamically detects what response is needed
+
 daemon.lz.logger=test			This is the location the keylogger information is sent to
+
 daemon.lz.exfil=exfil			This directory is used for wide net data exfiltration
+
 daemon.lz.harvest=test			Harvested information, such as clipboard shots, are saved here
 
 The following configuration elements are used to connect to an email server to send commands and receive responses
+
 daemon.email.port=587			
+
 daemon.email.host=mail.<somewhere>
+
 daemon.email.username=testC2@<somewhere>
+
 daemon.email.password=<password>
 
 When TheAllCommander sends multiple commands automatically behind the scenes to accomplish a function, it will detect error conditions at each step of this process. This is the maximum time in milliseconds that it will wait for an affirmative response. Depending on the communication mechanism used, a greater than default value might be needed
+
 daemon.maxresponsewait=15000
 
 The following two parameters are used to configure how often TheAllCommander checks for new text over a socket and should not need to be changed. 
+
 daemon.responserepollinterval=500
+
 daemon.textovertcpstaticwait=500
 
 The "commservices" parameter accepts a comma separated list of fully qualified class names for classes that extend the abstract class c2.C2Interface. This allows the software to dynamically load any arbitrary communication protocol the user wishes to implement and supply to the framework. 
+
 commservices=c2.http.HTTPSManager,c2.udp.DNSEndpointEmulator,c2.smtp.EmailHandler,c2.tcp.GenericTCPInitiator
+
 The "macros" parameter accepts a comma separated list of fully qualified class names for classes that extend the AbstractCommandMacro class, which allows users to define their own complex single line commands, which TheAllCommander can the translate into discrete commands. 
+
 macros=c2.session.macro.CookieDeletionMacro,c2.session.macro.CookieHarvesterMacro
 
 The following configuration elements are used to toggle the use of encrypting the payload for DNS/UDP emulated traffic
+
 wire.encrypt.toggle=true
+
 wire.encrypt.key=AQIDBAUGBwgJCgsMDQ4PEA==
 
 daemon.reportinginterval.expectedmaxclient
+
 daemon.reportinginterval.multiplesexpectedmaxclient
 
 # Building & Running
 TheAllCommander server is currently set up to run and test on Windows. Cross-platform support is a future goal. 
 
-TheAllCommander is set up as a maven project, so a simple "mvn install" will build the project and resolve all dependencies in the the "target" folder.
+	1) TheAllCommander is set up as a maven project, so a simple "mvn install" will build the project and resolve all dependencies in the the "target" folder.
 
-Make there should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
+	2) There should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
 
-execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
+	3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
 
-To control TheAllCommander, execCommander.bat will launch a text client, which by default will connect to the locally running instance of TheAllCommander. There is a related project, TheAllCommanderFE which provides a very simply Angular front end for TheAllCommander, which is designed to function entirely independently. 
+	4) To control TheAllCommander, execCommander.bat will launch a text client, which by default will connect to the locally running instance of TheAllCommander. There is a related project, TheAllCommanderFE which provides a very simply Angular front end for TheAllCommander, which is designed to function entirely independently. Note: execCommander.bat's simply local client will prompt the user for a session to choose. This session must be chosen quickly or the connection will time out.   
 
 Note: TheAllCommander's default test.properties file comes with email daemon monitoring disabled for convenience, since test users are less likely to have access to a test email server. To re-enable, add the following lines to the the test.properties file:
 daemon.email.port=587
