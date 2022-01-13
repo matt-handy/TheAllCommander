@@ -101,12 +101,18 @@ kill_harvest <index>
 ## Server based macro commands
 The following commands are implemented serverside, where the server translates the instructions into
 commands for the daemon.
-delete_cookies -> deletes cookies for Firefox, Edge (Chromium version), and Chrome on Windows	
-harvest_cookies -> takes copies of cookies for Firefox, Edge (Chromium) and Chrome on Windows. Takes a copy of Firefox credential files
-activate_rdp <username> -> sets up Remote Desktop access on windows platforms, as well as a chisel reverse tunnel to the server
+
+delete_cookies
+	deletes cookies for Firefox, Edge (Chromium version), and Chrome on Windows
+		
+harvest_cookies
+	takes copies of cookies for Firefox, Edge (Chromium) and Chrome on Windows. Takes a copy of Firefox credential files
+
+activate_rdp <username>
+	sets up Remote Desktop access on windows platforms, as well as a chisel reverse tunnel to the server
 	Only supported by C++ daemons at present.
 
-#Near Term Project Goals
+# Near Term Project Goals
 Currently the project makes a superficial attempt to mimic DNS traffic. This needs to be augmented to truly comply with the DNS protocol to provide more effective modeling.  
 
 
