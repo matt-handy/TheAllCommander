@@ -33,38 +33,68 @@ Currently, TheAllCommander has been tested with the following payloads:
 5) The author has developed C++ and C# payloads which are available only for limited release. Until a framework for public release can be developed, they will be held for release on an individually assessed basis.
 
 # Commands
+The following commands are supported in the default protocol test daemon:
+
 ps - List all running process
+
 pwd - Print Working Directory
+
 getuid - prints username, user directory, and hostname
+
 uplink (filename) - returns a file from the remote host in base64. TheAllCommanderFE will automatically allow download of the file.
+
 <control> download (filename) (base64 file binary) - downloads file to remote host. TheAllCommanderFE allows users to select a file from the GUI and it will be automatically transferred to the daemon.
+
 cd (directory) - changes present directory
+
 die - Local daemon closes
+
 screenshot (No Linux support) - Captures a screenshot, and uploads to the HARVEST directory based on hostname\username\time-tagged-file
+
 clipboard (No Linux support) - captures the clipboard contents and uploads the contents to the HARVEST directory based on hostname-pid-username folder
-cat 
+
+cat
+ 
 	cat (filename) - reads files
+	
 	cat >(filename) - writes to file, overwriting. each line entered builds a string, then committed to the file. <done> to close, <cancel> to cancel operation
+	
 	cat >>(filename) - same as ">", except appends to file
+	
 	cat (file) > (file2) - copies file to file2, overwriting content
-	cat (file) >> (file2) - appends file to file2 
+	
+	cat (file) >> (file2) - appends file to file2
+	 
 proxy <Remote IP> <port> <local port>
+
 	This command binds a TCP listener to <local port> on the TheAllCommander's command server. The remote daemon will
 	open a socket to host <Remote IP> at <port>, and will function as a TCP proxy. This mode is currently supported for 
 	HTTP, DNS, and email clients.
+	
 killproxy <Remote IP> <port>
+
 	Terminates the associated proxy on the server and client
+	
 confirm_client_proxy <ip>:<port>
+
 	Responds with "yes" or "no" depending on if a proxy is running on the daemon
+	
 harvest_pwd
+
 	Uploads all files and directories, recursively, from the pwd of the daemon. Works on Python implementation. Currently
 	this implementation is rudamentary and uses a simple TCP socket, but will evolve to model more sophisticated attacks for
 	robust detection testing.
+	
 kill_all_harvests
+
 	Terminates all currently open harvest operations
+	
 listActiveHarvests
+
 	Lists with an index all currently active harvests
+	
 kill_harvest <index>
+
 	Supplied with an index from "listActiveHarvests", this command kills a specific directory harvest		
 	 	
 
@@ -148,13 +178,13 @@ daemon.reportinginterval.multiplesexpectedmaxclient
 # Building & Running
 TheAllCommander server is currently set up to run and test on Windows. Cross-platform support is a future goal. 
 
-	1) TheAllCommander is set up as a maven project, so a simple "mvn install" will build the project and resolve all dependencies in the the "target" folder.
+1) TheAllCommander is set up as a maven project, so a simple "mvn install" will build the project and resolve all dependencies in the the "target" folder.
 
-	2) There should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
+2) There should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
 
-	3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
+3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
 
-	4) To control TheAllCommander, execCommander.bat will launch a text client, which by default will connect to the locally running instance of TheAllCommander. There is a related project, TheAllCommanderFE which provides a very simply Angular front end for TheAllCommander, which is designed to function entirely independently. Note: execCommander.bat's simply local client will prompt the user for a session to choose. This session must be chosen quickly or the connection will time out.   
+4) To control TheAllCommander, execCommander.bat will launch a text client, which by default will connect to the locally running instance of TheAllCommander. There is a related project, TheAllCommanderFE which provides a very simply Angular front end for TheAllCommander, which is designed to function entirely independently. Note: execCommander.bat's simply local client will prompt the user for a session to choose. This session must be chosen quickly or the connection will time out.   
 
 Note: TheAllCommander's default test.properties file comes with email daemon monitoring disabled for convenience, since test users are less likely to have access to a test email server. To re-enable, add the following lines to the the test.properties file:
 daemon.email.port=587
