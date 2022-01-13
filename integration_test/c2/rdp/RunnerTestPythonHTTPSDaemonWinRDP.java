@@ -20,13 +20,13 @@ import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
 
-import c2.RunnerTestGeneric;
 import c2.portforward.PythonPortForwardTest;
 import c2.portforward.PythonPortForwardTest.DummyRemoteService;
 import c2.session.CommandMacroManager;
 import c2.win.WindowsCmdLineHelper;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
 import util.test.TestConstants;

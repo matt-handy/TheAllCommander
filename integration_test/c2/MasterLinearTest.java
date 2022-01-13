@@ -13,6 +13,7 @@ import c2.python.RunnerTestKeyloggerDNS;
 import c2.python.RunnerTestKeyloggerEmail;
 import c2.python.RunnerTestKeyloggerHTTPS;
 import c2.python.RunnerTestPython;
+import c2.python.RunnerTestPythonEmail;
 import c2.rdp.RunnerTestPythonHTTPSDaemonWinRDP;
 import c2.smtp.EmailHandlerTester;
 import c2.udp.UDPServerTest;
@@ -56,7 +57,7 @@ class MasterLinearTest {
 		System.out.println("Testing Python");
 		RunnerTestPython.testHTTPS();
 		RunnerTestPython.testDNS();
-		RunnerTestPython.testEmail();
+		RunnerTestPythonEmail.testEmail();
 		
 		System.out.println("Testing Python multiple sessions");
 		RunnerTestPython.testHTTPSTwoSessions();

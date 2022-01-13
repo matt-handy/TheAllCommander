@@ -39,7 +39,6 @@ getuid - prints username, user directory, and hostname
 uplink (filename) - returns a file from the remote host in base64. TheAllCommanderFE will automatically allow download of the file.
 <control> download (filename) (base64 file binary) - downloads file to remote host. TheAllCommanderFE allows users to select a file from the GUI and it will be automatically transferred to the daemon.
 cd (directory) - changes present directory
-harvest - (C# only) - Uses the data gathering from Ghostpack-Seatbelt to pull valuable data
 die - Local daemon closes
 screenshot (No Linux support) - Captures a screenshot, and uploads to the HARVEST directory based on hostname\username\time-tagged-file
 clipboard (No Linux support) - captures the clipboard contents and uploads the contents to the HARVEST directory based on hostname-pid-username folder
@@ -77,8 +76,15 @@ harvest_cookies -> takes copies of cookies for Firefox, Edge (Chromium) and Chro
 activate_rdp <username> -> sets up Remote Desktop access on windows platforms, as well as a chisel reverse tunnel to the server
 	Only supported by C++ daemons at present.
 
+#Near Term Project Goals
+Currently the project makes a superficial attempt to mimic DNS traffic. This needs to be augmented to truly comply with the DNS protocol to provide more effective modeling.  
+
+
 # Default Commands
-Sometimes it is desireable for daemons to automatically execute commands without human interaction on connecting for the first time with the home server. The configuration file element "hub.cmd.defaults" can be used to specify a file that contains commands to be sent automatically. There are several tags, and an example is included the "test" directory.
+Sometimes it is desirable for daemons to automatically execute commands without human interaction on connecting for the first time with the home server. The configuration file element "hub.cmd.defaults" can be used to specify a file that contains commands to be sent automatically. There are several tags, and an example is included the "test" directory. This functionality is controlled with the configuration flag:
+hub.cmd.defaults=test\\default_commands
+
+The tags within the default commands file are as follows. The tag proceeds commands which will be executed.
 :all -> Applies to all daemons connecting
 :user-<username> -> Applies to all users matching this username. For example, all Administrator sessions might wish to execute higher level persistence establishment
 :hostname-<hostname> -> Applies to all daemons on a host. Useful if there is some steps necessary to enable commanding on a particular
@@ -96,9 +102,9 @@ daemon.lz.harvest=test			Harvested information, such as clipboard shots, are sav
 
 The following configuration elements are used to connect to an email server to send commands and receive responses
 daemon.email.port=587			
-daemon.email.host=mail.matthandy.net
-daemon.email.username=testC2@matthandy.net
-daemon.email.password=haxor#12345
+daemon.email.host=mail.<somewhere>
+daemon.email.username=testC2@<somewhere>
+daemon.email.password=<password>
 
 When TheAllCommander sends multiple commands automatically behind the scenes to accomplish a function, it will detect error conditions at each step of this process. This is the maximum time in milliseconds that it will wait for an affirmative response. Depending on the communication mechanism used, a greater than default value might be needed
 daemon.maxresponsewait=15000
@@ -119,5 +125,35 @@ wire.encrypt.key=AQIDBAUGBwgJCgsMDQ4PEA==
 daemon.reportinginterval.expectedmaxclient
 daemon.reportinginterval.multiplesexpectedmaxclient
 
-# Building
-TBD
+# Building & Running
+TheAllCommander server is currently set up to run and test on Windows. Cross-platform support is a future goal. 
+
+TheAllCommander is set up as a maven project, so a simple "mvn install" will build the project and resolve all dependencies in the the "target" folder.
+
+Make there should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
+
+execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
+
+To control TheAllCommander, execCommander.bat will launch a text client, which by default will connect to the locally running instance of TheAllCommander. There is a related project, TheAllCommanderFE which provides a very simply Angular front end for TheAllCommander, which is designed to function entirely independently. 
+
+Note: TheAllCommander's default test.properties file comes with email daemon monitoring disabled for convenience, since test users are less likely to have access to a test email server. To re-enable, add the following lines to the the test.properties file:
+daemon.email.port=587
+daemon.email.host=mail.matthandy.net
+daemon.email.username=testC2@matthandy.net
+daemon.email.password=haxor#12345
+
+and update the comm services line to include the email service, as follows:
+
+commservices=c2.http.HTTPSManager,c2.udp.DNSEndpointEmulator,c2.smtp.EmailHandler,c2.tcp.GenericTCPInitiator
+
+Note also that the test daemon "emailAgent.py" has placeholder values for the email server which must be filled in
+
+# Test
+NOTE: Test execution will launch calc.exe. This is normal.
+
+There are two classes of test for TheAllCommander. One is the standard unit tests, which test TheAllCommander's core java code by itself. These tests can be run with "mvn test" 
+
+The second, and far more comprehensive, test suite is included in the integration_test directory. These tests are orchestrated through junit, but involve TheAllCommander server being started in its entirety, and one of the test daemons being engaged to run through a standard set of test sequences. This tests both the server and the daemons in an apples-to-apples manner.
+NOTE: Currently automated cross platform testing with Linux requires supplemental software which has not yet been documented. Documentation for automated Linux functional testing is pending. 
+
+Note: There is a default_commands file under "test" which contains the load script for automatic commands, or commands which are executed against a daemon immediately on connection. They are set to a default username and hostname and must be updated if that test will pass. 

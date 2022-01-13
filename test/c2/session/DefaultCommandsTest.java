@@ -2,6 +2,8 @@ package c2.session;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.net.InetAddress;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,15 +27,16 @@ class DefaultCommandsTest {
 			assertTrue(cl.getDefaultCommands().size() == 1);
 			assertTrue(cl.getDefaultCommands().get(0).equals("pwd"));
 			
-			assertTrue(cl.getUserCommands("matte").size() == 2);
-			assertTrue(cl.getUserCommands("matte").get(0).equals("cd .."));
-			assertTrue(cl.getUserCommands("matte").get(1).equals("pwd"));
+			assertTrue(cl.getUserCommands(System.getProperty("user.name")).size() == 2);
+			assertTrue(cl.getUserCommands(System.getProperty("user.name")).get(0).equals("cd .."));
+			assertTrue(cl.getUserCommands(System.getProperty("user.name")).get(1).equals("pwd"));
 			assertTrue(cl.getUserCommands("someguy") == null);
 			
-			assertTrue(cl.getHostCommands("GLAMDRING").size() == 3);
-			assertTrue(cl.getHostCommands("GLAMDRING").get(0).equals("pwd"));
-			assertTrue(cl.getHostCommands("GLAMDRING").get(1).equals("cd ."));
-			assertTrue(cl.getHostCommands("GLAMDRING").get(2).equals("pwd"));
+			String hostname = InetAddress.getLocalHost().getHostName().toUpperCase();
+			assertTrue(cl.getHostCommands(hostname).size() == 3);
+			assertTrue(cl.getHostCommands(hostname).get(0).equals("pwd"));
+			assertTrue(cl.getHostCommands(hostname).get(1).equals("cd ."));
+			assertTrue(cl.getHostCommands(hostname).get(2).equals("pwd"));
 			assertTrue(cl.getHostCommands("otherhost") == null);
 			
 		}catch(Exception ex) {

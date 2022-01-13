@@ -30,8 +30,7 @@ public class CommandHandler implements HttpHandler {
 		String response = "acknowledged response";
 		if (t.getRequestMethod().equals("GET")) {
 		
-			System.out.println(t.getRequestURI().getQuery());
-	    	Map<String, String> paramMap = queryToMap(t.getRequestURI().getQuery());
+			Map<String, String> paramMap = queryToMap(t.getRequestURI().getQuery());
 	    	
 	    	IOTransmission transmission = new IOTransmission();
 			transmission.hostname = paramMap.get("Hostname");
@@ -40,14 +39,7 @@ public class CommandHandler implements HttpHandler {
 			transmission.protocol = paramMap.get("Protocol");
 			transmission.isCommand = false;
 			
-			System.out.println("Hostname: " + transmission.hostname);
-			System.out.println("Username: " + transmission.username);
-			System.out.println("PID: " + transmission.pid);
-			System.out.println("Protocol: " + transmission.protocol);
-	    	
-	    	Integer sessionId = getSessionId(transmission, io);
-	    	
-	    	System.out.println("Polling session: " + sessionId);
+			Integer sessionId = getSessionId(transmission, io);
 	    	
 	    	String cmd = io.pollIO(sessionId);
 	    	
@@ -67,17 +59,11 @@ public class CommandHandler implements HttpHandler {
 				file.append(nextLine);
 				file.append(System.lineSeparator());
 			}
-			System.out.println("Received post: " + file);
 			IOTransmission iot = gson.fromJson(file.toString(), IOTransmission.class);
-			System.out.println("Received iot: " + iot);
 			Integer sessionId = getSessionId(iot, io);
-			System.out.println("Session: " + sessionId);
 			io.sendCommand(sessionId, iot.response);
-			System.out.println("XMIT complete");
 			iot.response = "Acknowledged command: '" + iot.response + "'";
-			System.out.println("Resp: " + iot.response);
 			response = gson.toJson(iot);
-			System.out.println("Resp: " + response);
 			
 			
 		

@@ -3,6 +3,9 @@ package c2;
 public class Constants {
 	public static final boolean DEBUG = false;
 	
+	public static final String HTTPS_KEYSTORE_PATH = "https.keystore";
+	public static final String HTTPS_KEYSTORE_PASSWORD = "https.keystore.password";
+	
 	public static final String COMMANDERPORT = "commander.port";
 	
 	public static final String DAEMONPORT = "daemon.port";

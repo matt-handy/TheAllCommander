@@ -4,10 +4,10 @@ import java.io.File;
 
 import org.junit.jupiter.api.Test;
 
-import c2.RunnerTestGeneric;
 import c2.smtp.EmailHandlerTester;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
 import util.test.TestConstants;
 import util.test.TestConfiguration.OS;
@@ -18,7 +18,6 @@ public class RunnerTestPython extends ClientServerTest {
 	void testLocal() {
 		testHTTPS();
 		testDNS();
-		testEmail();
 		testHTTPSTwoSessions();
 		testDNSTwoSessions();
 	}
@@ -84,15 +83,4 @@ public class RunnerTestPython extends ClientServerTest {
 		teardown();
 	}
 	
-	public static void testEmail() {
-		EmailHandlerTester.flushC2Emails();
-		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "emailAgent.py\"";
-		spawnClient(clientCmd);
-		
-		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "SMTP");
-		RunnerTestGeneric.test(testConfig);
-		
-		teardown();
-	}
 }

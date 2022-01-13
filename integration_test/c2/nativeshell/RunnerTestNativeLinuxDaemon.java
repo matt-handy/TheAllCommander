@@ -3,9 +3,9 @@ package c2.nativeshell;
 
 import org.junit.jupiter.api.Test;
 
-import c2.RunnerTestGeneric;
 import c2.remote.RemoteTestExecutor;
 import util.test.ClientServerTest;
+import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
 

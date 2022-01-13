@@ -23,10 +23,10 @@ import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 
 import c2.Constants;
-import c2.RunnerTestGeneric;
 import c2.smtp.EmailHandlerTester;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
 import util.test.TestConstants;
 
@@ -121,7 +121,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 	public static void testProxy(TestConfiguration config) {
 
 		Properties prop = new Properties();
-		try (InputStream input = new FileInputStream("test" + File.separator + config.getServerConfigFile())) {
+		try (InputStream input = new FileInputStream("config" + File.separator + config.getServerConfigFile())) {
 
 			// load a properties file
 			prop.load(input);
@@ -139,7 +139,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 			// This hack is b/c for some reason the C++ daemon doesn't create the dir on my
 			// laptop
 			Files.createDirectories(Paths.get(prop.getProperty(Constants.DAEMONLZHARVEST),
-					InetAddress.getLocalHost().getHostName().toUpperCase() + "-screen", "matte"));
+					InetAddress.getLocalHost().getHostName().toUpperCase() + "-screen", System.getProperty("user.name")));
 			// end hack
 
 			Files.deleteIfExists(Paths.get("System.Net.Sockets.SocketException"));

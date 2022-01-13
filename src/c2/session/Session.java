@@ -109,7 +109,6 @@ public class Session {
 		if(!portForwardInboundQueues.containsKey(forwardUrl)) {
 			portForwardInboundQueues.put(forwardUrl, new ConcurrentLinkedDeque<>());
 		}
-		System.out.println("Placing in queue");
 		portForwardInboundQueues.get(forwardUrl).add(base64Forward);
 	}
 	

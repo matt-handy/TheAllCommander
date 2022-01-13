@@ -19,8 +19,6 @@ public class TestConstants {
 	private static final String I_TMP_EDGE_COOKIES = "tmp.edge.cookies";
 	private static final String I_TMP_GENERIC = "tmp.generic";
 	
-	private static final String I_TEST_EXECUTION_ROOT = "test.executionroot";
-	
 	private static final String I_PROCESSHOLLOWER_TEST_EXE = "processhollower.testexe";
 	private static final String I_SIMPLESTAGER_TEST_EXE = "simplestager.testexe";
 	private static final String I_CPPHTTPDAEMON_TEST_EXE = "cpphttpdaemon.testexe";
@@ -53,8 +51,6 @@ public class TestConstants {
 	public static String TMP_FIREFOX_COOKIES;
 	public static String TMP_EDGE_COOKIES;
 	public static String TMP_GENERIC;
-	
-	public static String TEST_EXECUTION_ROOT;
 	
 	public static String PROCESSHOLLOWER_TEST_EXE;
 	public static String SIMPLESTAGER_TEST_EXE;
@@ -97,8 +93,6 @@ public class TestConstants {
 			TMP_EDGE_COOKIES = prop.getProperty(I_TMP_EDGE_COOKIES);
 			TMP_GENERIC =  prop.getProperty(I_TMP_GENERIC);
 
-			TEST_EXECUTION_ROOT = prop.getProperty(I_TEST_EXECUTION_ROOT);
-			
 			SIMPLESTAGER_TEST_EXE = prop.getProperty(I_SIMPLESTAGER_TEST_EXE);
 			PROCESSHOLLOWER_TEST_EXE = prop.getProperty(I_PROCESSHOLLOWER_TEST_EXE);
 			CPPHTTPDAEMON_TEST_EXE = prop.getProperty(I_CPPHTTPDAEMON_TEST_EXE);

@@ -21,9 +21,9 @@ import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
 
-import c2.RunnerTestGeneric;
 import c2.session.CommandMacroManager;
 import util.Time;
+import util.test.RunnerTestGeneric;
 import util.test.ServerRunner;
 import util.test.TestCommons;
 import util.test.TestConstants;

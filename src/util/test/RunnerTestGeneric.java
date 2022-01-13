@@ -1,4 +1,4 @@
-package c2;
+package util.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,11 +28,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 
+import c2.Constants;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
 import util.Time;
-import util.test.TestConfiguration;
-import util.test.TestConstants;
 import util.test.TestConfiguration.OS;
 
 public class RunnerTestGeneric {
@@ -227,7 +226,7 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		assertEquals(output, "");
 		output = br.readLine();
-		assertEquals(output, " Directory of " + TestConstants.TEST_EXECUTION_ROOT);
+		assertEquals(output, " Directory of " + Paths.get("").toAbsolutePath().toString());
 		output = br.readLine();
 		assertEquals(output, "");
 		output = br.readLine();
@@ -235,7 +234,7 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		assertTrue(output.contains("<DIR>          .."));
 		// Sub out the hidden elements
-		for (int idx = 0; idx < getFilesInFolder(TestConstants.TEST_EXECUTION_ROOT) - 2; idx++)
+		for (int idx = 0; idx < getFilesInFolder(Paths.get("").toAbsolutePath().toString()) - 2; idx++)
 			br.readLine();
 
 		output = br.readLine();
@@ -259,14 +258,14 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		assertEquals(output, "");
 		output = br.readLine();
-		assertEquals(output, " Directory of " + TestConstants.TEST_EXECUTION_ROOT + "\\localAgent\\csc");
+		assertEquals(output, " Directory of " + Paths.get("").toAbsolutePath().toString() + "\\localAgent\\csc");
 		output = br.readLine();
 		assertEquals(output, "");
 		output = br.readLine();
 		assertTrue(output.contains("<DIR>          ."));
 		output = br.readLine();
 		assertTrue(output.contains("<DIR>          .."));
-		for (int idx = 0; idx < getFilesInFolder(TestConstants.TEST_EXECUTION_ROOT + "\\localAgent\\csc") - 2; idx++)
+		for (int idx = 0; idx < getFilesInFolder(Paths.get("").toAbsolutePath().toString() + "\\localAgent\\csc") - 2; idx++)
 			br.readLine();
 		output = br.readLine();
 		System.out.println(output);
@@ -280,7 +279,7 @@ public class RunnerTestGeneric {
 	public static void test(TestConfiguration config) {
 
 		Properties prop = new Properties();
-		try (InputStream input = new FileInputStream("test" + File.separator + config.getServerConfigFile())) {
+		try (InputStream input = new FileInputStream("config" + File.separator + config.getServerConfigFile())) {
 
 			// load a properties file
 			prop.load(input);
@@ -294,7 +293,7 @@ public class RunnerTestGeneric {
 			// This hack is b/c for some reason the C++ daemon doesn't create the dir on my
 			// laptop
 			Files.createDirectories(Paths.get(prop.getProperty(Constants.DAEMONLZHARVEST),
-					InetAddress.getLocalHost().getHostName().toUpperCase() + "-screen", "matte"));
+					InetAddress.getLocalHost().getHostName().toUpperCase() + "-screen", System.getProperty("user.name")));
 			// end hack
 
 			Files.deleteIfExists(Paths.get("System.Net.Sockets.SocketException"));
@@ -333,14 +332,20 @@ public class RunnerTestGeneric {
 			}
 
 			System.out.println("cd test");
-			bw.write("cd tmp" + System.lineSeparator());
+			bw.write("cd test" + System.lineSeparator());
 			bw.flush();
 			bw.write("cd .." + System.lineSeparator());
 			bw.flush();
 			String output = br.readLine();
-			assertEquals(Paths.get(TestConstants.TEST_EXECUTION_ROOT, "tmp").toAbsolutePath().toString(), output);
+			if(config.os != OS.LINUX) {
+			assertEquals(Paths.get("test").toAbsolutePath().toString(), output);
 			output = br.readLine();
-			assertEquals(Paths.get(TestConstants.TEST_EXECUTION_ROOT).toAbsolutePath().toString(), output);
+			assertEquals(Paths.get("").toAbsolutePath().toString(), output);
+			}else {
+				assertEquals("/home/" + TestConstants.USERNAME_LINUX + "/dev/test", output);
+				output = br.readLine();
+				assertEquals("/home/" + TestConstants.USERNAME_LINUX + "/dev", output);
+			}
 			
 			System.out.println("getUID test");
 			bw.write("getuid" + System.lineSeparator());
@@ -401,15 +406,15 @@ public class RunnerTestGeneric {
 				if (config.isRemote()) {
 					assertTrue(output.startsWith("C:\\Users\\"));
 				} else {
-					assertEquals(output, TestConstants.TEST_EXECUTION_ROOT);
+					assertEquals(output, Paths.get("").toAbsolutePath().toString());
 				}
 			} else {
 				if (config.isExecInRoot()) {
-					assertEquals(output, TestConstants.TEST_EXECUTION_ROOT);
+					assertEquals(output, Paths.get("").toAbsolutePath().toString());
 					System.out.println("dir test");
 					testRootDirEnum(br, bw);
 				} else {
-					assertEquals(output, TestConstants.TEST_EXECUTION_ROOT + "\\localAgent\\csc");
+					assertEquals(output, Paths.get("localAgent", "csc").toAbsolutePath().toString());
 					System.out.println("dir test");
 					testCscDirEnum(br, bw);
 				}
@@ -496,8 +501,9 @@ public class RunnerTestGeneric {
 				bw.write("uplink execCentral.bat" + System.lineSeparator());
 				bw.flush();
 				output = br.readLine();
+				String base64ExecCentral = encodeFileToBase64Binary("execCentral.bat");
 				assertEquals(output,
-						"<control> uplinked execCentral.bat amF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2dzb24tMi44LjcuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVz");
+						"<control> uplinked execCentral.bat " + base64ExecCentral);
 			}
 
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
@@ -756,9 +762,9 @@ public class RunnerTestGeneric {
 		bw.write("cat " + targetFile + System.lineSeparator());
 		bw.flush();
 		String output = br.readLine();
-		assertEquals(output,
-				"java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
-		if (!config.lang.equals("Java")) {
+		String actualCatFileContents = new String(Files.readAllBytes(Paths.get(targetFile)));
+		assertEquals(output, actualCatFileContents);
+		if (!config.lang.equals("Java") && !(config.lang.equals("Native") && config.os == OS.WINDOWS)) {
 			System.out.println("reading flush");
 			output = br.readLine();
 			if (config.lang.equals("Native") && config.os != TestConfiguration.OS.LINUX) {
@@ -776,10 +782,10 @@ public class RunnerTestGeneric {
 			output = br.readLine();
 			if (config.os == TestConfiguration.OS.LINUX && config.lang.equals("Native")) {
 				assertEquals(output,
-						"     1\tjava -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+						"     1\t" + actualCatFileContents);
 			} else {
 				assertEquals(output,
-						"1: java -cp C2Commander.jar;gson-2.8.7.jar;jakarta.activation-2.0.0.jar;jakarta.activation-api-2.0.0.jar;jakarta.mail-2.0.0.jar c2.Runner test.properties");
+						"1: " + actualCatFileContents);
 			}
 			if (!config.lang.equals("Java")) {
 				output = br.readLine();
@@ -974,7 +980,7 @@ public class RunnerTestGeneric {
 			bw.flush();
 			output = br.readLine();
 			assertEquals(output,
-					"<control> uplinked execCentral.bat.tmp amF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2dzb24tMi44LjcuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVzamF2YSAtY3AgQzJDb21tYW5kZXIuamFyO2dzb24tMi44LjcuamFyO2pha2FydGEuYWN0aXZhdGlvbi0yLjAuMC5qYXI7amFrYXJ0YS5hY3RpdmF0aW9uLWFwaS0yLjAuMC5qYXI7amFrYXJ0YS5tYWlsLTIuMC4wLmphciBjMi5SdW5uZXIgdGVzdC5wcm9wZXJ0aWVz");
+					"<control> uplinked execCentral.bat.tmp amF2YSAtY3AgInRhcmdldC8qO3RhcmdldC9saWIvKiIgYzIuUnVubmVyIGNvbmZpZy90ZXN0LnByb3BlcnRpZXNqYXZhIC1jcCAidGFyZ2V0Lyo7dGFyZ2V0L2xpYi8qIiBjMi5SdW5uZXIgY29uZmlnL3Rlc3QucHJvcGVydGllcw==");
 			bw.write("rm execCentral.bat.tmp" + System.lineSeparator());
 			bw.flush();
 		} else {
@@ -984,5 +990,10 @@ public class RunnerTestGeneric {
 		}
 
 		Files.deleteIfExists(Paths.get(targetTempCopyRoot));
+	}
+	
+	private static String encodeFileToBase64Binary(String fileName) throws IOException {
+	    byte[] encoded = Base64.getEncoder().encode(Files.readAllBytes(Paths.get(fileName)));
+	    return new String(encoded, StandardCharsets.US_ASCII);
 	}
 }

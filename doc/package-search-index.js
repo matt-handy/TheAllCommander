@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"c2.session.macro"}]
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"c2.admin"},{"l":"c2.crypto"},{"l":"c2.file"},{"l":"c2.filereceiver"},{"l":"c2.http"},{"l":"c2.nativeshell"},{"l":"c2.portforward"},{"l":"c2.rdp"},{"l":"c2.remote"},{"l":"c2.session"},{"l":"c2.session.macro"},{"l":"c2.smtp"},{"l":"c2.tcp"},{"l":"c2.tcp.filereceiver"},{"l":"c2.udp"},{"l":"c2.win"},{"l":"util"},{"l":"util.test"}]

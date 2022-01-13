@@ -153,8 +153,7 @@ public class TCPShellHandler implements Runnable {
 			} catch (InterruptedException e) {
 			}
 			String response = lsr.readUnknownLinesFromSocket();
-			//System.out.println("-" + response + "-" );
-			if (response.length() == 0) {
+			if (response.length() == 0 || response.contains("No such file or directory")) {
 				ioManager.sendIO(sessionId, "Invalid uplink directive" + System.lineSeparator());
 			} else {
 				response = response.replace(Constants.NEWLINE, "");
@@ -162,7 +161,15 @@ public class TCPShellHandler implements Runnable {
 				String toClientMsg = "<control> uplinked " + targetFilename + " " + response;
 				ioManager.sendIO(sessionId, toClientMsg);
 			}
-
+		}else if (nextCommand.startsWith("cd")) {
+			bw.write(nextCommand);
+			bw.write(Constants.NEWLINE);
+			bw.write("pwd");
+			bw.write(Constants.NEWLINE);
+			bw.flush();
+			Time.sleepWrapped(1000);
+			String response = lsr.readUnknownLinesFromSocket();
+			ioManager.sendIO(sessionId, response);
 		} else if (nextCommand.startsWith(DOWNLOAD_CMD)) {
 			String args[] = nextCommand.split(" ");
 			if (args.length < 4) {
@@ -264,6 +271,19 @@ public class TCPShellHandler implements Runnable {
 			sb.append(System.lineSeparator());
 			sb.append(System.lineSeparator());
 			ioManager.sendIO(sessionId, sb.toString());
+		}else if (nextCommand.startsWith("cd")) {
+			bw.write(nextCommand);		
+			bw.write(System.lineSeparator());
+			bw.flush();
+			Time.sleepWrapped(500);
+			String response = lsr.readUnknownLinesFromSocket();
+			bw.write("echo %CD%");
+			bw.write(System.lineSeparator());
+			bw.flush();
+			Time.sleepWrapped(500);
+			response = lsr.readUnknownLinesFromSocket();
+			String lines[] = response.split(System.lineSeparator());
+			ioManager.sendIO(sessionId, lines[0].concat(System.lineSeparator()));
 		} else if (nextCommand.equalsIgnoreCase("pwd")) {
 			bw.write("echo %CD%");
 			bw.write(System.lineSeparator());

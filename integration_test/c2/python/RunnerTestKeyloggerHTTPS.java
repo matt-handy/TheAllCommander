@@ -23,9 +23,9 @@ import java.util.Properties;
 import org.junit.jupiter.api.Test;
 
 import c2.Constants;
-import c2.RunnerTestGeneric;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.RunnerTestGeneric;
 import util.test.TestCommons;
 import util.test.TestConstants;
 

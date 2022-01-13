@@ -68,7 +68,6 @@ public class SessionInitiator implements Runnable {
 					}
 					
 					if (br.ready()) {
-						System.out.println("Reading");
 						String input = br.readLine();
 						try {
 							// TODO: need to make sure that only one session is

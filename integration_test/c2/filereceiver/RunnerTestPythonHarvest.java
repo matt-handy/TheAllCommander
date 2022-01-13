@@ -19,9 +19,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import c2.RunnerTestGeneric;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
 import util.test.TestConstants;
 
@@ -75,7 +75,7 @@ public class RunnerTestPythonHarvest  extends ClientServerTest {
 				assertEquals(output, "Daemon alive");
 			}
 			
-			bw.write("cd tmp" + System.lineSeparator());
+			bw.write("cd target\\lib" + System.lineSeparator());
 			bw.flush();
 			
 			bw.write("harvest_pwd" + System.lineSeparator());
@@ -83,7 +83,7 @@ public class RunnerTestPythonHarvest  extends ClientServerTest {
 			
 			System.out.println("Testing CD");
 			String result = br.readLine();//Read CD response
-			Path targetDirPath = Paths.get("tmp").toAbsolutePath();
+			Path targetDirPath = Paths.get("target", "lib").toAbsolutePath();
 			assertEquals(targetDirPath.toString(), result);
 			//Start message can arrive after the complete message, if the harvest is super fast
 			System.out.println("Testing Start Harvest");
@@ -111,7 +111,7 @@ public class RunnerTestPythonHarvest  extends ClientServerTest {
 			assertTrue(target.isDirectory());
 			for(File file : target.listFiles()) {
 				byte[] dlCopy = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
-				byte[] original = Files.readAllBytes(Paths.get("tmp", file.getName()));
+				byte[] original = Files.readAllBytes(Paths.get("target", "lib", file.getName()));
 				assertEquals(original.length, dlCopy.length);
 				for(int idx = 0; idx < original.length; idx++) {
 					assertEquals(dlCopy[idx], original[idx]);
@@ -119,7 +119,7 @@ public class RunnerTestPythonHarvest  extends ClientServerTest {
 			}
 			
 			//Test list all harvests 
-			bw.write("cd ../.." + System.lineSeparator());
+			bw.write("cd ../../.." + System.lineSeparator());
 			bw.write("harvest_pwd" + System.lineSeparator());
 			bw.write("cd .." + System.lineSeparator());
 			bw.write("harvest_pwd" + System.lineSeparator());

@@ -53,7 +53,7 @@ public class WindowsRDPManager {
 		String defaultPersistRegKey = "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 		String defaultEnableRegKey = "\"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\"";
 		String defaultLocalChiselExec = "C:\\Chisel\\clisel_win_64.exe";
-		try (InputStream input = new FileInputStream("rdp.properties")) {
+		try (InputStream input = new FileInputStream("config\\rdp.properties")) {
 
 			Properties prop = new Properties();
 
@@ -87,7 +87,7 @@ public class WindowsRDPManager {
 	}
 	
 	public void startup() throws Exception {
-		portMemoryManager = ChiselPortManager.loadFromConfig(Paths.get("rdp_persist"));
+		portMemoryManager = ChiselPortManager.loadFromConfig(Paths.get("config", "rdp_persist"));
 		for(RDPSessionInfo info : portMemoryManager.getInfo()) {
 			startNewProxy(info, Integer.parseInt(info.sessionId));
 			currentSessions.put(info.sessionId, info);
@@ -384,7 +384,7 @@ public class WindowsRDPManager {
 		//String command = "start /b cmd /c " + CLIENT_CHISEL_DIR + "\\" + CHISEL_EXE
 		//		+ " " + buildClientChiselExecArgs(info);
 		//This command launches chisel and then bricks the session wiht or without the /b flag
-		String command = "<LAUNCH> start /b C:\\Users\\matte\\AppData\\Roaming\\nw_helper\\" + CHISEL_EXE
+		String command = "<LAUNCH> start /b C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\nw_helper\\" + CHISEL_EXE
 						+ " " + buildClientChiselExecArgs(info);
 		io.sendCommand(id, command);
 		String psOutput = io.awaitMultilineCommands(id);

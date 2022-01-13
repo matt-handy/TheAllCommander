@@ -88,14 +88,9 @@ class WindowsRDPStandalone {
 							session.sendIO(sessionId, "The system cannot find the file specified.");
 						}
 					}else if(command.equals("reg query HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run")) {
-						String responseChisel = "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\r\n"
-								+ "    OneDrive    REG_SZ    \"C:\\Users\\matte\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe\" /background\r\n"
-								+ "    Steam    REG_SZ    \"C:\\Program Files (x86)\\Steam\\steam.exe\" -silent\r\n"
-								+ "    Google Update    REG_SZ    \"C:\\Users\\matte\\AppData\\Local\\Google\\Update\\1.3.36.72\\GoogleUpdateCore.exe\"\r\n"
-								+ "    Discord    REG_SZ    C:\\Users\\matte\\AppData\\Local\\Discord\\Update.exe --processStart Discord.exe\r\n"
-								+ "    com.squirrel.Teams.Teams    REG_SZ    C:\\Users\\matte\\AppData\\Local\\Microsoft\\Teams\\Update.exe --processStart \"Teams.exe\" --process-start-args \"--system-initiated\"";
+						String responseChisel = "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\r\n";
 						if(affirmRegKeyHasChisel) {
-							responseChisel += "\r\n 	Chisel    REG_SZ    C:\\Users\\matte\\AppData\\Roaming\\nw_helper\\chisel.exe client 127.0.0.1:48002 R:48001:127.0.0.1:3389\r\n";
+							responseChisel += "\r\n 	Chisel    REG_SZ    C:\\Users\\" + System.getProperty("user.name") +"\\AppData\\Roaming\\nw_helper\\chisel.exe client 127.0.0.1:48002 R:48001:127.0.0.1:3389\r\n";
 						}
 						session.sendIO(sessionId, responseChisel);
 					}else if(command.equals("reg query \"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\"")) {
@@ -114,7 +109,7 @@ class WindowsRDPStandalone {
 					}else if(command.equals("netsh advfirewall firewall set rule group=\"remote desktop\" new enable=Yes")) {
 						session.sendIO(sessionId, "Updated 6 rule(s).\r\n"
 								+ "Ok.");
-					}else if(command.startsWith("<LAUNCH> start /b C:\\Users\\matte\\AppData\\Roaming\\nw_helper")) {
+					}else if(command.startsWith("<LAUNCH> start /b C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\nw_helper")) {
 						session.sendIO(sessionId, "Process launched");
 					}else if(command.startsWith("proxy 127.0.0.1 3389")) {
 						session.sendIO(sessionId, PROXY_UP_SUCCESS);
@@ -169,43 +164,7 @@ class WindowsRDPStandalone {
 			+ "-------------------------------------------------------------------------------\r\n" + "haxor\r\n"
 			+ "The command completed successfully.";
 
-	public static final String CORRECT_CLIENT_CHISEL_QUERY = "__GENUS                    : 2\r\n"
-			+ "__CLASS                    : Win32_Process\r\n" + "__SUPERCLASS               : CIM_Process\r\n"
-			+ "__DYNASTY                  : CIM_ManagedSystemElement\r\n"
-			+ "__RELPATH                  : Win32_Process.Handle=\"10968\"\r\n" + "__PROPERTY_COUNT           : 45\r\n"
-			+ "__DERIVATION               : {CIM_Process, CIM_LogicalElement, CIM_ManagedSystemElement}\r\n"
-			+ "__SERVER                   : GLAMDRING\r\n" + "__NAMESPACE                : root\\cimv2\r\n"
-			+ "__PATH                     : \\\\GLAMDRING\\root\\cimv2:Win32_Process.Handle=\"10968\"\r\n"
-			+ "Caption                    : chisel_1.7.6_x64.exe\r\n"
-			+ "CommandLine                : chisel_1.7.6_x64.exe  client localhost:8000 R:8001:127.0.0.1:3389\r\n"
-			+ "CreationClassName          : Win32_Process\r\n"
-			+ "CreationDate               : 20210218192652.967391-300\r\n"
-			+ "CSCreationClassName        : Win32_ComputerSystem\r\n" + "CSName                     : GLAMDRING\r\n"
-			+ "Description                : chisel_1.7.6_x64.exe\r\n"
-			+ "ExecutablePath             : C:\\Users\\matte\\OneDrive\\Documents\\Software\\C2\\binaries\\chisel_1.7.6_x64.exe\r\n"
-			+ "ExecutionState             :\r\n" + "Handle                     : 10968\r\n"
-			+ "HandleCount                : 131\r\n" + "InstallDate                :\r\n"
-			+ "KernelModeTime             : 0\r\n" + "MaximumWorkingSetSize      : 1380\r\n"
-			+ "MinimumWorkingSetSize      : 200\r\n" + "Name                       : chisel_1.7.6_x64.exe\r\n"
-			+ "OSCreationClassName        : Win32_OperatingSystem\r\n"
-			+ "OSName                     : Microsoft Windows 10 Pro|C:\\WINDOWS|\\Device\\Harddisk0\\Partition3\r\n"
-			+ "OtherOperationCount        : 140\r\n" + "OtherTransferCount         : 1889\r\n"
-			+ "PageFaults                 : 2536\r\n" + "PageFileUsage              : 14396\r\n"
-			+ "ParentProcessId            : 7536\r\n" + "PeakPageFileUsage          : 14428\r\n"
-			+ "PeakVirtualSize            : 5008424960\r\n" + "PeakWorkingSetSize         : 9712\r\n"
-			+ "Priority                   : 8\r\n" + "PrivatePageCount           : 14741504\r\n"
-			+ "ProcessId                  : 10968\r\n" + "QuotaNonPagedPoolUsage     : 10\r\n"
-			+ "QuotaPagedPoolUsage        : 60\r\n" + "QuotaPeakNonPagedPoolUsage : 11\r\n"
-			+ "QuotaPeakPagedPoolUsage    : 60\r\n" + "ReadOperationCount         : 0\r\n"
-			+ "ReadTransferCount          : 0\r\n" + "SessionId                  : 2\r\n"
-			+ "Status                     :\r\n" + "TerminationDate            :\r\n"
-			+ "ThreadCount                : 8\r\n" + "UserModeTime               : 312500\r\n"
-			+ "VirtualSize                : 5006327808\r\n" + "WindowsVersion             : 10.0.18363\r\n"
-			+ "WorkingSetSize             : 9916416\r\n" + "WriteOperationCount        : 0\r\n"
-			+ "WriteTransferCount         : 0\r\n" + "PSComputerName             : GLAMDRING\r\n"
-			+ "ProcessName                : chisel_1.7.6_x64.exe\r\n" + "Handles                    : 131\r\n"
-			+ "VM                         : 5006327808\r\n" + "WS                         : 9916416\r\n"
-			+ "Path                       : C:\\Users\\matte\\OneDrive\\Documents\\Software\\C2\\binaries\\chisel_1.7.6_x64.exe";
+	public static final String CORRECT_CLIENT_CHISEL_QUERY = "REGENERATE THIS IF I EVER USE CHISEL AGAIN";
 
 	public static final String NET_USER_SUCCESS = "The command completed successfully.";
 
@@ -214,7 +173,7 @@ class WindowsRDPStandalone {
 
 	@BeforeEach
 	void setUp() throws Exception {
-		try (InputStream input = new FileInputStream("test\\test.properties")) {
+		try (InputStream input = new FileInputStream("config\\test.properties")) {
 
 			Properties prop = new Properties();
 

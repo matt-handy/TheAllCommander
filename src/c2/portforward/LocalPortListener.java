@@ -54,7 +54,6 @@ public class LocalPortListener implements Runnable {
 				try {
 					outwardLooper = new OutwardLooper(newSession.getInputStream());
 					returnlooper = new ReturnLooper(newSession.getOutputStream());
-					System.out.println("Submitting looper");
 					service.submit(outwardLooper);
 					service.submit(returnlooper);
 				} catch (IOException e) {
@@ -72,7 +71,6 @@ public class LocalPortListener implements Runnable {
 
 	public boolean acceptNewConnection() {
 		try {
-			System.out.println("Listening: " + localListenPort);
 			ServerSocket ss = new ServerSocket(localListenPort);
 			ss.setSoTimeout(1000);
 
@@ -103,7 +101,6 @@ public class LocalPortListener implements Runnable {
 		}
 		
 		public void run() {
-			System.out.println("Running forward");
 			try {
 				while (stayAlive && !die) {
 
@@ -119,17 +116,13 @@ public class LocalPortListener implements Runnable {
 
 				}
 			} catch (IOException ex) {
-				System.out.println("Exception!!!");
 				needNewConnection = true;
 				inputStream = null;
 			}
 			deathLatch.countDown();
-			System.out.println("Forward loop closing");
-
 		}
 
 		public void kill() {
-			System.out.println("Forward looper die");
 			die = true;
 			try {
 				deathLatch.await();
@@ -152,7 +145,6 @@ public class LocalPortListener implements Runnable {
 		public void run() {
 			
 
-			System.out.println("Running Return");
 			try {
 				while (stayAlive && !die) {
 
@@ -160,14 +152,9 @@ public class LocalPortListener implements Runnable {
 					String response = io.receiveForwardedTCPTraffic(sessionId, remoteForwardAddr);
 					//System.out.println("Returning: " + sessionId + " " + remoteForwardAddr);
 					if (response != null) {
-						System.out.println("Received: " + sessionId + " " + remoteForwardAddr);
-						System.out.println(response);
-						System.out.println("Received: " + sessionId + " " + remoteForwardAddr + " : " + response);
 						byte[] traffic = Base64.getDecoder().decode(response);
-						System.out.println("Writing");
 						outputStream.write(traffic);
 						outputStream.flush();
-						System.out.println("Written");
 					}
 					Time.sleepWrapped(100);
 
@@ -177,11 +164,9 @@ public class LocalPortListener implements Runnable {
 				ex.printStackTrace();
 			}
 			deathLatch.countDown();
-			System.out.println("Return loop closing");
 		}
 
 		public void kill() {
-			System.out.println("Return looper die");
 			die = true;
 			try {
 				deathLatch.await();

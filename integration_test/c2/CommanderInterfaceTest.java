@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import c2.session.SessionInitiator;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.RunnerTestGeneric;
 import util.test.TestConstants;
 
 class CommanderInterfaceTest extends ClientServerTest {

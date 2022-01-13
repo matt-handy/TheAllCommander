@@ -20,15 +20,15 @@ import java.util.Properties;
 import org.junit.jupiter.api.Test;
 
 import c2.Constants;
-import c2.RunnerTestGeneric;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.RunnerTestGeneric;
 
 public class EmailHandlerTester extends ClientServerTest{
 
 
 	static Properties setup() {
-		try (InputStream input = new FileInputStream("test" + File.separator + "test.properties")) {
+		try (InputStream input = new FileInputStream("config" + File.separator + "test.properties")) {
 
 			Properties prop = new Properties();
 

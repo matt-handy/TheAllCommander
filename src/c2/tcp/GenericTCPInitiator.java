@@ -84,9 +84,9 @@ public class GenericTCPInitiator extends C2Interface {
 					BufferedReader br = new BufferedReader(new InputStreamReader(newSession.getInputStream()));
 
 					Time.sleepWrapped(Constants.getConstants().getTextOverTCPStaticWait());
-					System.out.println("Incoming connection, reading default banner");
+					//System.out.println("Incoming connection, reading default banner");
 					String initialBanner = readUnknownLinesFromSocket(br, newSession, true);
-					System.out.println("Default shell banner: " + initialBanner);
+					//System.out.println("Default shell banner: " + initialBanner);
 					String os = "Unknown";
 					if (initialBanner.contains("Microsoft Windows")) {
 						os = "Windows";

@@ -24,7 +24,7 @@ public class LinuxSocketReader extends SocketReader{
 			}
 			//Clear trailing with line sep
 			String endString = "$ " + System.lineSeparator();
-			while(content.endsWith("$ " + System.lineSeparator())) {
+			while(content.endsWith(endString)) {
 				content = content.substring(0, content.length() - endString.length());
 				content += System.lineSeparator();
 			}
