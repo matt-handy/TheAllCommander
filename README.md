@@ -103,10 +103,10 @@ The following commands are implemented serverside, where the server translates t
 commands for the daemon.
 
 delete_cookies
-	deletes cookies for Firefox, Edge (Chromium version), and Chrome on Windows
+	deletes cookies for Firefox, Edge (Chromium version), and Chrome on Windows. This is a common tactic for malware, as it forces the end-user to re-enter crediential information. This function will generate an access signature mimicing this attack pattern. NOTE: It does so by actually deleting those files, so use this on a test platform with non-operational users. 
 		
 harvest_cookies
-	takes copies of cookies for Firefox, Edge (Chromium) and Chrome on Windows. Takes a copy of Firefox credential files
+	takes copies of cookies for Firefox, Edge (Chromium) and Chrome on Windows. Takes a copy of Firefox credential files. This should effectively generate a file access signature for validating rules that monitor controls on these sensitive files.
 
 activate_rdp <username>
 	sets up Remote Desktop access on windows platforms, only supported by C++ daemons at present (public release pending). This feature was originally implemented using a dropper which would place Chisel on the target system and utilize it for the port tunneling. However, as A/V products are good at finding chisel at the endpoint, this doesn't make for a particularly interesting scenario to model. The implementation has switched to using TheAllCommander's own TCP tunneling, which should emulate a much more instructive threat model. 
