@@ -109,8 +109,7 @@ harvest_cookies
 	takes copies of cookies for Firefox, Edge (Chromium) and Chrome on Windows. Takes a copy of Firefox credential files
 
 activate_rdp <username>
-	sets up Remote Desktop access on windows platforms, as well as a chisel reverse tunnel to the server
-	Only supported by C++ daemons at present.
+	sets up Remote Desktop access on windows platforms, only supported by C++ daemons at present (public release pending). This feature was originally implemented using a dropper which would place Chisel on the target system and utilize it for the port tunneling. However, as A/V products are good at finding chisel at the endpoint, this doesn't make for a particularly interesting scenario to model. The implementation has switched to using TheAllCommander's own TCP tunneling, which should emulate a much more instructive threat model. 
 
 # Near Term Project Goals
 Currently the project makes a superficial attempt to mimic DNS traffic. This needs to be augmented to truly comply with the DNS protocol to provide more effective modeling.  
