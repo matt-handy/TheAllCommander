@@ -108,9 +108,9 @@ public class LocalPortListener implements Runnable {
 					int bytesRead;
 					if (-1 != (bytesRead = inputStream.read(reply))) {
 						String base64Forward = Base64.getEncoder().encodeToString(Arrays.copyOf(reply, bytesRead));
-						System.out.println("Local forwarding to " + remoteForwardAddr + " at " + sessionId + " : " + base64Forward);
+						//System.out.println("Local forwarding to " + remoteForwardAddr + " at " + sessionId + " : " + base64Forward);
 						io.forwardTCPTraffic(sessionId, remoteForwardAddr, base64Forward);
-						System.out.println("Local forwarded to " + remoteForwardAddr + " at " + sessionId + " : " + base64Forward);
+						//System.out.println("Local forwarded to " + remoteForwardAddr + " at " + sessionId + " : " + base64Forward);
 					}
 					Time.sleepWrapped(1);
 
