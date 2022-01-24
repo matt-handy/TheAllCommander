@@ -112,7 +112,7 @@ activate_rdp <username>
 	sets up Remote Desktop access on windows platforms, only supported by C++ daemons at present (public release pending). This feature was originally implemented using a dropper which would place Chisel on the target system and utilize it for the port tunneling. However, as A/V products are good at finding chisel at the endpoint, this doesn't make for a particularly interesting scenario to model. The implementation has switched to using TheAllCommander's own TCP tunneling, which should emulate a much more instructive threat model. 
 
 # Near Term Project Goals
-Currently the project makes a superficial attempt to mimic DNS traffic. This needs to be augmented to truly comply with the DNS protocol to provide more effective modeling.  
+DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  
 
 
 # Default Commands
@@ -164,7 +164,9 @@ daemon.textovertcpstaticwait=500
 
 The "commservices" parameter accepts a comma separated list of fully qualified class names for classes that extend the abstract class c2.C2Interface. This allows the software to dynamically load any arbitrary communication protocol the user wishes to implement and supply to the framework. 
 
-commservices=c2.http.HTTPSManager,c2.udp.DNSEndpointEmulator,c2.smtp.EmailHandler,c2.tcp.GenericTCPInitiator
+commservices=c2.http.HTTPSManager,c2.udp.DNSEmulatorSubdomainComms,c2.smtp.EmailHandler,c2.tcp.GenericTCPInitiator
+
+NOTE: DNSEndpointEmulator was the original implementation of the DNS faking protocol. It has been deprecated for the less obvious DNSEmulatorSubdomainComms. dnsAgent.py is the associated original daemon, and both will be removed in subsequent releases.
 
 The "macros" parameter accepts a comma separated list of fully qualified class names for classes that extend the AbstractCommandMacro class, which allows users to define their own complex single line commands, which TheAllCommander can the translate into discrete commands. 
 

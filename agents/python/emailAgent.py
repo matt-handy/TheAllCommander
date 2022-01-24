@@ -28,11 +28,11 @@ class SimpleEmail:
 
 class EMailAgent(LocalAgent):
 	OUTGOING_EMAIL_TMP_FILENAME = "tmp.txt";
-	EMAIL_OUTGOING_URL = "<FILL>";
-	IMAP_EMAIL_URL = "<FILL>";
-	EMAIL_OUTGOING_USERNAME = "<FILL>";
-	EMAIL_OUTGOING_PASSWORD = "<FILL>";
-	EMAIL_CMD_ADDR = "<FILL>";
+	EMAIL_OUTGOING_URL = "smtps://mail.matthandy.net";
+	IMAP_EMAIL_URL = "imaps://mail.matthandy.net";
+	EMAIL_OUTGOING_USERNAME = "testclient@matthandy.net";
+	EMAIL_OUTGOING_PASSWORD = "New$user1";
+	EMAIL_CMD_ADDR = "testc2@matthandy.net";
 
 	EMAIL_PROTOCOL_TAG = "SMTP";
 

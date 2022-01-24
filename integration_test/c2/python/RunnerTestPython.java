@@ -55,7 +55,7 @@ public class RunnerTestPython extends ClientServerTest {
 
 	public static void testDNS() {
 		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "dnsAgent.py\"";
+		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "dnsSimpleAgent.py\"";
 		spawnClient(clientCmd);
 		
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "DNS");
@@ -66,7 +66,7 @@ public class RunnerTestPython extends ClientServerTest {
 	
 	public static void testDNSTwoSessions() {
 		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "dnsAgent.py\"";
+		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "dnsSimpleAgent.py\"";
 		spawnClient(clientCmd);
 		Time.sleepWrapped(1000);
 		spawnClient(clientCmd);
