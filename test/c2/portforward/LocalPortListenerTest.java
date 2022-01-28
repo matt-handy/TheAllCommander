@@ -42,7 +42,7 @@ class LocalPortListenerTest {
 			socket.getOutputStream().write(sampleData);
 			socket.getOutputStream().flush();
 
-			Time.sleepWrapped(1000);
+			Time.sleepWrapped(2000);
 
 			String base64Data = io.grabForwardedTCPTraffic(testSessionId, REMOTE_FORWARD_NAME);
 			byte[] receivedData = Base64.getDecoder().decode(base64Data);

@@ -24,13 +24,14 @@ class DNSAgent(LocalAgent):
 	pid = os.getpid()
 	username = getpass.getuser()
     
-	
+	def getScriptName(self):
+		return os.path.realpath(__file__) 	
     
 	def __init__(self):
 		LocalAgent.__init__(self)    
 		self.q = queue.Queue()
 		self.forwardQueues = {}
-
+		
 	def pollForward(self, forwardID):
 		if not forwardID in self.forwardQueues:
 			self.forwardQueues[forwardID] = queue.Queue()

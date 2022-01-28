@@ -127,7 +127,8 @@ class DNSSimpleAgent(LocalAgent):
 		finally:
 			sock.close()
 
-    
+	def getScriptName(self):
+		return os.path.realpath(__file__) 
 
 	def establish_session(self):
 		session_request = self.build_transmission_header(self.hostname, self.username, self.pid, "DNS") + "<spl><req-session>" 

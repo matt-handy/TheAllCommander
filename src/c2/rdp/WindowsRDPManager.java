@@ -217,7 +217,7 @@ public class WindowsRDPManager {
 
 		reportGenerator.append("Testing if client is elevated");
 		reportGenerator.append(System.lineSeparator());
-		boolean isClientElevated = isClientElevated(id);
+		boolean isClientElevated = WindowsCmdLineHelper.isClientElevated(id, io);
 		reportGenerator.append("Client elevated? " + isClientElevated);
 		reportGenerator.append(System.lineSeparator());
 		
@@ -417,28 +417,7 @@ public class WindowsRDPManager {
 		throw new Exception("We're out of ports!");
 	}
 
-	public boolean isClientElevated(int id) {
-		io.sendCommand(id, "net session 2>&1");
-		String groupListing = io.awaitMultilineCommands(id);
-		
-		if (groupListing.contains("Access is denied.")) {
-			return false;
-		} else {
-			if(groupListing.contains("There are no entries in the list.") ||
-					groupListing.contains("User name")) {
-				return true;
-			}else {
-				groupListing = io.awaitMultilineCommands(id);
-				
-				if (groupListing.contains("Access is denied.")) {
-					return false;
-				} else {
-					return true;
-				}
-			}
-			
-		}
-	}
+	
 
 	public boolean validateClientRDPEnabled(int id) {
 		// Check autostart reg key

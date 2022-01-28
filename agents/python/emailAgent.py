@@ -28,11 +28,11 @@ class SimpleEmail:
 
 class EMailAgent(LocalAgent):
 	OUTGOING_EMAIL_TMP_FILENAME = "tmp.txt";
-	EMAIL_OUTGOING_URL = "smtps://mail.matthandy.net";
-	IMAP_EMAIL_URL = "imaps://mail.matthandy.net";
-	EMAIL_OUTGOING_USERNAME = "testclient@matthandy.net";
-	EMAIL_OUTGOING_PASSWORD = "New$user1";
-	EMAIL_CMD_ADDR = "testc2@matthandy.net";
+	EMAIL_OUTGOING_URL = "FILL";
+	IMAP_EMAIL_URL = "FILL";
+	EMAIL_OUTGOING_USERNAME = "FILL";
+	EMAIL_OUTGOING_PASSWORD = "FILL";
+	EMAIL_CMD_ADDR = "FILL";
 
 	EMAIL_PROTOCOL_TAG = "SMTP";
 
@@ -114,7 +114,10 @@ class EMailAgent(LocalAgent):
 			print("Cannot transmit email: " + sendEmailResponseErr)
 		os.remove(self.OUTGOING_EMAIL_TMP_FILENAME)
 		self.curlLock.release()
-
+	
+	def getScriptName(self):
+		return os.path.realpath(__file__) 
+        
 	def postResponse(self, cmd_output):
 		self.sendEmail(self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG), cmd_output);
         

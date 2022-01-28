@@ -4,13 +4,12 @@ import java.io.File;
 
 import org.junit.jupiter.api.Test;
 
-import c2.smtp.EmailHandlerTester;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
-import util.test.TestConstants;
 import util.test.TestConfiguration.OS;
+import util.test.TestConstants;
 
 public class RunnerTestPython extends ClientServerTest {
 

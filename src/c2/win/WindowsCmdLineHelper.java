@@ -35,6 +35,29 @@ public class WindowsCmdLineHelper {
 		return processes;
 	}
 	
+	public static boolean isClientElevated(int id, IOManager io) {
+		io.sendCommand(id, "net session 2>&1");
+		String groupListing = io.awaitMultilineCommands(id);
+		
+		if (groupListing.contains("Access is denied.")) {
+			return false;
+		} else {
+			if(groupListing.contains("There are no entries in the list.") ||
+					groupListing.contains("User name")) {
+				return true;
+			}else {
+				groupListing = io.awaitMultilineCommands(id);
+				
+				if (groupListing.contains("Access is denied.")) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+			
+		}
+	}
+	
 	public static String resolveAppData(IOManager io, int sessionId) throws Exception{
 		String queryDirCmd = "dir %APPDATA%";
 		io.sendCommand(sessionId, queryDirCmd);

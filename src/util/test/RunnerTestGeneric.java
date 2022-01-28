@@ -31,6 +31,7 @@ import java.util.Properties;
 import c2.Constants;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
+import c2.session.macro.SpawnFodhelperElevatedSessionMacro;
 import util.Time;
 import util.test.TestConfiguration.OS;
 
@@ -395,35 +396,7 @@ public class RunnerTestGeneric {
 			output = br.readLine();
 			assertEquals(output, "");
 
-			System.out.println("pwd test");
-			bw.write("pwd" + System.lineSeparator());
-			bw.flush();
-			output = br.readLine();
-			if (config.os == TestConfiguration.OS.LINUX) {
-				assertEquals(output, TestConstants.EXECUTIONROOT_LINUX);
-				// testdir
-			} else if (config.lang.equals("Native")) {
-				if (config.isRemote()) {
-					assertTrue(output.startsWith("C:\\Users\\"));
-				} else {
-					assertEquals(output, Paths.get("").toAbsolutePath().toString());
-				}
-			} else {
-				if (config.isExecInRoot()) {
-					assertEquals(output, Paths.get("").toAbsolutePath().toString());
-					System.out.println("dir test");
-					testRootDirEnum(br, bw);
-				} else {
-					assertEquals(output, Paths.get("localAgent", "csc").toAbsolutePath().toString());
-					System.out.println("dir test");
-					testCscDirEnum(br, bw);
-				}
-			}
-
-			if (config.lang.equals("python") && config.protocol.equals("SMTP")) {
-				System.out.println("Flushing");
-				br.readLine();// Flush a bad line feed
-			}
+			testPwd(br, bw, config);
 
 			System.out.println("uplink test");
 			if (config.os == TestConfiguration.OS.LINUX) {
@@ -534,6 +507,7 @@ public class RunnerTestGeneric {
 			testUplinkDownloadErrorHandling(br, bw);
 			testCatErrorHandling(br, bw, config);
 			testUplinkDownloadWithSpaces(br, bw, config);
+			testClientIdentifesExecutable(br, bw, config);
 			
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
@@ -557,6 +531,67 @@ public class RunnerTestGeneric {
 		}
 
 		cleanup(config.lang);
+	}
+	
+	private static void testPwd(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
+		try {
+			System.out.println("pwd test");
+			bw.write("pwd" + System.lineSeparator());
+			bw.flush();
+			String output = br.readLine();
+			if (config.os == TestConfiguration.OS.LINUX) {
+				assertEquals(output, TestConstants.EXECUTIONROOT_LINUX);
+				// testdir
+			} else if (config.lang.equals("Native")) {
+				if (config.isRemote()) {
+					assertTrue(output.startsWith("C:\\Users\\"));
+				} else {
+					assertEquals(output, Paths.get("").toAbsolutePath().toString());
+				}
+			} else {
+				if (config.isExecInRoot()) {
+					assertEquals(output, Paths.get("").toAbsolutePath().toString());
+					System.out.println("dir test");
+					testRootDirEnum(br, bw);
+				} else {
+					assertEquals(output, Paths.get("localAgent", "csc").toAbsolutePath().toString());
+					System.out.println("dir test");
+					testCscDirEnum(br, bw);
+				}
+			}
+
+			if (config.lang.equals("python") && config.protocol.equals("SMTP")) {
+				System.out.println("Flushing");
+				br.readLine();// Flush a bad line feed
+			}
+		}catch(IOException ex) {
+			fail(ex.getMessage());
+		}
+	}
+	
+	private static void testClientIdentifesExecutable(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
+		try {
+		if(config.lang.equals("python")) {
+			bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
+			bw.flush();
+			String output = br.readLine();
+			String[] respElements = output.split(" ");
+			assertEquals(2, respElements.length);
+			assertTrue(respElements[0].startsWith("C:\\"));
+			assertTrue(respElements[0].endsWith("python.exe"));
+			if(config.protocol.equals("DNS")) {
+				assertEquals(Paths.get("agents", "python", "dnsSimpleAgent.py").toAbsolutePath().toString(), respElements[1]);
+			}else if(config.protocol.equals("HTTPS")) {
+				assertEquals(Paths.get("agents", "python", "httpsAgent.py").toAbsolutePath().toString(), respElements[1]);
+			}else if(config.protocol.equals("SMTP")) {
+				assertEquals(Paths.get("agents", "python", "emailAgent.py").toAbsolutePath().toString(), respElements[1]);
+			}
+		}else if(config.lang.equals("C++") || config.lang.equals("Native") || config.lang.equals("C#") || config.lang.equals("Java")) {
+			fail("Implement me");
+		}
+		}catch(IOException ex) {
+			fail(ex.getMessage());
+		}
 	}
 
 	private static void testCatErrorHandling(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
