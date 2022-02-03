@@ -42,9 +42,13 @@ class PortForwardOutboundLoop(Thread):
 		self.remoteSocket = remoteSocket
 		self.stayAlive = True;
 		self.socketLock = socketLock
+		self.hasStartedTransmission = False;
 
 	def kill(self):
 		self.stayAlive = False;
+
+	def setInboundLoop(self, inloop):
+		self.inloop = inloop;
 
 	def run(self):
 		while self.stayAlive:
@@ -52,6 +56,10 @@ class PortForwardOutboundLoop(Thread):
 			if forwardData:
 				try:
 					self.socketLock.acquire()
+					if not self.hasStartedTransmission:
+						self.remoteSocket.connect((self.targetHost, self.targetPort))
+						self.hasStartedTransmission = True
+						self.inloop.notify_begin_xmit()
 					self.remoteSocket.send(forwardData)
 				except Exception as e:
 					print("Cannot connect {}".format(e), file=sys.stderr)
@@ -72,9 +80,13 @@ class PortForwardInboundLoop(Thread):
 		self.stayAlive = True;
 		self.socketLock = socketLock
 		self.outboundLoop = outboundLoop
+		self.hasStartedTransmission = False;
 
 	def kill(self):
 		self.stayAlive = False;
+
+	def notify_begin_xmit(self):
+		self.hasStartedTransmission = True;
 
 	def run(self):
 		while self.stayAlive:
@@ -83,6 +95,9 @@ class PortForwardInboundLoop(Thread):
 			self.remoteSocket.settimeout(2)
 			dummy = 0
 			try:
+				if not self.hasStartedTransmission:
+					time.sleep(0.001)
+					continue
 				# keep reading into the buffer until
 				# there's no more data or we timeout
 
@@ -308,13 +323,14 @@ class LocalAgent:
 		try:
 			port = int(elements[2])
 			remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			remote_socket.connect((elements[1], port))   
+			#remote_socket.connect((elements[1], port))   
 			uidStr = elements[1] + ":" + elements[2]
 			socketLock = threading.Lock()
 			self.outboundLooperDict[uidStr] = PortForwardOutboundLoop(self, elements[1], port, remote_socket, socketLock)
 			self.outboundLooperDict.get(uidStr).start()
 			self.inboundLooperDict[uidStr] = PortForwardInboundLoop(self, elements[1], port, remote_socket, socketLock, self.outboundLooperDict.get(uidStr))
 			self.inboundLooperDict.get(uidStr).start()
+			self.outboundLooperDict.get(uidStr).setInboundLoop(self.inboundLooperDict.get(uidStr))
 		except Exception as e:
 			print("Cannot connect {}".format(e), file=sys.stderr)
 			self.postResponse("Cannot connect to specified host")    

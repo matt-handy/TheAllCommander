@@ -96,7 +96,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 	public static void testDNS() {
 		initiateServer();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python"
-				+ File.separator + "dnsAgent.py\"";
+				+ File.separator + "dnsSimpleAgent.py\"";
 		spawnClient(clientCmd);
 
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "DNS");

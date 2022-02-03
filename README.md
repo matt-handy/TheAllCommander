@@ -70,6 +70,7 @@ proxy <Remote IP> <port> <local port>
 	This command binds a TCP listener to <local port> on the TheAllCommander's command server. The remote daemon will
 	open a socket to host <Remote IP> at <port>, and will function as a TCP proxy. This mode is currently supported for 
 	HTTP, DNS, and email clients.
+	Note: The proxy only supports IPv4 at this time, and using "localhost" may resolve to an IPv6 loopback. Use 127.0.0.1 instead
 	
 killproxy <Remote IP> <port>
 

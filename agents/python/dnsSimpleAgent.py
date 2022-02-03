@@ -14,6 +14,8 @@ import secrets
 import traceback
 import queue
 
+import threading
+
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
@@ -33,6 +35,7 @@ class DNSSimpleAgent(LocalAgent):
 		LocalAgent.__init__(self)    
 		self.q = queue.Queue()
 		self.forwardQueues = {}
+		self.xmitLock = threading.Lock()
 
 	def pollForward(self, forwardID):
 		if not forwardID in self.forwardQueues:
@@ -51,6 +54,7 @@ class DNSSimpleAgent(LocalAgent):
 		self.sendRecv(self.hostname, self.username, self.pid, "DNS", im_b64, forwardID)
 
 	def sendReceive(self, lmessage, sessionId):
+		self.xmitLock.acquire()
 		try:
 			sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 			server_address = ('localhost', self.DNS_PORT)
@@ -120,12 +124,15 @@ class DNSSimpleAgent(LocalAgent):
 			bytesToRemove = decoded_resp[len(decoded_resp) - 1]
 			decoded_resp = decoded_resp[0:len(decoded_resp) - bytesToRemove]
 			decoded_resp = str(decoded_resp, 'utf-8')
+			#self.xmitLock.release()
 			return decoded_resp
 		except Exception as e:
 			print("Oops, something went wrong with transmission: {}".format(e), file=sys.stderr) 
 			print(traceback.format_exc())            
 		finally:
+			self.xmitLock.release()
 			sock.close()
+		
 
 	def getScriptName(self):
 		return os.path.realpath(__file__) 
