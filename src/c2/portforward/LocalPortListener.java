@@ -25,6 +25,8 @@ public class LocalPortListener implements Runnable {
 	private Socket newSession;
 	private boolean needNewConnection = true;
 
+	private CountDownLatch startLatch = new CountDownLatch(1);
+	
 	public LocalPortListener(IOManager io, int sessionId, String remoteForwardAddr, int localListenPort) {
 		this.io = io;
 		this.sessionId = sessionId;
@@ -32,6 +34,15 @@ public class LocalPortListener implements Runnable {
 		this.localListenPort = localListenPort;
 	}
 
+	public void awaitStartup() {
+		try {
+			startLatch.await();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void run() {
 		ExecutorService service = Executors.newCachedThreadPool();
@@ -73,6 +84,8 @@ public class LocalPortListener implements Runnable {
 		try {
 			ServerSocket ss = new ServerSocket(localListenPort);
 			ss.setSoTimeout(1000);
+			
+			startLatch.countDown();
 
 			while (!Thread.interrupted() && stayAlive) {
 				newSession = null;

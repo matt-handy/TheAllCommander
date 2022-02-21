@@ -16,7 +16,7 @@ public class CookiesCommandHelper {
 
 	public static final String CHROME_COOKIES_FILENAME = "\"%APPDATA%\\..\\Local\\Google\\Chrome\\User Data\\Default\\Cookies\"";
 	
-	public static final String EDGE_CHROMIUM_FILENAME = "\"%APPDATA%\\..\\Local\\Microsoft\\Edge\\User Data\\Default\\Cookies\""; 
+	public static final String EDGE_CHROMIUM_FILENAME = "\"%APPDATA%\\..\\Local\\Microsoft\\Edge\\User Data\\Default\\Network\\Cookies\""; 
 	
 	public static final String FIREFOX_COOKIES_ROOT = "%APPDATA%\\Mozilla\\Firefox\\Profiles";
 	public static final String FIREFOX_COOKIES_FILENAME = "cookies.sqlite";

@@ -195,7 +195,8 @@ public class IOManager {
 	public synchronized void sendCommand(int sessionId, String command) {
 		if (sessions.containsKey(sessionId)) {
 			CommandPreprocessorOutcome outcome = preprocessor.processCommand(command, sessionId);
-			if (!outcome.outcome) {
+			//Sometimes the command is successful, but we still don't need to send to Daemon
+			if (!outcome.outcome || !outcome.sendingCmdToClient) {
 				sendIO(sessionId, outcome.message + System.lineSeparator());
 				return;
 			}

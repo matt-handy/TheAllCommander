@@ -37,7 +37,6 @@ class RunnerTestPythonExfil {
 			if(Files.exists(path)) {
 				Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 			}
-			System.out.println("PYTHON EXFIL TEST: Deleted!");
 		} catch (IOException e2) {
 			fail("Cannot set up test and delete test log file");
 		}

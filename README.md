@@ -124,6 +124,9 @@ harvest_cookies
 activate_rdp <username>
 	sets up Remote Desktop access on windows platforms, only supported by C++ daemons at present (public release pending). This feature was originally implemented using a dropper which would place Chisel on the target system and utilize it for the port tunneling. However, as A/V products are good at finding chisel at the endpoint, this doesn't make for a particularly interesting scenario to model. The implementation has switched to using TheAllCommander's own TCP tunneling, which should emulate a much more instructive threat model. 
 
+startSocks5 <port>
+	This command starts a SOCKS5 proxy on TheAllCommander which receives connect requests on the specified port. As new connections come in, the connected daemon will forward those incoming connections. This allows for tunneled network traffic, similar to the equivalent Meterpreter functionality.
+
 # Near Term Project Goals
 DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  
 
@@ -198,9 +201,11 @@ daemon.reportinginterval.multiplesexpectedmaxclient
 # Building & Running
 TheAllCommander server is currently set up to run and test on Windows. Cross-platform support is a future goal. 
 
-1) TheAllCommander is set up as a maven project, so a simple "mvn install" will build the project and resolve all dependencies in the the "target" folder.
+1) There should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
 
-2) There should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
+NOTE: Mvn test will run tests of the HTTPS server, so there must be a keystore file to ensure that certificates can load before all build tests will pass
+
+2) TheAllCommander is set up as a maven project, so a simple "mvn install" will build the project and resolve all dependencies in the the "target" folder.
 
 3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
 

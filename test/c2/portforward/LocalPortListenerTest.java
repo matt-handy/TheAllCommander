@@ -2,7 +2,6 @@ package c2.portforward;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -34,7 +33,7 @@ class LocalPortListenerTest {
 		ExecutorService service = Executors.newFixedThreadPool(2);
 		service.submit(listener);
 
-		Time.sleepWrapped(1000);
+		listener.awaitStartup();
 
 		try {
 			Socket socket = new Socket("localhost", LOCAL_LISTEN_PORT);
@@ -42,18 +41,16 @@ class LocalPortListenerTest {
 			socket.getOutputStream().write(sampleData);
 			socket.getOutputStream().flush();
 
-			Time.sleepWrapped(2000);
+			Time.sleepWrapped(3000);
 
 			String base64Data = io.grabForwardedTCPTraffic(testSessionId, REMOTE_FORWARD_NAME);
 			byte[] receivedData = Base64.getDecoder().decode(base64Data);
 			assertArrayEquals(sampleData, receivedData);
 			base64Data = Base64.getEncoder().encodeToString(sampleData);
-			System.out.println("Queuing " + testSessionId + " " + REMOTE_FORWARD_NAME);
 			io.queueForwardedTCPTraffic(testSessionId, REMOTE_FORWARD_NAME, base64Data);
 
 			Time.sleepWrapped(1000);
 
-			System.out.println("Reading test socket");
 			byte[] mirroredData = new byte[4096];
 			int bytesRead = socket.getInputStream().read(mirroredData);
 			assertArrayEquals(sampleData, Arrays.copyOf(mirroredData, bytesRead));
