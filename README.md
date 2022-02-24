@@ -198,6 +198,22 @@ daemon.reportinginterval.expectedmaxclient
 
 daemon.reportinginterval.multiplesexpectedmaxclient
 
+# Dependencies
+Java JDK
+
+Maven
+
+Python 3.10 or greater -> ensure that both the Python and scripts directory are on your path (%APPDATA%\Local\Programs\Python\Python310 and %APPDATA%\Local\Programs\Python\Python310\Scripts by default)
+
+
+## Python Daemon Dependencies
+pip install keyboard
+pip install pyautogui
+pip install Pillow
+pip install pywin32
+pip install pycryptodome
+
+
 # Building & Running
 TheAllCommander server is currently set up to run and test on Windows. Cross-platform support is a future goal. 
 
@@ -210,6 +226,8 @@ NOTE: Mvn test will run tests of the HTTPS server, so there must be a keystore f
 3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
 
 4) To control TheAllCommander, execCommander.bat will launch a text client, which by default will connect to the locally running instance of TheAllCommander. There is a related project, TheAllCommanderFE which provides a very simply Angular front end for TheAllCommander, which is designed to function entirely independently. Note: execCommander.bat's simply local client will prompt the user for a session to choose. This session must be chosen quickly or the connection will time out.   
+
+5) Launch a sample daemon. From agents\python -> python httpsAgent.py
 
 Note: TheAllCommander's default test.properties file comes with email daemon monitoring disabled for convenience, since test users are less likely to have access to a test email server. To re-enable, add the following lines to the the test.properties file:
 daemon.email.port=587
