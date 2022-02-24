@@ -208,9 +208,13 @@ Python 3.10 or greater -> ensure that both the Python and scripts directory are 
 
 ## Python Daemon Dependencies
 pip install keyboard
+
 pip install pyautogui
+
 pip install Pillow
+
 pip install pywin32
+
 pip install pycryptodome
 
 

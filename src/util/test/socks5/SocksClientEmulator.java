@@ -17,42 +17,42 @@ import util.Time;
 
 public class SocksClientEmulator implements Runnable {
 
-	
 	public static String TEST_OUTGOING_MESSAGE = "This is a test of an outgoing message";
 	public static String TEST_INCOMING_MESSAGE = "This is the message which should come in response";
-	
+
 	private boolean alive = true;
 	private int localSocksPort;
 	private boolean sendIp;
-	private TargetServerEmulator target;
+	private TargetEmulator target;
 	private boolean testBreak;// Tests that a connection was broken
-	
+
 	private boolean ranToConclusion = false;
-	
+
 	private boolean testEmailLatency = false;
 
-	public SocksClientEmulator(int localSocksPort, boolean sendIp, TargetServerEmulator target, boolean testBreak) {
+	public SocksClientEmulator(int localSocksPort, boolean sendIp, TargetEmulator target, boolean testBreak) {
 		this.localSocksPort = localSocksPort;
 		this.sendIp = sendIp;
 		this.target = target;
 		this.testBreak = testBreak;
 	}
 
-	public SocksClientEmulator(int localSocksPort, boolean sendIp, TargetServerEmulator target, boolean testBreak, boolean testEmailLatency) {
+	public SocksClientEmulator(int localSocksPort, boolean sendIp, TargetServerEmulator target, boolean testBreak,
+			boolean testEmailLatency) {
 		this.localSocksPort = localSocksPort;
 		this.sendIp = sendIp;
 		this.target = target;
 		this.testBreak = testBreak;
 		this.testEmailLatency = testEmailLatency;
 	}
-	
+
 	private CountDownLatch cdl = new CountDownLatch(1);
 
 	public boolean isComplete() {
 		try {
-			//System.out.println("Awaiting");
+			// System.out.println("Awaiting");
 			cdl.await();
-			//System.out.println("Await complete");
+			// System.out.println("Await complete");
 		} catch (InterruptedException e) {
 			// Discard and move on
 		}
@@ -116,27 +116,29 @@ public class SocksClientEmulator implements Runnable {
 					assertTrue(target.hasConnection());
 				}
 
-				System.out
-						.println("Send Outgoing: " + TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8).length);
+				System.out.println("Send Outgoing: " + TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8).length);
 				System.out.println("Final byte: " + TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8)[36]);
 				os.write(TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8));
 
 				os.flush();
 				System.out.println("Flushed outgoing");
 				if (testBreak) {
+					if (target != null) {
+						target.awaitSocketClose();
+					}
 					boolean foundException = false;
-					if(testEmailLatency) {
+					if (testEmailLatency) {
 						Time.sleepWrapped(30000);
 						for (int idx = 0; idx < 20; idx++) {
-						try {
-							os.write(TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8));
-							os.flush();
-							Time.sleepWrapped(30000);
-						} catch (IOException ex) {
-							foundException = true;
+							try {
+								os.write(TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8));
+								os.flush();
+								Time.sleepWrapped(30000);
+							} catch (IOException ex) {
+								foundException = true;
+							}
 						}
-						}
-					}else {
+					} else {
 						for (int idx = 0; idx < 100; idx++) {
 							try {
 								os.write(TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8));

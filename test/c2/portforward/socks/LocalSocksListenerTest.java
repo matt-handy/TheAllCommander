@@ -1,12 +1,9 @@
 package c2.portforward.socks;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,7 +33,7 @@ class LocalSocksListenerTest {
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, false, null, false);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, false, targetDaemon, false);
 		service.submit(clientEmulator);
 		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
@@ -107,7 +104,7 @@ class LocalSocksListenerTest {
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 		
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, null, false);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetDaemon, false);
 		service.submit(clientEmulator);
 		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
@@ -155,7 +152,7 @@ class LocalSocksListenerTest {
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 		
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, null, true);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetDaemon, true);
 		service.submit(clientEmulator);
 		System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());

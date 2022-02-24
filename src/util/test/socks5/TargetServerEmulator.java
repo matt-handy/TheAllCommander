@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
 
 import c2.portforward.socks.SocksHandler;
 
-public class TargetServerEmulator implements Runnable {
+public class TargetServerEmulator implements Runnable, TargetEmulator {
 	private boolean alive = true;
 	private int listenPort;
 	private boolean testBreak;
@@ -24,6 +24,7 @@ public class TargetServerEmulator implements Runnable {
 
 	private CountDownLatch cdl = new CountDownLatch(1);
 	private CountDownLatch startLatch = new CountDownLatch(1);
+	private CountDownLatch socketCloseLatch = new CountDownLatch(1);
 
 	public void awaitStartup() {
 		try {
@@ -35,6 +36,16 @@ public class TargetServerEmulator implements Runnable {
 
 	public boolean hasConnection() {
 		return startLatch.getCount() == 0;
+	}
+	
+	@Override
+	public void awaitSocketClose() {
+		try {
+			socketCloseLatch.await();
+		}catch(InterruptedException ex) {
+			
+		}
+		
 	}
 
 	public void run() {
@@ -58,6 +69,7 @@ public class TargetServerEmulator implements Runnable {
 					assertEquals(SocksClientEmulator.TEST_OUTGOING_MESSAGE, testMessage);
 					if (testBreak) {
 						socket.close();
+						socketCloseLatch.countDown();
 					} else {
 						//System.out.println("Writing response");
 						socket.getOutputStream().write(SocksClientEmulator.TEST_INCOMING_MESSAGE.getBytes(StandardCharsets.UTF_8));
