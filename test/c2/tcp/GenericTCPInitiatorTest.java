@@ -56,7 +56,7 @@ class GenericTCPInitiatorTest {
 		Random rnd = new Random();
 		int testPort = 40000 + rnd.nextInt(1000);
 		spinUpGenericTCPInitiatorTest(testPort, io);
-
+		testObject.awaitStartup();
 		try {
 			Socket clientSocket = new Socket("127.0.0.1", testPort);
 			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -117,7 +117,7 @@ class GenericTCPInitiatorTest {
 		Random rnd = new Random();
 		int testPort = 40000 + rnd.nextInt(1000);
 		spinUpGenericTCPInitiatorTest(testPort, io);
-
+		testObject.awaitStartup();
 		try {
 			Socket clientSocket = new Socket("127.0.0.1", testPort);
 			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);

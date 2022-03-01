@@ -29,6 +29,7 @@ public class GenericTCPInitiator extends C2Interface {
 	private int port;
 	private boolean stayAlive = true;
 	private CountDownLatch stopLatch = new CountDownLatch(1);
+	private CountDownLatch startLatch = new CountDownLatch(1);
 	private ExecutorService service = Executors.newCachedThreadPool();
 
 	private String lz;
@@ -63,12 +64,20 @@ public class GenericTCPInitiator extends C2Interface {
 		}
 	}
 
+	public void awaitStartup() {
+		try {
+			startLatch.await();
+		} catch (InterruptedException e) {
+			
+		}
+	}
+	
 	@Override
 	public void run() {
 		try {
 			ServerSocket ss = new ServerSocket(port);
 			ss.setSoTimeout(1000);
-
+			startLatch.countDown();
 			System.out.println("TCP Listener online: " + port);
 			while (!Thread.interrupted() && stayAlive) {
 				Socket newSession = null;
