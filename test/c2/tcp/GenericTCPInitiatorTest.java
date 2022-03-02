@@ -267,7 +267,7 @@ class GenericTCPInitiatorTest {
 			counter++;
 			Time.sleepWrapped(100);
 		}
-		assertEquals("C:\\Users\\fake_user\\OneDrive\\Documents\\Software\\TheAllCommander\\agents\\python\r\n",
+		assertEquals("C:\\Users\\fake_user\\OneDrive\\Documents\\Software\\TheAllCommander\\agents\\python" + System.lineSeparator(),
 				response);
 	}
 
@@ -304,7 +304,7 @@ class GenericTCPInitiatorTest {
 		}
 		// Did we strip the echo'd command
 		assertTrue(response.startsWith(" Volume in drive C is OS"));
-		assertTrue(response.endsWith("3 Dir(s)  13,530,017,792 bytes free\r\n"));
+		assertTrue(response.endsWith("3 Dir(s)  13,530,017,792 bytes free" + System.lineSeparator()));
 	}
 
 }

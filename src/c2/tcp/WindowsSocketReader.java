@@ -9,6 +9,8 @@ import util.Time;
 
 public class WindowsSocketReader extends SocketReader {
 
+	private static final String WINDOWS_LINE_SEP = "\r\n";
+	
 	// This flag is set if the first line of the response is a echo of the command
 	// which needs to be stripped
 	private boolean removeEchoedCommand = true;
@@ -21,7 +23,7 @@ public class WindowsSocketReader extends SocketReader {
 		String command = super.readUnknownLinesFromSocket();
 		//System.out.println("Read: -" + command + "-");
 		if(removeEchoedCommand) {
-			String elements[] = command.split(System.lineSeparator());
+			String elements[] = command.split(WINDOWS_LINE_SEP);
 			//Sometimes ncat and others will flush a string of chars to remind you where you are
 			//flush the buffer to get clean output
 			if(isResponseAPromptFlush(elements)) {
@@ -44,8 +46,8 @@ public class WindowsSocketReader extends SocketReader {
 			}
 		}
 		if(removeEchoedCommand && command != null && command.length() != 0) {
-			int firstLineBreak = command.indexOf(System.lineSeparator());
-			command = command.substring(firstLineBreak + System.lineSeparator().length());
+			int firstLineBreak = command.indexOf(WINDOWS_LINE_SEP);
+			command = command.substring(firstLineBreak + WINDOWS_LINE_SEP.length());
 		}
 		//System.out.println("Returning: -" +command  +"-");
 		command = stripTrailingPrompt(command);
@@ -68,13 +70,17 @@ public class WindowsSocketReader extends SocketReader {
 	}
 	
 	private static String stripTrailingPrompt(String message) {
-		String elements[] = message.split(System.lineSeparator());
+		String elements[] = message.split(WINDOWS_LINE_SEP);
 		if(elements.length == 1 && message.length() == 0) {
 			return message;
 		}
 		boolean dropLastLine = false;
 		boolean dropPenultimateLine = false;
-		if((elements[elements.length - 1].startsWith("C:\\") && elements[elements.length - 1].endsWith(">"))) {
+		boolean endsWithCarrot = elements[elements.length - 1].endsWith(">");
+		if(!System.lineSeparator().equals(WINDOWS_LINE_SEP)){
+			endsWithCarrot = elements[elements.length - 1].endsWith(">" + System.lineSeparator());
+		}
+		if((elements[elements.length - 1].startsWith("C:\\") && endsWithCarrot)) {
 			dropLastLine = true;
 			if(elements[elements.length - 2].equals("")) {
 				dropPenultimateLine = true;
