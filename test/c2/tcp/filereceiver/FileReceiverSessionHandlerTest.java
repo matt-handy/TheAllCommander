@@ -96,7 +96,8 @@ class FileReceiverSessionHandlerTest {
 
 			Time.sleepWrapped(500);
 
-			File dir = new File("test\\fileReceiverTest\\test-host");
+			;
+			File dir = Paths.get("test", "fileReceiverTest", "test-host").toFile();
 
 			File[] matches = dir.listFiles(new FilenameFilter() {
 				public boolean accept(File dir, String name) {
@@ -104,8 +105,8 @@ class FileReceiverSessionHandlerTest {
 				}
 			});
 			assertTrue(matches.length == 1);
-			File target = new File(
-					"test\\fileReceiverTest\\test-host\\" + matches[0].getName() + "\\Users\\testperson\\fakefile.txt");
+			
+			File target = Paths.get("test", "fileReceiverTest", "test-host", matches[0].getName(), "Users", "testperson", "fakefile.txt").toFile();
 			assertTrue(target.exists());
 			byte[] data = Files.readAllBytes(target.toPath());
 			assertEquals(fakeFile.length, data.length);
@@ -167,7 +168,7 @@ class FileReceiverSessionHandlerTest {
 
 			Time.sleepWrapped(500);
 
-			File dir = new File("test\\fileReceiverTest\\test-host");
+			File dir = Paths.get("test", "fileReceiverTest", "test-host").toFile();
 
 			File[] matches = dir.listFiles(new FilenameFilter() {
 				public boolean accept(File dir, String name) {
@@ -175,10 +176,7 @@ class FileReceiverSessionHandlerTest {
 				}
 			});
 			assertTrue(matches.length == 1);
-			System.out.println(matches[0].getName());
-			File target = new File(
-					"test\\fileReceiverTest\\test-host\\" + matches[0].getName() + "\\Users\\testperson\\fakefile.txt");
-			System.out.println(target.getAbsolutePath());
+			File target = Paths.get("test", "fileReceiverTest", "test-host", matches[0].getName(), "Users", "testperson", "fakefile.txt").toFile();
 			assertTrue(target.exists());
 			byte[] data = Files.readAllBytes(target.toPath());
 			assertEquals(fakeFile.length, data.length);
@@ -186,9 +184,7 @@ class FileReceiverSessionHandlerTest {
 				assertEquals(fakeFile[idx], data[idx]);
 			}
 
-			File target2 = new File("test\\fileReceiverTest\\test-host\\" + matches[0].getName()
-					+ "\\Users\\testperson\\fakefile2.txt");
-			System.out.println(target2.getAbsolutePath());
+			File target2 = Paths.get("test", "fileReceiverTest", "test-host", matches[0].getName(), "Users", "testperson", "fakefile2.txt").toFile();
 			assertTrue(target2.exists());
 			byte[] data2 = Files.readAllBytes(target2.toPath());
 			assertEquals(fakeFile2.length, data2.length);
