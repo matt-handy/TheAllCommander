@@ -246,8 +246,6 @@ commservices=c2.http.HTTPSManager,c2.udp.DNSEndpointEmulator,c2.smtp.EmailHandle
 Note also that the test daemon "emailAgent.py" has placeholder values for the email server which must be filled in
 
 # Test
-NOTE: Test execution will launch calc.exe. This is normal.
-
 There are two classes of test for TheAllCommander. One is the standard unit tests, which test TheAllCommander's core java code by itself. These tests can be run with "mvn test" 
 
 The second, and far more comprehensive, test suite is included in the integration_test directory. These tests are orchestrated through junit, but involve TheAllCommander server being started in its entirety, and one of the test daemons being engaged to run through a standard set of test sequences. This tests both the server and the daemons in an apples-to-apples manner.
