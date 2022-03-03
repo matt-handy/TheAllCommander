@@ -80,7 +80,7 @@ class FileReceiverSessionHandlerTest {
 			os.write(filenameLen);
 			os.write(testFilename.getBytes());
 			Random fileGenerator = new Random();
-			byte[] fakeFile = new byte[2048000];
+			byte[] fakeFile = new byte[81280];
 			fileGenerator.nextBytes(fakeFile);
 			byte[] fileLen = longToByteArray(fakeFile.length);
 			os.write(fileLen);
@@ -94,9 +94,8 @@ class FileReceiverSessionHandlerTest {
 			os.flush();
 			socket.close();
 
-			Time.sleepWrapped(500);
+			Time.sleepWrapped(1000);
 
-			;
 			File dir = Paths.get("test", "fileReceiverTest", "test-host").toFile();
 
 			File[] matches = dir.listFiles(new FilenameFilter() {
@@ -142,7 +141,7 @@ class FileReceiverSessionHandlerTest {
 			os.write(filenameLen);
 			os.write(testFilename.getBytes());
 			Random fileGenerator = new Random();
-			byte[] fakeFile = new byte[2048000];
+			byte[] fakeFile = new byte[81280];
 			fileGenerator.nextBytes(fakeFile);
 			byte[] fileLen = longToByteArray(fakeFile.length);
 			os.write(fileLen);
@@ -153,7 +152,7 @@ class FileReceiverSessionHandlerTest {
 			byte[] filenameLen2 = intToByteArray(testFilename2.length());
 			os.write(filenameLen2);
 			os.write(testFilename2.getBytes());
-			byte[] fakeFile2 = new byte[3048000];
+			byte[] fakeFile2 = new byte[60000];
 			fileGenerator.nextBytes(fakeFile2);
 			byte[] fileLen2 = longToByteArray(fakeFile2.length);
 			os.write(fileLen2);
@@ -166,7 +165,7 @@ class FileReceiverSessionHandlerTest {
 			// broken
 			// connection and self-terminate
 
-			Time.sleepWrapped(500);
+			Time.sleepWrapped(1000);
 
 			File dir = Paths.get("test", "fileReceiverTest", "test-host").toFile();
 

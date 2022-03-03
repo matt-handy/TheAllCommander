@@ -102,7 +102,8 @@ class SocksOverHTTPSTest {
 			httpsManager.initialize(io, prop, keyProcessor, null);
 			ExecutorService service = Executors.newCachedThreadPool();
 			service.submit(httpsManager);
-
+			httpsManager.awaitStartup();
+			
 			postData("test", "hi!", new HashMap<>());
 			
 			String encodedOutgoingTransmission = Base64.getEncoder().encodeToString(new String("0123456789").getBytes(StandardCharsets.UTF_8));

@@ -16,6 +16,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -60,6 +61,8 @@ public class HTTPSManager extends C2Interface {
 
 	private HarvestProcessor harvester;
 
+	private CountDownLatch startLatch = new CountDownLatch(1);
+	
 	public void initialize(IOManager io, Properties prop, KeyloggerProcessor keyProcessor, HarvestProcessor harvester) {
 		this.properties = prop;
 		this.port = Integer.parseInt(properties.getProperty(Constants.DAEMONPORT));
@@ -183,12 +186,22 @@ public class HTTPSManager extends C2Interface {
 			httpServer.setExecutor(null); // creates a default executor
 			System.out.println("HTTP online: " + http_port);
 			httpServer.start();
+			
+			startLatch.countDown();
 		} catch (Exception exception) {
 			System.out.println("Failed to create HTTPS server on port " + port + " of localhost");
 			exception.printStackTrace();
 
 		}
 
+	}
+	
+	public void awaitStartup() {
+		try {
+			startLatch.await();
+		} catch (InterruptedException e) {
+			
+		}
 	}
 
 	class PayloadHandler implements HttpHandler {
