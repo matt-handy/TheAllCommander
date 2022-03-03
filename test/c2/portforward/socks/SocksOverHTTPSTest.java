@@ -4,14 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyManagementException;
 import java.security.cert.CertificateException;
 import java.util.Base64;
 import java.util.HashMap;
@@ -81,7 +80,13 @@ class SocksOverHTTPSTest {
 	
 	@Test
 	void test() {
-		try (InputStream input = new FileInputStream("config" + File.separator + "test.properties")) {
+		Path testPath = null;
+		if (System.getProperty("os.name").contains("Windows")) {
+			testPath = Paths.get("config", "test.properties");
+		}else {
+			testPath = Paths.get("config", "test_linux.properties");
+		}
+		try (InputStream input = new FileInputStream(testPath.toFile())) {
 
 			Properties prop = new Properties();
 

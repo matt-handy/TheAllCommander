@@ -9,21 +9,25 @@ import org.junit.jupiter.api.Test;
 
 public class CookiesCommandHelperTest {
 
-	
-	
 	@Test
 	void testChromeCookiesFileIsLegit() {
-		assertTrue(Files.exists(Paths.get(CookiesCommandHelper.getChromeCookiesFilename())));
+		if (System.getProperty("os.name").contains("Windows")) {
+			assertTrue(Files.exists(Paths.get(CookiesCommandHelper.getChromeCookiesFilename())));
+		}
 	}
-	
+
 	@Test
 	void testFirefoxCookiesFileIsLegit() {
-		assertTrue(Files.exists(Paths.get(CookiesCommandHelper.getFirefoxCookiesFilename())));
+		if (System.getProperty("os.name").contains("Windows")) {
+			assertTrue(Files.exists(Paths.get(CookiesCommandHelper.getFirefoxCookiesFilename())));
+		}
 	}
-	
+
 	@Test
 	void testEdgeCookiesFileIsLegit() {
-		assertTrue(Files.exists(Paths.get(CookiesCommandHelper.getEdgeCookiesFilename())));
+		if (System.getProperty("os.name").contains("Windows")) {
+			assertTrue(Files.exists(Paths.get(CookiesCommandHelper.getEdgeCookiesFilename())));
+		}
 	}
 
 }

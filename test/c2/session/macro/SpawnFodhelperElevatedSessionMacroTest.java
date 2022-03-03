@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +29,13 @@ class SpawnFodhelperElevatedSessionMacroTest {
 
 	@BeforeEach
 	void setUp() throws Exception {
-		try (InputStream input = new FileInputStream("config\\test.properties")) {
+		Path testPath = null;
+		if (System.getProperty("os.name").contains("Windows")) {
+			testPath = Paths.get("config", "test.properties");
+		}else {
+			testPath = Paths.get("config", "test_linux.properties");
+		}
+		try (InputStream input = new FileInputStream(testPath.toFile())) {
 
 			Properties prop = new Properties();
 

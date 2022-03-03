@@ -46,7 +46,7 @@ class DefaultCommandsTest {
 	@Test
 	void test() {
 		try {
-			CommandLoader cl = new CommandLoadParser().buildLoader("test\\default_commands");
+			CommandLoader cl = new CommandLoadParser().buildLoader(defaultsFile.toString());
 			assertTrue(cl.getDefaultCommands().size() == 1);
 			assertTrue(cl.getDefaultCommands().get(0).equals("pwd"));
 
