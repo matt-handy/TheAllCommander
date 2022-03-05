@@ -406,36 +406,38 @@ public class RunnerTestGeneric {
 				assertEquals(output,
 						"<control> uplinked test_uplink VGhpcyBpcyBhIHRlc3QgZmlsZSB0byB1cGxpbmsgb24gTGludXguIEl0IGhhcyBubyBwb2ludC4K");
 			} else {
+				byte targetFile[] = Files.readAllBytes(Paths.get("execCommander.bat"));
+				String targetB64 = Base64.getEncoder().encodeToString(targetFile);
 				if (config.isExecInRoot()) {
-					bw.write("uplink " + "test\\default_commands" + System.lineSeparator());
+					bw.write("uplink " + "execCommander.bat" + System.lineSeparator());
 				} else {
-					bw.write("uplink " + "..\\..\\test\\default_commands" + System.lineSeparator());
+					bw.write("uplink " + "..\\..\\test\\execCommander.bat" + System.lineSeparator());
 				}
 				bw.flush();
 				output = br.readLine();
 				if (config.lang.equals("C++") || config.lang.equals("Native")) {
 					assertEquals(output,
-							"<control> uplinked test\\default_commands OmFsbA0KcHdkDQo6dXNlci1tYXR0ZQ0KY2QgLi4NCnB3ZA0KOmhvc3QtR0xBTURSSU5HDQpwd2QNCmNkIC4NCnB3ZA==");
+							"<control> uplinked execCommander.bat " + targetB64);
 				} else {
 					assertEquals(output,
-							"<control> uplinked default_commands OmFsbA0KcHdkDQo6dXNlci1tYXR0ZQ0KY2QgLi4NCnB3ZA0KOmhvc3QtR0xBTURSSU5HDQpwd2QNCmNkIC4NCnB3ZA==");
+							"<control> uplinked execCommander.bat " + targetB64);
 				}
 			}
 
 			if (config.os != TestConfiguration.OS.LINUX) {
 				System.out.println("Testing download");
 
-				byte[] fileBytes = Files.readAllBytes(Paths.get("test\\default_commands"));
+				byte[] fileBytes = Files.readAllBytes(Paths.get("config", "test.properties"));
 				byte[] encoded = Base64.getEncoder().encode(fileBytes);
 				String encodedString = new String(encoded, StandardCharsets.US_ASCII);
 				bw.write("<control> download "
-						+ Paths.get("test\\default_commands").getFileName().toString().replaceAll(" ", "_") + " "
+						+ Paths.get("config", "test.properties").getFileName().toString().replaceAll(" ", "_") + " "
 						+ encodedString + System.lineSeparator());
 				bw.flush();
 				// Give time for endpoint to receive
 				Time.sleepWrapped(5000);
 				output = br.readLine();
-				assertEquals(output, "File written: default_commands");
+				assertEquals(output, "File written: test.properties");
 
 				if (config.isRemote()) {
 					bw.write("uplink msbuild.txt" + System.lineSeparator());
@@ -448,13 +450,13 @@ public class RunnerTestGeneric {
 					output = br.readLine();// Blank line
 					output = br.readLine();// Prompt
 				} else {
-					assertTrue(Files.exists(Paths.get("default_commands")));
-					byte[] newFileBytes = Files.readAllBytes(Paths.get("default_commands"));
+					assertTrue(Files.exists(Paths.get("test.properties")));
+					byte[] newFileBytes = Files.readAllBytes(Paths.get("test.properties"));
 					assertEquals(newFileBytes.length, fileBytes.length);
 					for (int idx = 0; idx < newFileBytes.length; idx++) {
 						assertEquals(fileBytes[idx], newFileBytes[idx]);
 					}
-					Files.delete(Paths.get("default_commands"));
+					Files.delete(Paths.get("test.properties"));
 				}
 			} else if (config.os == TestConfiguration.OS.LINUX) {
 				System.out.println("Download test executing");
@@ -638,7 +640,7 @@ public class RunnerTestGeneric {
 			TestConfiguration config) {
 		try {
 			System.out.println("Testing download with spaces");
-			byte[] fileBytes = Files.readAllBytes(Paths.get("test\\default_commands"));
+			byte[] fileBytes = Files.readAllBytes(Paths.get("config","test.properties"));
 			byte[] encoded = Base64.getEncoder().encode(fileBytes);
 			String encodedString = new String(encoded, StandardCharsets.US_ASCII);
 			bw.write("<control> download test file " + encodedString + System.lineSeparator());

