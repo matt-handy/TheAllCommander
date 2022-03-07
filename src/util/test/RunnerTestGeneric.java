@@ -588,7 +588,21 @@ public class RunnerTestGeneric {
 			}else if(config.protocol.equals("SMTP")) {
 				assertEquals(Paths.get("agents", "python", "emailAgent.py").toAbsolutePath().toString(), respElements[1]);
 			}
-		}else if(config.lang.equals("C++") || config.lang.equals("Native") || config.lang.equals("C#") || config.lang.equals("Java")) {
+		}else if(config.lang.equals("C#")) {
+			bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
+			bw.flush();
+			String output = br.readLine();
+			assertTrue(output.startsWith("C:\\"));
+			if(config.protocol.equals("HTTPS")) {
+				assertTrue(output.endsWith("client_x.exe"));
+			}else if(config.protocol.equals("DNS")) {
+				assertTrue(output.endsWith("dns_client_x.exe"));
+			}else if(config.protocol.equals("SMTP")) {
+				assertTrue(output.endsWith("EmailDaemon.exe"));
+			}else {
+				fail("Implement me");
+			}
+		}else if(config.lang.equals("C++") || config.lang.equals("Native") || config.lang.equals("Java")) {
 			fail("Implement me");
 		}
 		}catch(IOException ex) {
@@ -688,10 +702,12 @@ public class RunnerTestGeneric {
 			assertEquals(output, "Invalid download directive");
 
 			// Test bad b64 file
+			System.out.println("Testing malformed download commands - B64");
 			bw.write("<control> download fake_file A" + System.lineSeparator());
 			bw.flush();
 			output = br.readLine();
 			assertEquals(output, "Invalid download directive");
+			
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
