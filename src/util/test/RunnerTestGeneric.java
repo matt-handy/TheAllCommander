@@ -32,6 +32,7 @@ import c2.Constants;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
 import c2.session.macro.SpawnFodhelperElevatedSessionMacro;
+import jdk.management.jfr.ConfigurationInfo;
 import util.Time;
 import util.test.TestConfiguration.OS;
 
@@ -259,14 +260,15 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		assertEquals(output, "");
 		output = br.readLine();
-		assertEquals(output, " Directory of " + Paths.get("").toAbsolutePath().toString() + "\\localAgent\\csc");
+		assertEquals(output, " Directory of " + Paths.get("").toAbsolutePath().toString() + "\\agents\\csc");
 		output = br.readLine();
 		assertEquals(output, "");
 		output = br.readLine();
 		assertTrue(output.contains("<DIR>          ."));
 		output = br.readLine();
 		assertTrue(output.contains("<DIR>          .."));
-		for (int idx = 0; idx < getFilesInFolder(Paths.get("").toAbsolutePath().toString() + "\\localAgent\\csc") - 2; idx++)
+		for (int idx = 0; idx < getFilesInFolder(Paths.get("").toAbsolutePath().toString() + "\\agents\\csc")
+				- 2; idx++)
 			br.readLine();
 		output = br.readLine();
 		System.out.println(output);
@@ -294,11 +296,12 @@ public class RunnerTestGeneric {
 			// This hack is b/c for some reason the C++ daemon doesn't create the dir on my
 			// laptop
 			Files.createDirectories(Paths.get(prop.getProperty(Constants.DAEMONLZHARVEST),
-					InetAddress.getLocalHost().getHostName().toUpperCase() + "-screen", System.getProperty("user.name")));
+					InetAddress.getLocalHost().getHostName().toUpperCase() + "-screen",
+					System.getProperty("user.name")));
 			// end hack
 
 			Files.deleteIfExists(Paths.get("System.Net.Sockets.SocketException"));
-			Files.deleteIfExists(Paths.get("localAgent", "csc", "System.Net.Sockets.SocketException"));
+			Files.deleteIfExists(Paths.get("agents", "csc", "System.Net.Sockets.SocketException"));
 
 			try {
 				Thread.sleep(5000);// allow both commander and daemon to start
@@ -332,27 +335,29 @@ public class RunnerTestGeneric {
 				assertEquals(output, "Daemon alive");
 			}
 
-			System.out.println("cd test");
-			bw.write("cd test" + System.lineSeparator());
-			bw.flush();
-			bw.write("cd .." + System.lineSeparator());
-			bw.flush();
-			String output = br.readLine();
-			if(config.os != OS.LINUX) {
-			assertEquals(Paths.get("test").toAbsolutePath().toString(), output);
-			output = br.readLine();
-			assertEquals(Paths.get("").toAbsolutePath().toString(), output);
-			}else {
-				assertEquals("/home/" + TestConstants.USERNAME_LINUX + "/dev/test", output);
-				output = br.readLine();
-				assertEquals("/home/" + TestConstants.USERNAME_LINUX + "/dev", output);
+			if (config.isExecInRoot()) {
+				System.out.println("cd test");
+				bw.write("cd test" + System.lineSeparator());
+				bw.flush();
+				bw.write("cd .." + System.lineSeparator());
+				bw.flush();
+				String output = br.readLine();
+				if (config.os != OS.LINUX) {
+					assertEquals(Paths.get("test").toAbsolutePath().toString(), output);
+					output = br.readLine();
+					assertEquals(Paths.get("").toAbsolutePath().toString(), output);
+				} else {
+					assertEquals("/home/" + TestConstants.USERNAME_LINUX + "/dev/test", output);
+					output = br.readLine();
+					assertEquals("/home/" + TestConstants.USERNAME_LINUX + "/dev", output);
+				}
 			}
-			
+
 			System.out.println("getUID test");
 			bw.write("getuid" + System.lineSeparator());
 			bw.flush();
 
-			output = br.readLine();
+			String output = br.readLine();
 			// System.out.println("Username: " + output);
 			if (config.os == TestConfiguration.OS.LINUX) {
 				assertEquals("Username: " + TestConstants.USERNAME_LINUX, output);
@@ -406,32 +411,33 @@ public class RunnerTestGeneric {
 				assertEquals(output,
 						"<control> uplinked test_uplink VGhpcyBpcyBhIHRlc3QgZmlsZSB0byB1cGxpbmsgb24gTGludXguIEl0IGhhcyBubyBwb2ludC4K");
 			} else {
-				byte targetFile[] = Files.readAllBytes(Paths.get("execCommander.bat"));
-				String targetB64 = Base64.getEncoder().encodeToString(targetFile);
 				if (config.isExecInRoot()) {
-					bw.write("uplink " + "execCommander.bat" + System.lineSeparator());
-				} else {
-					bw.write("uplink " + "..\\..\\test\\execCommander.bat" + System.lineSeparator());
-				}
-				bw.flush();
-				output = br.readLine();
-				if (config.lang.equals("C++") || config.lang.equals("Native")) {
-					assertEquals(output,
-							"<control> uplinked execCommander.bat " + targetB64);
-				} else {
-					assertEquals(output,
-							"<control> uplinked execCommander.bat " + targetB64);
+					byte targetFile[] = Files.readAllBytes(Paths.get("execCommander.bat"));
+					String targetB64 = Base64.getEncoder().encodeToString(targetFile);
+					if (config.isExecInRoot()) {
+						bw.write("uplink " + "execCommander.bat" + System.lineSeparator());
+					} else {
+						bw.write("uplink " + "..\\..\\test\\execCommander.bat" + System.lineSeparator());
+					}
+					bw.flush();
+					output = br.readLine();
+					if (config.lang.equals("C++") || config.lang.equals("Native")) {
+						assertEquals(output, "<control> uplinked execCommander.bat " + targetB64);
+					} else {
+						assertEquals(output, "<control> uplinked execCommander.bat " + targetB64);
+					}
 				}
 			}
 
-			if (config.os != TestConfiguration.OS.LINUX) {
+			if (config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
 				System.out.println("Testing download");
 
 				byte[] fileBytes = Files.readAllBytes(Paths.get("config", "test.properties"));
 				byte[] encoded = Base64.getEncoder().encode(fileBytes);
 				String encodedString = new String(encoded, StandardCharsets.US_ASCII);
-				bw.write("<control> download "
-						+ Paths.get("config", "test.properties").getFileName().toString().replaceAll(" ", "_") + " "
+				Path filePath = Paths.get("config", "test.properties");
+
+				bw.write("<control> download " + filePath.getFileName().toString().replaceAll(" ", "_") + " "
 						+ encodedString + System.lineSeparator());
 				bw.flush();
 				// Give time for endpoint to receive
@@ -477,13 +483,12 @@ public class RunnerTestGeneric {
 				bw.flush();
 				output = br.readLine();
 				String base64ExecCentral = encodeFileToBase64Binary("execCentral.bat");
-				assertEquals(output,
-						"<control> uplinked execCentral.bat " + base64ExecCentral);
+				assertEquals(output, "<control> uplinked execCentral.bat " + base64ExecCentral);
 			}
 
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
 					|| config.lang.equals("python") || config.lang.equals("Java"))
-					&& config.os != TestConfiguration.OS.LINUX) {
+					&& config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
 				System.out.println("Screenshot test");
 				bw.write("screenshot" + System.lineSeparator());
 				bw.flush();
@@ -497,7 +502,9 @@ public class RunnerTestGeneric {
 				testClipboard(br, bw, config.lang, config.isRemote());
 			}
 
-			testCat(br, bw, config);
+			if (config.isExecInRoot()) {
+				testCat(br, bw, config);
+			}
 			// execCentral will be local to Linux after the uplink test, whereas for Windows
 			// it is
 			// already in root.
@@ -510,7 +517,7 @@ public class RunnerTestGeneric {
 			testCatErrorHandling(br, bw, config);
 			testUplinkDownloadWithSpaces(br, bw, config);
 			testClientIdentifesExecutable(br, bw, config);
-			
+
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 
@@ -534,7 +541,7 @@ public class RunnerTestGeneric {
 
 		cleanup(config.lang);
 	}
-	
+
 	private static void testPwd(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
 		try {
 			System.out.println("pwd test");
@@ -556,9 +563,12 @@ public class RunnerTestGeneric {
 					System.out.println("dir test");
 					testRootDirEnum(br, bw);
 				} else {
-					assertEquals(output, Paths.get("localAgent", "csc").toAbsolutePath().toString());
-					System.out.println("dir test");
-					testCscDirEnum(br, bw);
+					assertEquals(output, Paths.get("agents", "csc").toAbsolutePath().toString());
+
+					// Skip dir test. Since csc functionality for dir is tested in primary csc
+					// daemon test, this is redundant
+					// System.out.println("dir test");
+					// testCscDirEnum(br, bw);
 				}
 			}
 
@@ -566,53 +576,63 @@ public class RunnerTestGeneric {
 				System.out.println("Flushing");
 				br.readLine();// Flush a bad line feed
 			}
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}
 	}
-	
-	private static void testClientIdentifesExecutable(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
+
+	private static void testClientIdentifesExecutable(BufferedReader br, OutputStreamWriter bw,
+			TestConfiguration config) {
 		try {
-		if(config.lang.equals("python")) {
-			bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
-			bw.flush();
-			String output = br.readLine();
-			String[] respElements = output.split(" ");
-			assertEquals(2, respElements.length);
-			assertTrue(respElements[0].startsWith("C:\\"));
-			assertTrue(respElements[0].endsWith("python.exe"));
-			if(config.protocol.equals("DNS")) {
-				assertEquals(Paths.get("agents", "python", "dnsSimpleAgent.py").toAbsolutePath().toString(), respElements[1]);
-			}else if(config.protocol.equals("HTTPS")) {
-				assertEquals(Paths.get("agents", "python", "httpsAgent.py").toAbsolutePath().toString(), respElements[1]);
-			}else if(config.protocol.equals("SMTP")) {
-				assertEquals(Paths.get("agents", "python", "emailAgent.py").toAbsolutePath().toString(), respElements[1]);
-			}
-		}else if(config.lang.equals("C#")) {
-			bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
-			bw.flush();
-			String output = br.readLine();
-			assertTrue(output.startsWith("C:\\"));
-			if(config.protocol.equals("HTTPS")) {
-				assertTrue(output.endsWith("client_x.exe"));
-			}else if(config.protocol.equals("DNS")) {
-				assertTrue(output.endsWith("dns_client_x.exe"));
-			}else if(config.protocol.equals("SMTP")) {
-				assertTrue(output.endsWith("EmailDaemon.exe"));
-			}else {
+			if (config.lang.equals("python")) {
+				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.flush();
+				String output = br.readLine();
+				String[] respElements = output.split(" ");
+				assertEquals(2, respElements.length);
+				assertTrue(respElements[0].startsWith("C:\\"));
+				assertTrue(respElements[0].endsWith("python.exe"));
+				if (config.protocol.equals("DNS")) {
+					assertEquals(Paths.get("agents", "python", "dnsSimpleAgent.py").toAbsolutePath().toString(),
+							respElements[1]);
+				} else if (config.protocol.equals("HTTPS")) {
+					assertEquals(Paths.get("agents", "python", "httpsAgent.py").toAbsolutePath().toString(),
+							respElements[1]);
+				} else if (config.protocol.equals("SMTP")) {
+					assertEquals(Paths.get("agents", "python", "emailAgent.py").toAbsolutePath().toString(),
+							respElements[1]);
+				}
+			} else if (config.lang.equals("C#")) {
+				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.flush();
+				String output = br.readLine();
+				assertTrue(output.startsWith("C:\\"));
+				if (config.protocol.equals("HTTPS")) {
+					System.out.println(output);
+					if (config.isExecInRoot()) {
+						assertTrue(output.endsWith("client_x.exe") || output.endsWith("stager_x.exe"));
+					} else {
+						assertTrue(output.endsWith("MSBuild.exe"));
+					}
+				} else if (config.protocol.equals("DNS")) {
+					assertTrue(output.endsWith("dns_client_x.exe"));
+				} else if (config.protocol.equals("SMTP")) {
+					assertTrue(output.endsWith("EmailDaemon.exe"));
+				} else {
+					fail("Implement me");
+				}
+			} else if (config.lang.equals("C++") || config.lang.equals("Native") || config.lang.equals("Java")) {
 				fail("Implement me");
 			}
-		}else if(config.lang.equals("C++") || config.lang.equals("Native") || config.lang.equals("Java")) {
-			fail("Implement me");
-		}
-		}catch(IOException ex) {
+		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}
 	}
 
 	private static void testCatErrorHandling(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
 		if (config.lang.equals("Native")) {
-			// Native OS Windows just uses 'type' under the hood, Linux is pure cat passthrough
+			// Native OS Windows just uses 'type' under the hood, Linux is pure cat
+			// passthrough
 			return;
 		}
 		try {
@@ -654,7 +674,7 @@ public class RunnerTestGeneric {
 			TestConfiguration config) {
 		try {
 			System.out.println("Testing download with spaces");
-			byte[] fileBytes = Files.readAllBytes(Paths.get("config","test.properties"));
+			byte[] fileBytes = Files.readAllBytes(Paths.get("config", "test.properties"));
 			byte[] encoded = Base64.getEncoder().encode(fileBytes);
 			String encodedString = new String(encoded, StandardCharsets.US_ASCII);
 			bw.write("<control> download test file " + encodedString + System.lineSeparator());
@@ -676,7 +696,7 @@ public class RunnerTestGeneric {
 				bw.write("rm 'test file'" + System.lineSeparator());
 			}
 			bw.flush();
-			if(config.os != OS.LINUX && !config.lang.equals("Native")) {
+			if (config.os != OS.LINUX && !config.lang.equals("Native")) {
 				output = br.readLine();// Blank line
 			}
 
@@ -707,7 +727,7 @@ public class RunnerTestGeneric {
 			bw.flush();
 			output = br.readLine();
 			assertEquals(output, "Invalid download directive");
-			
+
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
@@ -834,11 +854,9 @@ public class RunnerTestGeneric {
 			bw.flush();
 			output = br.readLine();
 			if (config.os == TestConfiguration.OS.LINUX && config.lang.equals("Native")) {
-				assertEquals(output,
-						"     1\t" + actualCatFileContents);
+				assertEquals(output, "     1\t" + actualCatFileContents);
 			} else {
-				assertEquals(output,
-						"1: " + actualCatFileContents);
+				assertEquals(output, "1: " + actualCatFileContents);
 			}
 			if (!config.lang.equals("Java")) {
 				output = br.readLine();
@@ -1044,9 +1062,9 @@ public class RunnerTestGeneric {
 
 		Files.deleteIfExists(Paths.get(targetTempCopyRoot));
 	}
-	
+
 	private static String encodeFileToBase64Binary(String fileName) throws IOException {
-	    byte[] encoded = Base64.getEncoder().encode(Files.readAllBytes(Paths.get(fileName)));
-	    return new String(encoded, StandardCharsets.US_ASCII);
+		byte[] encoded = Base64.getEncoder().encode(Files.readAllBytes(Paths.get(fileName)));
+		return new String(encoded, StandardCharsets.US_ASCII);
 	}
 }
