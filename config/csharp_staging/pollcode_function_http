@@ -1,0 +1,16 @@
+static async Task<string> $function_name_1$(HttpClient $variable_pf_1$)
+    {
+		try	
+  		{
+			System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+    		HttpResponseMessage $variable_pf_2$ = await $variable_pf_1$.GetAsync("$connection_arg_1$");
+     		$variable_pf_2$.EnsureSuccessStatusCode();
+     		return await $variable_pf_2$.Content.ReadAsStringAsync();
+     	}  
+  		catch(HttpRequestException e)
+  		{
+     			Console.WriteLine("\nException Caught!");	
+     			Console.WriteLine("Message :{0} ",e.Message);
+			return e.ToString();
+  		}
+	}

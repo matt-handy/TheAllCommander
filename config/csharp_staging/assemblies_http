@@ -1,0 +1,8 @@
+$variable_parameters$.ReferencedAssemblies.Add("System.dll");
+$variable_parameters$.ReferencedAssemblies.Add("System.Core.dll");
+$variable_parameters$.ReferencedAssemblies.Add("System.Linq.dll"); 
+$variable_parameters$.ReferencedAssemblies.Add("System.Net.Http.dll"); 
+$variable_parameters$.ReferencedAssemblies.Add("System.Management.dll"); 
+$variable_parameters$.ReferencedAssemblies.Add("System.Web.Extensions.dll");
+$variable_parameters$.ReferencedAssemblies.Add("System.Drawing.dll");
+$variable_parameters$.ReferencedAssemblies.Add("System.Windows.Forms.dll");
