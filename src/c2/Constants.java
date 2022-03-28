@@ -37,6 +37,8 @@ public class Constants {
 	public static final String DAEMONPAYLOADDEFAULT = "daemon.payload.default";
 	public static final String DAEMONPAYLOADHOLLOWERDEFAULT = "daemon.payload.hollower.default";
 	public static final String DAEMONPAYLOADCSHARPDIR = "daemon.payload.csharp.dir";
+	public static final String DAEMONPAYLOADCSHARPMASTERIMPORT = "daemon.payload.csharp.masterimport";
+	public static final String DAEMONPAYLOADCSHARPFILELIST = "daemon.payload.csharp.filelist";
 	
 	public static final String HUBLOGGINGPATH = "hub.logging.path";
 	public static final String HUBCMDDEFAULTS = "hub.cmd.defaults";

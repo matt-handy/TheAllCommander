@@ -109,6 +109,9 @@ public class RunnerTestGeneric {
 				|| output.contains("3:" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++ Daemon
 				output.equals("1:default:default:default"));
 
+		output = br.readLine();
+		assertEquals(SessionInitiator.WIZARD_BANNER, output);
+		
 		if (testSecond) {
 			bw.write("3" + System.lineSeparator());
 		} else {
@@ -158,6 +161,8 @@ public class RunnerTestGeneric {
 						output.equals("1:default:default:default"));
 			}
 		}
+		output = br.readLine();
+		assertEquals(SessionInitiator.WIZARD_BANNER, output);
 	}
 
 	public static void connectionSetupGeneric(Socket remote, OutputStreamWriter bw, BufferedReader br, boolean isLinux,
@@ -610,7 +615,7 @@ public class RunnerTestGeneric {
 				if (config.protocol.equals("HTTPS")) {
 					System.out.println(output);
 					if (config.isExecInRoot()) {
-						assertTrue(output.endsWith("client_x.exe") || output.endsWith("stager_x.exe"));
+						assertTrue(output.endsWith("client_x.exe") || output.endsWith("stager_x.exe") || output.endsWith("test_tmp.exe"));
 					} else {
 						assertTrue(output.endsWith("MSBuild.exe"));
 					}

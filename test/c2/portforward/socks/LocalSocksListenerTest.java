@@ -130,11 +130,11 @@ class LocalSocksListenerTest {
 		
 		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetService, true);
 		service.submit(clientEmulator);
-		System.out.println("Awaiting client end");
+		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
-		System.out.println("Client ended");
+		//System.out.println("Client ended");
 		localSocks.kill();
-		System.out.println("LocalSocksListener shut down");
+		//System.out.println("LocalSocksListener shut down");
 	}
 
 	@Test
@@ -154,11 +154,11 @@ class LocalSocksListenerTest {
 		
 		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetDaemon, true);
 		service.submit(clientEmulator);
-		System.out.println("Awaiting client end");
+		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
-		System.out.println("Client ended");
+		//System.out.println("Client ended");
 		localSocks.kill();
-		System.out.println("LocalSocksListener shut down");
+		//System.out.println("LocalSocksListener shut down");
 	}
 
 }

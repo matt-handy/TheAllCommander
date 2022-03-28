@@ -16,6 +16,8 @@ public class TargetServerEmulator implements Runnable, TargetEmulator {
 	private boolean alive = true;
 	private int listenPort;
 	private boolean testBreak;
+	
+	private boolean passedConnectionMark = false;
 
 	public TargetServerEmulator(int listenPort, boolean testBreak) {
 		this.listenPort = listenPort;
@@ -35,7 +37,7 @@ public class TargetServerEmulator implements Runnable, TargetEmulator {
 	}
 
 	public boolean hasConnection() {
-		return startLatch.getCount() == 0;
+		return passedConnectionMark;
 	}
 	
 	@Override
@@ -59,6 +61,7 @@ public class TargetServerEmulator implements Runnable, TargetEmulator {
 				try {
 					Socket socket = ss.accept();
 					startLatch.countDown();
+					passedConnectionMark = true;
 					byte[] buffer = new byte[4096];
 					//System.out.println("Reading initial buffer");
 					int len = socket.getInputStream().read(buffer);

@@ -7,11 +7,19 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SessionInitiator implements Runnable {
 
 	public static final String AVAILABLE_SESSION_BANNER = "Available sessions:";
+	public static final String WIZARD_BANNER = "Enter 'WIZARD' to begin other server commands";
+
+	//TODO: Make configurable
+	public static final Path CSHARP_CONFIG_PATH = Paths.get("config", "csharp_staging"); 
 	
 	private SessionManager sessionManager;
 	private IOManager ioManager;
@@ -19,6 +27,8 @@ public class SessionInitiator implements Runnable {
 	private boolean stayAlive = true;
 	private CountDownLatch stopLatch = new CountDownLatch(1);
 	private CommandMacroManager cmm;
+	
+	private ExecutorService commandWizardManager = Executors.newCachedThreadPool();
 	
 	public SessionInitiator(SessionManager sessionManager, IOManager ioManager, int port, CommandMacroManager cmm) {
 		this.sessionManager = sessionManager;
@@ -92,8 +102,13 @@ public class SessionInitiator implements Runnable {
 							}
 							
 						} catch (NumberFormatException e) {
-							bw.write(input + " is not a number.");
-							newSession.close();
+							if(input.equalsIgnoreCase("WIZARD")) {
+								CommandWizard wizard = new CommandWizard(newSession, CSHARP_CONFIG_PATH);
+								commandWizardManager.submit(wizard);
+							}else {
+								bw.write(input + " is not a number.");
+								newSession.close();
+							}
 						}
 					}else {
 						System.out.println("This guy isn't talking to us");
@@ -119,6 +134,8 @@ public class SessionInitiator implements Runnable {
 			bw.write(session.id + ":" + session.uid);
 			bw.write(System.lineSeparator());
 		}
+		bw.write(WIZARD_BANNER);
+		bw.write(System.lineSeparator());
 		bw.flush();
 	}
 

