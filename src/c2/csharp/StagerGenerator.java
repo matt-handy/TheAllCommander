@@ -25,8 +25,8 @@ public class StagerGenerator {
 		Files.writeString(TEMPORARY_DISK_SRC_FILE, fileText);
 		Process process = Runtime.getRuntime().exec(String.format(
 				"C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc /r:System.Net.Http.dll -target:exe -out:"
-						+ TEMPORARY_DISK_EXE_FILE.toString() + " -platform:x64 "
-						+ TEMPORARY_DISK_SRC_FILE.toAbsolutePath()));
+						+ TEMPORARY_DISK_EXE_FILE.toString() + " -platform:x64 \""
+						+ TEMPORARY_DISK_SRC_FILE.toAbsolutePath() + "\""));
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
