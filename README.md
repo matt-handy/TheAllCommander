@@ -104,7 +104,7 @@ kill_harvest <index>
 
 ## Server based macro commands
 The following commands are implemented serverside, where the server translates the instructions into
-commands for the daemon.
+commands for the daemon. Most of these commands are intended to trigger client side indicators of compromise to assist with threat mimicry and modeling. 
 
 spawn_fodhelper_elevated_session
 	This macro is designed to enable testing of client-side defenses around the fodhelper user access control defenses. This macro functions by asking the connected daemon for information on how it can be started (IE - an executable name, script path, etc), and will then set the required registry keys for fodhelper to launch a new copy of the daemon. Fodhelper will then be engaged, returning a second session with elevated privileges. At this time, TheAllCommander doesn't support seamless session integration with the elevated session, as this is a red team feature and not needed for indicator of compromise modeling. 
@@ -129,6 +129,9 @@ activate_rdp <username>
 
 startSocks5 <port>
 	This command starts a SOCKS5 proxy on TheAllCommander which receives connect requests on the specified port. As new connections come in, the connected daemon will forward those incoming connections. This allows for tunneled network traffic, similar to the equivalent Meterpreter functionality.
+
+empty_recycle_bin
+	This command deletes the recycle bin contents for the user with the current session to generate a client side indicator of compromise.
 
 # Near Term Project Goals
 DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  

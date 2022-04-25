@@ -59,14 +59,18 @@ public class WindowsCmdLineHelper {
 	}
 	
 	public static String resolveAppData(IOManager io, int sessionId) throws Exception{
-		String queryDirCmd = "dir %APPDATA%";
+		return resolveVariableDirectory(io, sessionId, "%APPDATA%");
+	}
+	
+	public static String resolveVariableDirectory(IOManager io, int sessionId, String variable) throws Exception{
+		String queryDirCmd = "dir " + variable;
 		io.sendCommand(sessionId, queryDirCmd);
 		Time.sleepWrapped(2000);
 		String dirResponse = io.readAllMultilineCommands(sessionId);
 		
 		String lines[] = dirResponse.split(System.lineSeparator());
 		if(lines.length < 4) {
-			throw new Exception("Cannot get APPDATA directory");
+			throw new Exception("Cannot get directory");
 		}
 		return lines[3].substring(" Directory of ".length());
 	}
