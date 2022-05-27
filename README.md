@@ -100,7 +100,29 @@ listActiveHarvests
 kill_harvest <index>
 
 	Supplied with an index from "listActiveHarvests", this command kills a specific directory harvest		
-	 	
+
+## Shells
+To enable more complicated modeling that involve parallel execution of tasks and to facilitate interaction with command line utilities that require multiple line interactions, TheAllCommander can launch child shells, which can be placed in the background. The following commands are available:
+
+shell 
+	
+	Launches a new shell and begins control flow within that shell. Returns to the user a string indicating the current shell ID.
+	
+shell_background
+	
+	Places the current shell in the background. When the shell is in the background, execution of the process continues. Messages from stderr and stdout are cached until control flow is returned to the shell.
+	
+shell <integer ID>
+
+	Resumes control flow with the specified shell
+	
+shell_kill
+
+	Destroys the current shell
+	
+shell_kill <integer ID>
+
+	Destroys the child shell indicated					 	
 
 ## Server based macro commands
 The following commands are implemented serverside, where the server translates the instructions into

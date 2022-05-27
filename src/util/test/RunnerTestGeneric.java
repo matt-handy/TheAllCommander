@@ -38,6 +38,7 @@ import util.test.TestConfiguration.OS;
 
 public class RunnerTestGeneric {
 
+	
 	public static void testScreenshotsOnFS(String lang) {
 		File dir = new File("test");
 		File[] matches = dir.listFiles(new FilenameFilter() {
@@ -523,6 +524,9 @@ public class RunnerTestGeneric {
 			testUplinkDownloadWithSpaces(br, bw, config);
 			testClientIdentifesExecutable(br, bw, config);
 
+			System.out.println("Testing shell capability");
+			testShell(br, bw, config);
+			
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 
@@ -1066,6 +1070,120 @@ public class RunnerTestGeneric {
 		}
 
 		Files.deleteIfExists(Paths.get(targetTempCopyRoot));
+	}
+	
+	static void testShell(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		bw.write("shell_list" + System.lineSeparator());
+		bw.flush();
+		String response = br.readLine();
+		assertEquals("No shells active", response);
+		
+		bw.write("shell" + System.lineSeparator());
+		bw.write("shell_background" + System.lineSeparator());
+		bw.write("shell_list" + System.lineSeparator());
+		bw.flush();
+		response = br.readLine();
+		assertEquals("Shell Launched: 0", response);
+		response = br.readLine();
+		assertEquals("Proceeding in main shell", response);
+		response = br.readLine();
+		assertEquals("Sessions available: ", response);
+		response = br.readLine();
+		assertEquals("Shell 0: No Process", response);
+		response = br.readLine();
+		assertEquals("", response);
+		
+		bw.write("shell" + System.lineSeparator());
+		bw.write("shell_background" + System.lineSeparator());
+		bw.write("shell_list" + System.lineSeparator());
+		bw.flush();
+		response = br.readLine();
+		assertEquals("Shell Launched: 1", response);
+		response = br.readLine();
+		assertEquals("Proceeding in main shell", response);
+		response = br.readLine();
+		assertEquals("Sessions available: ", response);
+		response = br.readLine();
+		assertEquals("Shell 0: No Process", response);
+		response = br.readLine();
+		assertEquals("Shell 1: No Process", response);
+		response = br.readLine();
+		assertEquals("", response);
+		
+		//Test program has a simple loop. Asks the user "enter a string", and responds with the entry. 
+		//Enter "crash" to cause a segfault. Enter "quit" to quit gracefully.
+		
+		bw.write("shell 0" + System.lineSeparator());
+		bw.write("python test_support_scripts" + System.getProperty("file.separator")+ System.getProperty("file.separator") + "basic_io_loop.py" + System.lineSeparator());
+		bw.write("test_io" + System.lineSeparator());
+		bw.flush();
+		Time.sleepWrapped(5000);//Let the other process do its thing
+		bw.write("shell_background" + System.lineSeparator());
+		bw.write("shell_list" + System.lineSeparator());
+		bw.flush();
+		response = br.readLine();
+		assertEquals("Active Session: 0", response);
+		response = br.readLine();
+		assertEquals("Enter a String:", response);
+		response = br.readLine();
+		assertEquals("", response);
+		response = br.readLine();
+		assertEquals("You entered: test_io", response);
+		response = br.readLine();
+		assertEquals("Enter a String:", response);
+		response = br.readLine();
+		assertEquals("", response);
+		response = br.readLine();
+		assertEquals("Proceeding in main shell", response);
+		response = br.readLine();
+		assertEquals("Sessions available: ", response);
+		response = br.readLine();
+		assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py", response);
+		response = br.readLine();
+		assertEquals("Shell 1: No Process", response);
+		response = br.readLine();
+		assertEquals("", response);
+		
+		bw.write("shell 0" + System.lineSeparator());
+		bw.write("crash" + System.lineSeparator());
+		bw.write("shell_background" + System.lineSeparator());
+		bw.write("shell_list" + System.lineSeparator());
+		bw.flush();
+		response = br.readLine();
+		assertEquals("Active Session: 0", response);
+		response = br.readLine();
+		assertEquals("Proceeding in main shell", response);
+		response = br.readLine();
+		assertEquals("Sessions available: ", response);
+		response = br.readLine();
+		assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py exited with code 139", response);
+		response = br.readLine();
+		assertEquals("Shell 1: No Process", response);
+		response = br.readLine();
+		assertEquals("", response);
+		
+		bw.write("shell_kill 1" + System.lineSeparator());
+		bw.write("shell_list" + System.lineSeparator());
+		bw.flush();
+		response = br.readLine();
+		assertEquals("Session destroyed: 1", response);
+		response = br.readLine();
+		assertEquals("Sessions available: ", response);
+		response = br.readLine();
+		assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py exited with code 139", response);
+		response = br.readLine();
+		assertEquals("", response);
+		
+		bw.write("shell 0" + System.lineSeparator());
+		bw.write("shell_kill" + System.lineSeparator());
+		bw.write("shell_list" + System.lineSeparator());
+		bw.flush();
+		response = br.readLine();
+		assertEquals("Active Session: 0", response);
+		response = br.readLine();
+		assertEquals("Session Destroyed", response);
+		response = br.readLine();
+		assertEquals("No shells active", response);
 	}
 
 	private static String encodeFileToBase64Binary(String fileName) throws IOException {

