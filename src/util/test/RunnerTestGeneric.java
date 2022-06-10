@@ -617,7 +617,6 @@ public class RunnerTestGeneric {
 				String output = br.readLine();
 				assertTrue(output.startsWith("C:\\"));
 				if (config.protocol.equals("HTTPS")) {
-					System.out.println(output);
 					if (config.isExecInRoot()) {
 						assertTrue(output.endsWith("client_x.exe") || output.endsWith("stager_x.exe") || output.endsWith("test_tmp.exe"));
 					} else {
@@ -630,7 +629,21 @@ public class RunnerTestGeneric {
 				} else {
 					fail("Implement me");
 				}
-			} else if (config.lang.equals("C++") || config.lang.equals("Native") || config.lang.equals("Java")) {
+			}else if(config.lang.equals("C++")) {
+				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.flush();
+				String output = br.readLine();
+				assertTrue(output.startsWith("C:\\"));
+				if (config.protocol.equals("HTTPS")) {
+					assertTrue(output.endsWith("daemon.exe"));
+				}else if (config.protocol.equals("DNS")) {
+					assertTrue(output.endsWith("dns_daemon.exe"));
+				} else if (config.protocol.equals("SMTP")) {
+					assertTrue(output.endsWith("imap_daemon.exe"));
+				} else {
+					fail("Implement me");
+				}
+			} else if (config.lang.equals("Native") || config.lang.equals("Java")) {
 				fail("Implement me");
 			}
 		} catch (IOException ex) {
@@ -1117,7 +1130,7 @@ public class RunnerTestGeneric {
 		bw.write("python test_support_scripts" + System.getProperty("file.separator")+ System.getProperty("file.separator") + "basic_io_loop.py" + System.lineSeparator());
 		bw.write("test_io" + System.lineSeparator());
 		bw.flush();
-		Time.sleepWrapped(5000);//Let the other process do its thing
+		Time.sleepWrapped(7500);//Let the other process do its thing
 		bw.write("shell_background" + System.lineSeparator());
 		bw.write("shell_list" + System.lineSeparator());
 		bw.flush();
@@ -1126,15 +1139,31 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Enter a String:", response);
 		response = br.readLine();
-		assertEquals("", response);
-		response = br.readLine();
-		assertEquals("You entered: test_io", response);
+		if(!config.lang.equals("C++")) {
+			assertEquals("", response);
+			response = br.readLine();
+			assertEquals("You entered: test_io", response);
+		}else {
+			//C++ may or may not place a newline, so we test if we have a blank link before moving forward
+			if(!response.equals("You entered: test_io")) {
+				response = br.readLine();
+				assertEquals("You entered: test_io", response);
+			}
+		}
 		response = br.readLine();
 		assertEquals("Enter a String:", response);
 		response = br.readLine();
-		assertEquals("", response);
-		response = br.readLine();
-		assertEquals("Proceeding in main shell", response);
+		if(!config.lang.equals("C++")) {
+			assertEquals("", response);
+			response = br.readLine();
+			assertEquals("Proceeding in main shell", response);
+		}else {
+			//C++ may or may not place a newline, so we test if we have a blank link before moving forward
+			if(!response.equals("Proceeding in main shell")) {
+				response = br.readLine();
+				assertEquals("Proceeding in main shell", response);
+			}
+		}
 		response = br.readLine();
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
