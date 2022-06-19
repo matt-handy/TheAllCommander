@@ -9,6 +9,9 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -130,7 +133,10 @@ public class SessionInitiator implements Runnable {
 	public static void printAvailableSessions(OutputStreamWriter bw, IOManager io) throws IOException {
 		bw.write(AVAILABLE_SESSION_BANNER);
 		bw.write(System.lineSeparator());
-		for (Session session : io.getSessions()) {
+		List<Session> sessions = new ArrayList<>();
+		sessions.addAll(io.getSessions());
+		Collections.sort(sessions);
+		for (Session session : sessions) {
 			bw.write(session.id + ":" + session.uid);
 			bw.write(System.lineSeparator());
 		}

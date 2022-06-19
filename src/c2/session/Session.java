@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import c2.Constants;
 
-public class Session {
+public class Session implements Comparable<Session>{
 
 	private Queue<String> commands = new ConcurrentLinkedDeque<String>();
 	private Queue<String> returnString = new ConcurrentLinkedDeque<String>();
@@ -115,4 +115,13 @@ public class Session {
 	public Set<String> availableForwards(){
 		return portForwardOutboundQueues.keySet();
 	}
+
+	@Override
+	public int compareTo(Session o) {
+		Integer myId = id;
+		Integer otherId = ((Session) o).id;
+		return myId.compareTo(otherId);
+	}
+	
+	
 }

@@ -131,35 +131,18 @@ public class RunnerTestGeneric {
 		assertEquals(output, SessionInitiator.AVAILABLE_SESSION_BANNER);
 		output = br.readLine();
 		System.out.println(output);
-		if (isLinux) {
-			assertTrue(
-					output.contains(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX)
-							|| output.equals("1:default:default:default"));
-		} else {
-			if (isRemote) {
-				assertTrue(output.contains(baseIndex + ":") || output.equals("1:default:default:default"));
-			} else {
-				assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
-						|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++
-																														// Daemon
-						output.equals("1:default:default:default"));
-			}
-		}
+		assertEquals("1:default:default:default", output);
 		System.out.println("Reading second session id...");
 		output = br.readLine();
 		System.out.println(output);
 		if (isLinux) {
-			assertTrue(
-					output.contains(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX)
-							|| output.equals("1:default:default:default"));
+			assertEquals(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX, output);
 		} else {
 			if (isRemote) {
-				assertTrue(output.contains(baseIndex + ":") || output.equals("1:default:default:default"));
+				assertTrue(output.contains(baseIndex + ":"));
 			} else {
 				assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
-						|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()) || // C++
-																														// Daemon
-						output.equals("1:default:default:default"));
+						|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()));// C++ Daemon
 			}
 		}
 		output = br.readLine();
