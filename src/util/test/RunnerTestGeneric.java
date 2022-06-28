@@ -136,7 +136,7 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		System.out.println(output);
 		if (isLinux) {
-			assertEquals(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX, output);
+			assertTrue(output.startsWith(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX));
 		} else {
 			if (isRemote) {
 				assertTrue(output.contains(baseIndex + ":"));
@@ -500,6 +500,8 @@ public class RunnerTestGeneric {
 			if (config.os == TestConfiguration.OS.LINUX) {
 				bw.write("rm execCentral.bat" + System.lineSeparator());
 				bw.flush();
+				br.readLine();
+				System.out.println("Cleaned up Linux uplink");
 			}
 
 			testUplinkDownloadErrorHandling(br, bw);
@@ -616,15 +618,28 @@ public class RunnerTestGeneric {
 				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
-				assertTrue(output.startsWith("C:\\"));
-				if (config.protocol.equals("HTTPS")) {
-					assertTrue(output.endsWith("daemon.exe"));
-				}else if (config.protocol.equals("DNS")) {
-					assertTrue(output.endsWith("dns_daemon.exe"));
-				} else if (config.protocol.equals("SMTP")) {
-					assertTrue(output.endsWith("imap_daemon.exe"));
-				} else {
-					fail("Implement me");
+				if(config.os == OS.LINUX) {
+					assertTrue(output.startsWith("/home/kali"));
+					if (config.protocol.equals("HTTPS")) {
+						assertTrue(output.endsWith("http_daemon"));
+					}else if (config.protocol.equals("DNS")) {
+						assertTrue(output.endsWith("dns_daemon"));
+					} else if (config.protocol.equals("SMTP")) {
+						fail("Implement me");
+					} else {
+						fail("Implement me");
+					}
+				}else {
+					assertTrue(output.startsWith("C:\\"));
+					if (config.protocol.equals("HTTPS")) {
+						assertTrue(output.endsWith("daemon.exe"));
+					}else if (config.protocol.equals("DNS")) {
+						assertTrue(output.endsWith("dns_daemon.exe"));
+					} else if (config.protocol.equals("SMTP")) {
+						assertTrue(output.endsWith("imap_daemon.exe"));
+					} else {
+						fail("Implement me");
+					}
 				}
 			} else if (config.lang.equals("Native") || config.lang.equals("Java")) {
 				fail("Implement me");
@@ -701,7 +716,7 @@ public class RunnerTestGeneric {
 				bw.write("rm 'test file'" + System.lineSeparator());
 			}
 			bw.flush();
-			if (config.os != OS.LINUX && !config.lang.equals("Native")) {
+			if (!config.lang.equals("Native")) {
 				output = br.readLine();// Blank line
 			}
 
@@ -1059,6 +1074,9 @@ public class RunnerTestGeneric {
 					"<control> uplinked execCentral.bat.tmp amF2YSAtY3AgInRhcmdldC8qO3RhcmdldC9saWIvKiIgYzIuUnVubmVyIGNvbmZpZy90ZXN0LnByb3BlcnRpZXNqYXZhIC1jcCAidGFyZ2V0Lyo7dGFyZ2V0L2xpYi8qIiBjMi5SdW5uZXIgY29uZmlnL3Rlc3QucHJvcGVydGllcw==");
 			bw.write("rm execCentral.bat.tmp" + System.lineSeparator());
 			bw.flush();
+			
+			br.readLine();
+			System.out.println("Cleaned up cat test");
 		} else {
 			f1 = Files.readAllBytes(Paths.get(targetFileRoot));
 			f2 = Files.readAllBytes(Paths.get(targetTempCopyRoot));
@@ -1110,7 +1128,11 @@ public class RunnerTestGeneric {
 		//Enter "crash" to cause a segfault. Enter "quit" to quit gracefully.
 		
 		bw.write("shell 0" + System.lineSeparator());
-		bw.write("python test_support_scripts" + System.getProperty("file.separator")+ System.getProperty("file.separator") + "basic_io_loop.py" + System.lineSeparator());
+		if(config.os == OS.LINUX) {
+			bw.write("python3 /home/kali/dev/basic_io_loop.py" + System.lineSeparator());
+		}else {
+			bw.write("python test_support_scripts" + System.getProperty("file.separator")+ System.getProperty("file.separator") + "basic_io_loop.py" + System.lineSeparator());
+		}
 		bw.write("test_io" + System.lineSeparator());
 		bw.flush();
 		Time.sleepWrapped(7500);//Let the other process do its thing
@@ -1150,12 +1172,17 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
-		assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py", response);
+		if(config.os == OS.LINUX) {
+			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py", response);
+		}else {
+			assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py", response);
+		}
 		response = br.readLine();
 		assertEquals("Shell 1: No Process", response);
 		response = br.readLine();
 		assertEquals("", response);
 		
+		System.out.println("Testing crash");
 		bw.write("shell 0" + System.lineSeparator());
 		bw.write("crash" + System.lineSeparator());
 		bw.write("shell_background" + System.lineSeparator());
@@ -1168,7 +1195,11 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
-		assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py exited with code 139", response);
+		if(config.os == OS.LINUX) {
+			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py exited with code 139", response);
+		}else {
+			assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py exited with code 139", response);
+		}
 		response = br.readLine();
 		assertEquals("Shell 1: No Process", response);
 		response = br.readLine();
@@ -1182,7 +1213,11 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
-		assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py exited with code 139", response);
+		if(config.os == OS.LINUX) {
+			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py exited with code 139", response);
+		}else {
+			assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py exited with code 139", response);
+		}
 		response = br.readLine();
 		assertEquals("", response);
 		
