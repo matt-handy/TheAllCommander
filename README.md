@@ -226,7 +226,7 @@ daemon.reportinginterval.expectedmaxclient
 
 daemon.reportinginterval.multiplesexpectedmaxclient
 
-#C# Staging
+# C# Staging
 
 C# code can compile and run other C# code at runtime. This gives malware developers the ability to write small stagers, which then pull from a remote source the "real" malware. To model for this sort procedure, TheAllCommander can automatically generate one of these stagers. The first stage is generated from the text line interface to TheAllCommander, with the commands shown below. The server will then assemble the payload to transmit. It will use a headers file to pre-pend all the C# declarations needed, followed by a concatenated set of source files. The stager will receive these source files, compile them in real time, and then execute the stager.
 
