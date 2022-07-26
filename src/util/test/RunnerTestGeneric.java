@@ -417,17 +417,18 @@ public class RunnerTestGeneric {
 				}
 			}
 
-			if (config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
+			//Currently CURL wraps multiline output, corrupting the string that carries file contents. Need
+			//to have a way to handle large lines so there is no break.
+			if (config.os != TestConfiguration.OS.LINUX && !config.protocol.equals("SMTP") && config.isExecInRoot()) {
 				System.out.println("Testing download");
 
 				byte[] fileBytes = Files.readAllBytes(Paths.get("config", "test.properties"));
 				byte[] encoded = Base64.getEncoder().encode(fileBytes);
 				String encodedString = new String(encoded, StandardCharsets.US_ASCII);
 				Path filePath = Paths.get("config", "test.properties");
-
-				bw.write("<control> download " + filePath.getFileName().toString().replaceAll(" ", "_") + " "
-						+ encodedString + System.lineSeparator());
-				bw.flush();
+				String downloadCommand = "<control> download " + filePath.getFileName().toString().replaceAll(" ", "_") + " "
+						+ encodedString;
+				OutputStreamWriterHelper.writeAndSend(bw, downloadCommand);
 				// Give time for endpoint to receive
 				Time.sleepWrapped(5000);
 				output = br.readLine();
