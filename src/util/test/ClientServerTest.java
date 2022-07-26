@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import util.Time;
+import util.test.TestConfiguration.OS;
 
 public class ClientServerTest {
 
@@ -49,5 +50,17 @@ public class ClientServerTest {
 	protected static void teardown() {
 		service.shutdownNow();
 		runner.main.awaitFullShutdown();
+	}
+	
+	protected static void executeStandardTest(String daemonLaunchArg, TestConfiguration config) {
+		initiateServer();
+		
+		spawnClient(daemonLaunchArg);
+		
+		System.out.println("Transmitting commands");
+		
+		RunnerTestGeneric.test(config);
+		
+		teardown();
 	}
 }

@@ -130,11 +130,10 @@ public class RunnerTestGeneric {
 		String output = br.readLine();
 		assertEquals(output, SessionInitiator.AVAILABLE_SESSION_BANNER);
 		output = br.readLine();
-		System.out.println(output);
 		assertEquals("1:default:default:default", output);
 		System.out.println("Reading second session id...");
 		output = br.readLine();
-		System.out.println(output);
+		System.out.println("Daemon supplies: " + output);
 		if (isLinux) {
 			assertTrue(output.startsWith(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX));
 		} else {
