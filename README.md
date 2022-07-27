@@ -266,7 +266,7 @@ TheAllCommander server is tested to build and work on both Windows and Linux. Th
 
 NOTE: Mvn test will run tests of the HTTPS server, so there must be a keystore file to ensure that certificates can load before all build tests will pass
 
-2) TheAllCommander is set up as a maven project, so a simple "mvn install -DskipTests" will build the project and resolve all dependencies in the the "target" folder.
+2) TheAllCommander is set up as a maven project, so a simple "mvn install -DskipTests" will build the project and resolve all dependencies in the the "target" folder. NOTE: if mvn is run to execute unit tests, both TheAllCommander and the sample HTTPS daemon will be started. For this to happen, the keystore MUST be generated and available.
 
 3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
 
@@ -278,7 +278,7 @@ Note: TheAllCommander's default test.properties file comes with email daemon mon
 daemon.email.port=587
 daemon.email.host=mail.matthandy.net
 daemon.email.username=testC2@matthandy.net
-daemon.email.password=haxor#12345
+daemon.email.password=REPLACE ME!!!!
 
 and update the comm services line to include the email service, as follows:
 

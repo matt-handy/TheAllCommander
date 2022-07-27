@@ -20,11 +20,7 @@ import util.test.TestConstants;
 class CommanderInterfaceTest extends ClientServerTest {
 
 	@Test
-	void testLocal() {
-		test();
-	}
-	
-	public static void test() {
+	void test() {
 		initiateServer();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "httpsAgent.py\"";
 		spawnClient(clientCmd);
@@ -59,6 +55,8 @@ class CommanderInterfaceTest extends ClientServerTest {
 			assertEquals(output, SessionInitiator.AVAILABLE_SESSION_BANNER);
 			output = br.readLine();
 			assertEquals(output, "1:default:default:default");
+			output = br.readLine();
+			assertEquals(output, "Enter 'WIZARD' to begin other server commands");
 			bw.write("2" + System.lineSeparator());
 			bw.flush();
 			output = br.readLine();
