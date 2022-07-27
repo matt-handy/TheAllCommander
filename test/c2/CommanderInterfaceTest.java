@@ -22,8 +22,7 @@ class CommanderInterfaceTest extends ClientServerTest {
 	@Test
 	void test() {
 		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "httpsAgent.py\"";
-		spawnClient(clientCmd);
+		spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 		System.out.println("Transmitting commands");
 		
 		Time.sleepWrapped(5000);
