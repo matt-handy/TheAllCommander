@@ -266,7 +266,9 @@ TheAllCommander server is tested to build and work on both Windows and Linux. Th
 
 NOTE: Mvn test will run tests of the HTTPS server, so there must be a keystore file to ensure that certificates can load before all build tests will pass
 
-2) TheAllCommander is set up as a maven project, so a simple "mvn install -DskipTests" will build the project and resolve all dependencies in the the "target" folder. NOTE: if mvn is run to execute unit tests, both TheAllCommander and the sample HTTPS daemon will be started. For this to happen, the keystore MUST be generated and available.
+2) TheAllCommander is set up as a maven project, so a simple "mvn install -DskipTests" will build the project and resolve all dependencies in the the "target" folder. 
+
+NOTE: If mvn is run to execute unit tests, both TheAllCommander and the sample HTTPS daemon will be started. The file located at test/test.properties contains configuration for test execution. If TheAllCommander is being tested on Linux, the areas highlighted in that file with Linux-variant commands must be switched to their Linux variant. By default, it will build on Windows without modification to this file. 
 
 3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
 

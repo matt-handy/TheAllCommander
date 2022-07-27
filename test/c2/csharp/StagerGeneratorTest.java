@@ -28,6 +28,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import c2.admin.LocalConnection;
@@ -37,8 +38,17 @@ import c2.session.CommandWizard;
 import c2.session.IOManager;
 import c2.session.SessionInitiator;
 import c2.session.SessionManager;
+import util.Time;
+import util.test.ClientServerTest;
 
-class StagerGeneratorTest {
+class StagerGeneratorTest extends ClientServerTest {
+
+	@BeforeAll
+	void standardLineEndings() {
+		if (!System.getProperty("os.name").contains("Windows")) {
+			spawnClient("dos2unix config/csharp_staging/*");
+		}
+	}
 
 	@Test
 	void testBogusFileDetection() {
@@ -263,6 +273,8 @@ class StagerGeneratorTest {
 		ExecutorService service = Executors.newCachedThreadPool();
 		service.submit(testSession);
 
+		Time.sleepWrapped(250);
+
 		try {
 			Socket socket = new Socket("127.0.0.1", port);
 			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -316,6 +328,8 @@ class StagerGeneratorTest {
 		SessionInitiator testSession = new SessionInitiator(manager, io, port, cmm);
 		ExecutorService service = Executors.newCachedThreadPool();
 		service.submit(testSession);
+
+		Time.sleepWrapped(250);
 
 		try {
 			Socket socket = new Socket("127.0.0.1", port);
@@ -389,14 +403,18 @@ class StagerGeneratorTest {
 
 	@Test
 	void testMainServerIntegrationExeResponse() {
-		// Test that a user can connect to TAC and ask for a completed file. Validates
-		// that text comes back as expected
-		testServerWizardResponse("exe");
+		//Can only generate EXE on windows
+		if (System.getProperty("os.name").contains("Windows")) {
+			// Test that a user can connect to TAC and ask for a completed file. Validates
+			// that text comes back as expected
+			testServerWizardResponse("exe");
+		}
 	}
 
-	//@Test
-	//TODO restore this test. Manual testing shows the functionality works, however this
-	//doesn't work in automated tests
+	// @Test
+	// TODO restore this test. Manual testing shows the functionality works, however
+	// this
+	// doesn't work in automated tests
 	void testEndToEnd() {
 		// Test that the server will generate an exe, send it to the client on request
 		// Client writes that to disk and runs it, checks that the Hello World payload
