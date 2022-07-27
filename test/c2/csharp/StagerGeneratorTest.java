@@ -28,7 +28,6 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import c2.admin.LocalConnection;
@@ -39,16 +38,8 @@ import c2.session.IOManager;
 import c2.session.SessionInitiator;
 import c2.session.SessionManager;
 import util.Time;
-import util.test.ClientServerTest;
 
-class StagerGeneratorTest extends ClientServerTest {
-
-	@BeforeAll
-	void standardLineEndings() {
-		if (!System.getProperty("os.name").contains("Windows")) {
-			spawnClient("dos2unix config/csharp_staging/*");
-		}
-	}
+class StagerGeneratorTest {
 
 	@Test
 	void testBogusFileDetection() {
@@ -66,72 +57,75 @@ class StagerGeneratorTest extends ClientServerTest {
 
 	@Test
 	void testBasicReplacement() {
-		// Tests that the text from the import files are placed in the string, does not
-		// validate variable replacement and generation
-		try {
-			List<String> connectionArgs = new ArrayList<>();
-			connectionArgs.add("https://127.0.0.1:8000/csharpboot");
-			String httpPayloadFile = StagerGenerator.generateStagedSourceFile(SessionInitiator.CSHARP_CONFIG_PATH,
-					"http", connectionArgs);
-			String lines[] = httpPayloadFile.split(System.lineSeparator());
-			// Check that import is place appropriately
-			assertEquals(Files.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("imports_http")), lines[11]);
-			// Check that poll code is correct
-			String pollCodeLines[] = Files.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("pollcode_http"))
-					.split(System.lineSeparator());
-			for (int idx = 0; idx < pollCodeLines.length; idx++) {
-				if (idx == 0) {
-					assertTrue(lines[19 + idx].endsWith(" = new HttpClient();"));
-				} else if (idx == 1) {
-					assertTrue(lines[19 + idx].endsWith(", Dns.GetHostName());"));
-				} else if (idx == 2) {
-					assertTrue(lines[19 + idx].endsWith(", Environment.UserName);"));
-				} else if (idx == 3) {
-					assertTrue(lines[19 + idx].endsWith(", Process.GetCurrentProcess().Id.ToString());"));
-				} else if (idx == 5) {
-					assertTrue(lines[19 + idx].startsWith("Task<string> "));
-				} else if (idx == 6) {
-					assertTrue(lines[19 + idx].endsWith(".Wait();"));
-				} else if (idx == 7) {
-					assertTrue(lines[19 + idx].endsWith(".Result;"));
-				} else {
-					assertEquals(pollCodeLines[idx], lines[19 + idx]);
-				}
-			}
-
-			// Check that assemblies are imported
-			String assembliesLines[] = Files.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("assemblies_http"))
-					.split(System.lineSeparator());
-			for (int idx = 0; idx < assembliesLines.length; idx++) {
-				String afterVar = assembliesLines[idx].substring(assembliesLines[idx].indexOf(".") + 1);
-				assertTrue(lines[23 + (pollCodeLines.length - 1) + idx].endsWith(afterVar));
-			}
-
-			// Check that the base code is present.
-			String pollCodeFunctionLines[] = Files
-					.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("pollcode_function_http"))
-					.split(System.lineSeparator());
-			for (int idx = 0; idx < pollCodeFunctionLines.length; idx++) {
-				if (idx == 0) {
-					assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-							.startsWith("static async Task<string> "));
-				} else if (idx == 5) {
-					assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-							.contains("HttpResponseMessage"));
-				} else if (idx == 6) {
-					assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-							.endsWith(".EnsureSuccessStatusCode();"));
-				} else if (idx == 7) {
-					assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-							.endsWith(".Content.ReadAsStringAsync();"));
-				} else {
-					assertEquals(pollCodeFunctionLines[idx],
-							lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]);
+		if (System.getProperty("os.name").contains("Windows")) {
+			// Tests that the text from the import files are placed in the string, does not
+			// validate variable replacement and generation
+			try {
+				List<String> connectionArgs = new ArrayList<>();
+				connectionArgs.add("https://127.0.0.1:8000/csharpboot");
+				String httpPayloadFile = StagerGenerator.generateStagedSourceFile(SessionInitiator.CSHARP_CONFIG_PATH,
+						"http", connectionArgs);
+				String lines[] = httpPayloadFile.split(System.lineSeparator());
+				// Check that import is place appropriately
+				assertEquals(Files.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("imports_http")), lines[11]);
+				// Check that poll code is correct
+				String pollCodeLines[] = Files.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("pollcode_http"))
+						.split(System.lineSeparator());
+				for (int idx = 0; idx < pollCodeLines.length; idx++) {
+					if (idx == 0) {
+						assertTrue(lines[19 + idx].endsWith(" = new HttpClient();"));
+					} else if (idx == 1) {
+						assertTrue(lines[19 + idx].endsWith(", Dns.GetHostName());"));
+					} else if (idx == 2) {
+						assertTrue(lines[19 + idx].endsWith(", Environment.UserName);"));
+					} else if (idx == 3) {
+						assertTrue(lines[19 + idx].endsWith(", Process.GetCurrentProcess().Id.ToString());"));
+					} else if (idx == 5) {
+						assertTrue(lines[19 + idx].startsWith("Task<string> "));
+					} else if (idx == 6) {
+						assertTrue(lines[19 + idx].endsWith(".Wait();"));
+					} else if (idx == 7) {
+						assertTrue(lines[19 + idx].endsWith(".Result;"));
+					} else {
+						assertEquals(pollCodeLines[idx], lines[19 + idx]);
+					}
 				}
 
+				// Check that assemblies are imported
+				String assembliesLines[] = Files
+						.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("assemblies_http"))
+						.split(System.lineSeparator());
+				for (int idx = 0; idx < assembliesLines.length; idx++) {
+					String afterVar = assembliesLines[idx].substring(assembliesLines[idx].indexOf(".") + 1);
+					assertTrue(lines[23 + (pollCodeLines.length - 1) + idx].endsWith(afterVar));
+				}
+
+				// Check that the base code is present.
+				String pollCodeFunctionLines[] = Files
+						.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("pollcode_function_http"))
+						.split(System.lineSeparator());
+				for (int idx = 0; idx < pollCodeFunctionLines.length; idx++) {
+					if (idx == 0) {
+						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
+								.startsWith("static async Task<string> "));
+					} else if (idx == 5) {
+						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
+								.contains("HttpResponseMessage"));
+					} else if (idx == 6) {
+						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
+								.endsWith(".EnsureSuccessStatusCode();"));
+					} else if (idx == 7) {
+						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
+								.endsWith(".Content.ReadAsStringAsync();"));
+					} else {
+						assertEquals(pollCodeFunctionLines[idx],
+								lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]);
+					}
+
+				}
+			} catch (IOException ex) {
+				fail("This should not have happened: " + ex.getMessage());
 			}
-		} catch (IOException ex) {
-			fail("This should not have happened: " + ex.getMessage());
 		}
 	}
 
@@ -140,35 +134,37 @@ class StagerGeneratorTest extends ClientServerTest {
 		// This test will not try and individually parse every var. It will sample a
 		// specific variable and make sure
 		// that it replicated correctly.
-		try {
-			List<String> connectionArgs = new ArrayList<>();
-			connectionArgs.add("https://127.0.0.1:8000/csharpboot");
-			String httpPayloadFile = StagerGenerator.generateStagedSourceFile(SessionInitiator.CSHARP_CONFIG_PATH,
-					"http", connectionArgs);
-			String lines[] = httpPayloadFile.split(System.lineSeparator());
-			// Check that poll code variables generated correctly
-			String pollCodeLines[] = Files.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("pollcode_http"))
-					.split(System.lineSeparator());
-			String httpClientVar = null;
-			String variableTwo = null;
-			for (int idx = 0; idx < pollCodeLines.length; idx++) {
-				if (idx == 0) {
-					String varStarting = lines[19 + idx].substring("HttpClient ".length());
-					httpClientVar = varStarting.substring(0, varStarting.indexOf(" "));
-				} else if (idx == 1 || idx == 2 || idx == 3) {
-					assertTrue(lines[19 + idx].startsWith(httpClientVar));
-				} else if (idx == 5) {
-					String varStarting = lines[19 + idx].substring("Task<string> ".length());
-					variableTwo = varStarting.substring(0, varStarting.indexOf(" "));
-				} else if (idx == 6) {
-					assertEquals(lines[19 + idx], variableTwo + ".Wait();");
-				} else if (idx == 7) {
-					assertTrue(lines[19 + idx].endsWith(variableTwo + ".Result;"));
+		if (System.getProperty("os.name").contains("Windows")) {
+			try {
+				List<String> connectionArgs = new ArrayList<>();
+				connectionArgs.add("https://127.0.0.1:8000/csharpboot");
+				String httpPayloadFile = StagerGenerator.generateStagedSourceFile(SessionInitiator.CSHARP_CONFIG_PATH,
+						"http", connectionArgs);
+				String lines[] = httpPayloadFile.split(System.lineSeparator());
+				// Check that poll code variables generated correctly
+				String pollCodeLines[] = Files.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("pollcode_http"))
+						.split(System.lineSeparator());
+				String httpClientVar = null;
+				String variableTwo = null;
+				for (int idx = 0; idx < pollCodeLines.length; idx++) {
+					if (idx == 0) {
+						String varStarting = lines[19 + idx].substring("HttpClient ".length());
+						httpClientVar = varStarting.substring(0, varStarting.indexOf(" "));
+					} else if (idx == 1 || idx == 2 || idx == 3) {
+						assertTrue(lines[19 + idx].startsWith(httpClientVar));
+					} else if (idx == 5) {
+						String varStarting = lines[19 + idx].substring("Task<string> ".length());
+						variableTwo = varStarting.substring(0, varStarting.indexOf(" "));
+					} else if (idx == 6) {
+						assertEquals(lines[19 + idx], variableTwo + ".Wait();");
+					} else if (idx == 7) {
+						assertTrue(lines[19 + idx].endsWith(variableTwo + ".Result;"));
+					}
 				}
-			}
 
-		} catch (IOException ex) {
-			fail("This should not have happened: " + ex.getMessage());
+			} catch (IOException ex) {
+				fail("This should not have happened: " + ex.getMessage());
+			}
 		}
 	}
 
@@ -403,7 +399,7 @@ class StagerGeneratorTest extends ClientServerTest {
 
 	@Test
 	void testMainServerIntegrationExeResponse() {
-		//Can only generate EXE on windows
+		// Can only generate EXE on windows
 		if (System.getProperty("os.name").contains("Windows")) {
 			// Test that a user can connect to TAC and ask for a completed file. Validates
 			// that text comes back as expected
