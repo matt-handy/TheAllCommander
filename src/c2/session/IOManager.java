@@ -375,7 +375,12 @@ public class IOManager {
 			sb.append(System.lineSeparator());
 			nextIo = pollIO(sessionId);
 		}
-		return sb.toString();
+		String cleanedIO = sb.toString();
+		//Need to clean IO if received from Windows on a Linux system
+		if (!System.getProperty("os.name").contains("Windows")) {
+			cleanedIO = cleanedIO.replaceAll("\r\n", System.lineSeparator());
+		}
+		return cleanedIO;
 	}
 
 	/**
