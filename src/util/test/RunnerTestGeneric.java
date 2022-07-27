@@ -419,7 +419,7 @@ public class RunnerTestGeneric {
 
 			//Currently CURL wraps multiline output, corrupting the string that carries file contents. Need
 			//to have a way to handle large lines so there is no break.
-			if (config.os != TestConfiguration.OS.LINUX && !config.protocol.equals("SMTP") && config.isExecInRoot()) {
+			if (config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
 				System.out.println("Testing download");
 
 				byte[] fileBytes = Files.readAllBytes(Paths.get("config", "test.properties"));
@@ -554,8 +554,11 @@ public class RunnerTestGeneric {
 			} else {
 				if (config.isExecInRoot()) {
 					assertEquals(output, Paths.get("").toAbsolutePath().toString());
-					System.out.println("dir test");
-					testRootDirEnum(br, bw);
+					//SMTP daemon generates files in working directory, and makes directory enumeration unreliable
+					if(!(config.lang.equals("python") && config.protocol.equals("SMTP"))) {
+						System.out.println("dir test");
+						testRootDirEnum(br, bw);
+					}
 				} else {
 					assertEquals(output, Paths.get("agents", "csc").toAbsolutePath().toString());
 
@@ -566,10 +569,7 @@ public class RunnerTestGeneric {
 				}
 			}
 
-			if (config.lang.equals("python") && config.protocol.equals("SMTP")) {
-				System.out.println("Flushing");
-				br.readLine();// Flush a bad line feed
-			}
+			
 		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}
