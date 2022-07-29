@@ -172,8 +172,9 @@ class EMailAgent(LocalAgent):
 		#Get Body
 		getFirstEmailBodyCmd =  "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=" + str(tUID) + "/;SECTION=TEXT -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD
 		body = subprocess.Popen(getFirstEmailBodyCmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().decode("utf-8")
-		body = body.replace("=\r\n", "")
-		body = body.replace("=3D", "=")
+		if "=3D" in body:
+			body = body.replace("=\r\n", "")
+			body = body.replace("=3D", "=")
 		if (body[len(body) - 1] == '\n'):
 			body = body[0: len(body) - 1];
 		if (body[len(body) - 1] == '\r'):

@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
 
+import c2.smtp.EmailHandlerTester;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.RunnerTestGeneric;
@@ -57,6 +58,7 @@ public class PythonSocks5Test extends ClientServerTest {
 	}
 	
 	static void testEmailDaemonNominalConnectionS() {
+		EmailHandlerTester.flushC2Emails();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "emailAgent.py\"";
 		testDaemonConnection(clientCmd, false, true);
 	}
@@ -100,7 +102,7 @@ public class PythonSocks5Test extends ClientServerTest {
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 			remote.close();
-			Time.sleepWrapped(3000);//Give time for client to receive kill order
+			Time.sleepWrapped(5000);//Give time for client to receive kill order
 		} catch (Exception ex) {
 			System.out.println("Unable to load config file");
 			fail(ex.getMessage());
@@ -135,6 +137,7 @@ public class PythonSocks5Test extends ClientServerTest {
 	}
 	
 	static void testEmailDaemonConnectionBrokenWithServerS() {
+		EmailHandlerTester.flushC2Emails();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "emailAgent.py\"";
 		testDaemonConnection(clientCmd, true, true);
 	}
