@@ -62,7 +62,7 @@ public class SocksClientEmulator implements Runnable {
 	public void run() {
 		while (alive) {
 			try (Socket socket = new Socket("127.0.0.1", localSocksPort)) {
-				socket.setSoTimeout(15000);
+				socket.setSoTimeout(20000);
 
 				OutputStream os = socket.getOutputStream();
 				os.write(SocksHandler.SOCKS5_VER);// Open the transaction with the socks version
