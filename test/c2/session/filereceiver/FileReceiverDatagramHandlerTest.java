@@ -1,6 +1,9 @@
 package c2.session.filereceiver;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -16,10 +19,8 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -28,7 +29,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import c2.Constants;
-import c2.smtp.EmailHandlerTester;
+import c2.smtp.EmailHandler;
+import c2.smtp.SimpleEmail;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.OutputStreamWriterHelper;
@@ -49,6 +51,36 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	static final Path DOUBLE_FILE_PATH = Paths.get(DOUBLE_XMISSION_FILE_FOLDER.toString(), "d_file");
 	static final Path TRIPLE_FILE_PATH = Paths.get(TRIPLE_XMISSION_FILE_FOLDER.toString(), "t_file");
 
+	static Properties setup() {
+		try (InputStream input = new FileInputStream("config" + File.separator + "test.properties")) {
+
+			Properties prop = new Properties();
+
+			// load a properties file
+			prop.load(input);
+
+			return prop;
+		} catch (IOException ex) {
+			System.out.println("Unable to load config file");
+			fail(ex.getMessage());
+			return null;
+		}
+	}
+	
+	public static void flushC2Emails() {
+		EmailHandler receiveHandler = new EmailHandler();
+		try {
+			receiveHandler.initialize(null, setup(), null, null);
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		}
+		
+		SimpleEmail email = receiveHandler.getNextMessage();
+		while(email != null) {
+			email = receiveHandler.getNextMessage();
+		}
+	}
+	
 	@AfterEach
 	void cleanupTestArtifacts() {
 		try (Stream<Path> walk = Files.walk(CONTENT_DIR)) {
@@ -78,7 +110,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 				prop.load(input);
 
 				if(prop.getProperty(Constants.DAEMON_EMAIL_PORT) != null) {
-					EmailHandlerTester.flushC2Emails();
+					flushC2Emails();
 				}
 			} catch (IOException ex) {
 				System.out.println("Unable to load config file");
@@ -391,7 +423,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 				prop.load(input);
 
 				if(prop.getProperty(Constants.DAEMON_EMAIL_PORT) != null) {
-					EmailHandlerTester.flushC2Emails();
+					flushC2Emails();
 					//TODO: Re-enable this test. It works when done manually, but for some reason automatic execution fails
 					//testFileTransmissionViaPython(TestConstants.PYTHON_SMTPDAEMON_TEST_EXE, true);
 				}
