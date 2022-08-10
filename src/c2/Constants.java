@@ -13,6 +13,8 @@ public class Constants {
 	public static final String DNSPORT = "daemon.dns.port";
 	public static final String NATIVESHELLPORT = "daemon.nativeshell.port";
 	
+	public static final String DAEMON_EXFILTEST_DIRECTORY = "daemon.exfiltest.directory";
+	
 	public static final String DAEMON_EMAIL_PORT = "daemon.email.port";
 	public static final String DAEMON_EMAIL_HOST = "daemon.email.host";
 	public static final String DAEMON_EMAIL_USERNAME = "daemon.email.username";

@@ -71,6 +71,14 @@ class HTTPSAgent(LocalAgent):
 			print("Oops, something went wrong: {}".format(e), file=sys.stderr)
 
 		return connection.getresponse().read().decode()    
+
+	def postDirHarvest(self, content, session_id):
+		try:
+			harvestHeaders = self.headers.copy()
+			harvestHeaders['UPLOAD_SESSION'] = str(session_id)
+			self.postHTTPS(harvestHeaders, '/test', content)
+		except Exception as e:
+			print("Oops, something went wrong: {}".format(e), file=sys.stderr)    
         
 	def pollForward(self, forwardID):
 		try:    

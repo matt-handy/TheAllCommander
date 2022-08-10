@@ -20,7 +20,7 @@ import c2.session.IOManager;
 import c2.win.WindowsCmdLineHelperTest;
 
 class RecycleBinCleanMacroTest {
-	
+
 	IOManager io;
 	int sessionId;
 
@@ -29,7 +29,7 @@ class RecycleBinCleanMacroTest {
 		Path testPath = null;
 		if (System.getProperty("os.name").contains("Windows")) {
 			testPath = Paths.get("config", "test.properties");
-		}else {
+		} else {
 			testPath = Paths.get("config", "test_linux.properties");
 		}
 		try (InputStream input = new FileInputStream(testPath.toFile())) {
@@ -47,14 +47,14 @@ class RecycleBinCleanMacroTest {
 			System.out.println("Unable to load config file");
 		}
 	}
-	
+
 	@Test
 	void testRecognizesExpectedMacro() {
 		RecycleBinCleanMacro macro = new RecycleBinCleanMacro();
 		assertTrue(macro.isCommandMatch(RecycleBinCleanMacro.COMMAND));
 		assertFalse(macro.isCommandMatch("narf"));
 	}
-	
+
 	@Test
 	void testSendsProperCommand() {
 		RecycleBinCleanMacro macro = new RecycleBinCleanMacro();

