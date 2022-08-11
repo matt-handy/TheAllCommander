@@ -1,6 +1,8 @@
 # TheAllCommander
 Framework for modeling and researching C2 communications for developing efficient filtering and detection logic.
 
+Featured in DEFCON Demolabs 2022!!!!
+
 # Why TheAllCommander?
 TheAllCommander allows researchers to easily develop their own communication modules and connect them to this framework, then leverage the existing framework to test elements of the Red Team workflow through the communication protocol for further study. 
 ## What TheAllCommander is...
@@ -268,7 +270,9 @@ NOTE: Mvn test will run tests of the HTTPS server, so there must be a keystore f
 
 2) TheAllCommander is set up as a maven project, so a simple "mvn install -DskipTests" will build the project and resolve all dependencies in the the "target" folder. 
 
-NOTE: If mvn is run to execute unit tests, both TheAllCommander and the sample HTTPS daemon will be started. The file located at test/test.properties contains configuration for test execution. If TheAllCommander is being tested on Linux, the areas highlighted in that file with Linux-variant commands must be switched to their Linux variant. By default, it will build on Windows without modification to this file. 
+NOTE: If mvn is run to execute unit tests, both TheAllCommander and the sample HTTPS daemon will be started. The file located at test/test.properties contains configuration for test execution. If TheAllCommander is being tested on Linux, the areas highlighted in that file with Linux-variant commands must be switched to their Linux variant. By default, it will build on Windows without modification to this file. Running the tests will take several minutes. 
+
+NOTE: The test sequence, when run on Windows, will validate that the expected browser cookie location is still legitimate. To do this, Firefox, Chrome, and Edge must be installed. If these browsers are not installed, skip test execution on Windows.
 
 3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
 

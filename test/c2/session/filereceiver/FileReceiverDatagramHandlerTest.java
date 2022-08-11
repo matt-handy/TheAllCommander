@@ -67,7 +67,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 			return null;
 		}
 	}
-	
+
 	public static void flushC2Emails() {
 		EmailHandler receiveHandler = new EmailHandler();
 		try {
@@ -75,13 +75,13 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
-		
+
 		SimpleEmail email = receiveHandler.getNextMessage();
-		while(email != null) {
+		while (email != null) {
 			email = receiveHandler.getNextMessage();
 		}
 	}
-	
+
 	@AfterEach
 	void cleanupTestArtifacts() {
 		try (Stream<Path> walk = Files.walk(CONTENT_DIR)) {
@@ -98,25 +98,14 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 			// e.printStackTrace();
 		}
 	}
-	
+
 	@BeforeEach
 	void checkAndFlushEmail() {
 		if (System.getProperty("os.name").contains("Windows")) {
-			Path testPath = Paths.get("config", "test.properties");
-			try (InputStream input = new FileInputStream(testPath.toFile())) {
-
-				Properties prop = new Properties();
-
-				// load a properties file
-				prop.load(input);
-
-				if(prop.getProperty(Constants.DAEMON_EMAIL_PORT) != null) {
-					flushC2Emails();
-				}
-			} catch (IOException ex) {
-				System.out.println("Unable to load config file");
+			Properties prop = setup();
+			if (prop.getProperty(Constants.DAEMON_EMAIL_PORT) != null) {
+				flushC2Emails();
 			}
-			
 		}
 	}
 
@@ -161,8 +150,8 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 							.listFiles(File::isDirectory);
 			// There should only be one session in the directory
 			assertEquals(1, directories.length);
-			Path files[] = {SINGLE_FILE_PATH, DOUBLE_FILE_PATH, TRIPLE_FILE_PATH};
-			for(Path filePath : files) {
+			Path files[] = { SINGLE_FILE_PATH, DOUBLE_FILE_PATH, TRIPLE_FILE_PATH };
+			for (Path filePath : files) {
 				String cleanedPath = filePath.toAbsolutePath().toString().replaceAll(":", "");
 				Path target = Paths.get(directories[0].toPath().toString(), cleanedPath);
 				assertTrue(Files.exists(target));
@@ -170,7 +159,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 				byte[] content = Files.readAllBytes(target);
 				byte[] referenceContent = Files.readAllBytes(filePath);
 				assertEquals(referenceContent.length, content.length);
-				for(int idx = 0; idx < referenceContent.length; idx++) {
+				for (int idx = 0; idx < referenceContent.length; idx++) {
 					assertEquals(referenceContent[idx], content[idx]);
 				}
 			}
@@ -330,10 +319,10 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	/*
 	 * @Test void testFileOverIntLimit() { fail("Not yet implemented"); }
 	 */
-	
+
 	@Test
 	void testLinuxFilenameInterprettedCorrectlyOnWindows() {
-		//Cross platform test is meaningless to run on Linux
+		// Cross platform test is meaningless to run on Linux
 		if (!System.getProperty("os.name").contains("Windows")) {
 			return;
 		}
@@ -343,8 +332,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		handler.processIncoming(2, 1, testPayload);
 		verifyFileExistsAndCorrect("test1", 1024);
 	}
-	
-	
+
 	byte[] buildTestPattern(int len) {
 		byte[] testPattern = new byte[len];
 		byte nextFillChar = 65;
@@ -379,38 +367,35 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testFileTransmissionViaPythonDNS() {
-		//Until Linux support is added, bypass this test
+		// This test is currently bypassed on Linux. There is a padding issued with the
+		// Linux based
+		// DNS decryption which does not manifest on other testing. This will be
+		// revisited when the
+		// DNS integration tests are made part of regular Linux baseline
 		if (!System.getProperty("os.name").contains("Windows")) {
 			return;
 		}
 		testFileTransmissionViaPython(TestConstants.PYTHON_DNSDAEMON_TEST_EXE, false);
 	}
-	
+
 	@Test
 	void testFileTransmissionViaPythonSMTP() {
-		
-		//Only works on Windows && only test if email connection defined in config
+
+		// Only works on Windows && only test if email connection defined in config
 		if (System.getProperty("os.name").contains("Windows")) {
-			Path testPath = Paths.get("config", "test.properties");
-			try (InputStream input = new FileInputStream(testPath.toFile())) {
+			Properties prop = setup();
 
-				Properties prop = new Properties();
-
-				// load a properties file
-				prop.load(input);
-
-				if(prop.getProperty(Constants.DAEMON_EMAIL_PORT) != null) {
-					flushC2Emails();
-					//TODO: Re-enable this test. It works when done manually, but for some reason automatic execution fails
-					//testFileTransmissionViaPython(TestConstants.PYTHON_SMTPDAEMON_TEST_EXE, true);
-				}
-			} catch (IOException ex) {
-				System.out.println("Unable to load config file");
+			if (prop.getProperty(Constants.DAEMON_EMAIL_PORT) != null) {
+				flushC2Emails();
+				// TODO: Re-enable this test. It works when done manually, but for some reason
+				// automatic execution fails
+				// testFileTransmissionViaPython(TestConstants.PYTHON_SMTPDAEMON_TEST_EXE,
+				// true);
 			}
-			
+
 		}
 	}
-	
+
 	void testFileTransmissionViaPython(String daemon, boolean smtpFlush) {
 		// Tests file per 1 xmission
 		// Tests file with 2 xmissions
@@ -436,16 +421,17 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
 
-			OutputStreamWriterHelper.writeAndSend(bw, "cd test" + FileSystems.getDefault().getSeparator() + HARVEST_TEST_DIR);
+			OutputStreamWriterHelper.writeAndSend(bw,
+					"cd test" + FileSystems.getDefault().getSeparator() + HARVEST_TEST_DIR);
 			OutputStreamWriterHelper.writeAndSend(bw, "harvest_pwd");
 			Path harvestDir = Paths.get("test", HARVEST_TEST_DIR);
-			if(smtpFlush) {
+			if (smtpFlush) {
 				assertEquals("Daemon alive", br.readLine());
 			}
 			assertEquals(harvestDir.toAbsolutePath().toString(), br.readLine());
 			assertEquals(br.readLine(), "Started Harvest: " + harvestDir.toAbsolutePath().toString());
 			assertEquals(br.readLine(), "Harvest complete: " + harvestDir.toAbsolutePath().toString());
-			
+
 			OutputStreamWriterHelper.writeAndSend(bw, "die");
 
 			Time.sleepWrapped(3000);
@@ -462,7 +448,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 		teardown();
 	}
-	
+
 	/*
 	 * TODO This validation is not necessary to minimum success definition, expand
 	 * later
