@@ -92,10 +92,6 @@ public class FileReceiverDatagramHandler {
 			*/
 				//Replace leading drive letter colon for windows hosts
 				filenamePath = Paths.get(filenamePath.toString().replaceAll(":", ""));
-				//If running windows and receive Linux xmission, change delimiter
-				if(filenamePath.toString().startsWith("/") && !System.lineSeparator().equals("/")) {
-					filenamePath = Paths.get(filenamePath.toString().replaceAll("/", System.lineSeparator()));
-				}
 				//If receive linux xmission, replace leading /
 				if(filenamePath.toString().startsWith("/")) {
 					filenamePath = Paths.get(filenamePath.toString().substring(1));

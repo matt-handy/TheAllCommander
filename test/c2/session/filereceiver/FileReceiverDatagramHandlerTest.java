@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -261,10 +262,6 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testEndOfTransmissionClosesSessionObject() {
-		//Until Linux support is added, bypass this test
-				if (!System.getProperty("os.name").contains("Windows")) {
-					return;
-				}
 		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
 		assertTrue(handler.hasSessionCurrently(2, 1));
@@ -282,10 +279,6 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testSingleFileTransmission() {
-		//Until Linux support is added, bypass this test
-				if (!System.getProperty("os.name").contains("Windows")) {
-					return;
-				}
 		byte[] testPayload = buildTestPayload(1024, "test1", true);
 		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
@@ -295,10 +288,6 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testFileOverTwoTransmissions() {
-		//Until Linux support is added, bypass this test
-				if (!System.getProperty("os.name").contains("Windows")) {
-					return;
-				}
 		byte[] testPayload = buildTestPayload(1024, "test1", true);
 		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
@@ -311,10 +300,6 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testFileOverThreeTransmissions() {
-		//Until Linux support is added, bypass this test
-				if (!System.getProperty("os.name").contains("Windows")) {
-					return;
-				}
 		byte[] testPayload = buildTestPayload(2048, "test1", true);
 		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
@@ -329,10 +314,6 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testTwoFileTwoTransmission() {
-		//Until Linux support is added, bypass this test
-				if (!System.getProperty("os.name").contains("Windows")) {
-					return;
-				}
 		byte[] testPayload = buildTestPayload(1024, "test1", true);
 		byte[] testPayload2 = buildTestPayload(2055, "test2", true);
 		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
@@ -352,7 +333,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	
 	@Test
 	void testLinuxFilenameInterprettedCorrectlyOnWindows() {
-		//Until Linux support is added, bypass this test
+		//Cross platform test is meaningless to run on Linux
 		if (!System.getProperty("os.name").contains("Windows")) {
 			return;
 		}
@@ -455,7 +436,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
 
-			OutputStreamWriterHelper.writeAndSend(bw, "cd test\\" + HARVEST_TEST_DIR);
+			OutputStreamWriterHelper.writeAndSend(bw, "cd test" + FileSystems.getDefault().getSeparator() + HARVEST_TEST_DIR);
 			OutputStreamWriterHelper.writeAndSend(bw, "harvest_pwd");
 			Path harvestDir = Paths.get("test", HARVEST_TEST_DIR);
 			if(smtpFlush) {

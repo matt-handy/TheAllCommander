@@ -21,35 +21,40 @@ class CommanderInterfaceTest extends ClientServerTest {
 
 	@Test
 	void test() {
-		initiateServer();
+		if (System.getProperty("os.name").contains("Windows")) {
+			initiateServer();
+		} else {
+			initiateServer("test_linux.properties");
+		}
 		spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 		System.out.println("Transmitting commands");
-		
+
 		Time.sleepWrapped(5000);
-		
+
 		try {
 			System.out.println("Connecting test commander...");
 			Socket remote = new Socket("localhost", 8111);
 			System.out.println("Locking test commander streams...");
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
-			
+
 			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
-			
+
 			bw.write("quit_session" + System.lineSeparator());
 			bw.flush();
-			
+
 			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
-			
+
 			bw.write("list_sessions" + System.lineSeparator());
 			bw.flush();
 			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, false, 2, false);
-			
-			//Test killing a session. First the session will disconnect, see that it isn't there, then 
-			//reconnect and tell it to "die"
+
+			// Test killing a session. First the session will disconnect, see that it isn't
+			// there, then
+			// reconnect and tell it to "die"
 			bw.write("kill_session 2" + System.lineSeparator());
 			bw.flush();
-			
+
 			String output = br.readLine();
 			assertEquals(output, SessionInitiator.AVAILABLE_SESSION_BANNER);
 			output = br.readLine();
@@ -63,37 +68,36 @@ class CommanderInterfaceTest extends ClientServerTest {
 			bw.close();
 			br.close();
 			remote.close();
-			
-			//Wait long enough for a reconnect
+
+			// Wait long enough for a reconnect
 			Time.sleepWrapped(2000);
 			System.out.println("Connecting test commander...");
 			remote = new Socket("localhost", 8111);
 			System.out.println("Locking test commander streams...");
 			bw = new OutputStreamWriter(remote.getOutputStream());
 			br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
-			
+
 			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, 3, false);
 			bw.write("list_sessions" + System.lineSeparator());
 			bw.flush();
 			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, false, 3, false);
-			
+
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
-			
+
 			Time.sleepWrapped(3000);
-			
+
 			bw.close();
 			br.close();
 			remote.close();
-			
-			
-		}catch(Exception ex) {
+
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
-		
+
 		Time.sleepWrapped(500);
-		
+
 		teardown();
 	}
 
