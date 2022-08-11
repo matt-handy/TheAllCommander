@@ -374,11 +374,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testFileTransmissionViaPythonHTTPS() {
-		//Until Linux support is added, bypass this test
-				if (!System.getProperty("os.name").contains("Windows")) {
-					return;
-				}
-				testFileTransmissionViaPython(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE, false);
+		testFileTransmissionViaPython(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE, false);
 	}
 
 	@Test
@@ -421,7 +417,11 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		// Tests file with 3 xmissions
 
 		generateTestFolderAndFiles();
-		initiateServer();
+		if (System.getProperty("os.name").contains("Windows")) {
+			initiateServer();
+		} else {
+			initiateServer("test_linux.properties");
+		}
 		spawnClient(daemon);
 		System.out.println("Transmitting commands");
 
