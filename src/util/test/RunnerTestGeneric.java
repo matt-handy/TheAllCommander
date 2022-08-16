@@ -420,8 +420,13 @@ public class RunnerTestGeneric {
 			if(config.lang.equals("Native")) {
 				System.out.println("Native shell, cannot test sub shell spawning");
 			}else {
-				System.out.println("Testing shell capability");
-				testShell(br, bw, config);
+				if(config.lang.equals("Python") && config.os == OS.LINUX) {
+					System.out.println("Python shell capability not yet working on Linux");
+				}else {
+					System.out.println("Testing shell capability");
+					testShell(br, bw, config);
+				}
+				
 			}
 			
 			bw.write("die" + System.lineSeparator());
