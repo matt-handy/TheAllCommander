@@ -411,15 +411,6 @@ public class RunnerTestGeneric {
 			if (config.isExecInRoot()) {
 				testCat(br, bw, config);
 			}
-			// execCentral will be local to Linux after the uplink test, whereas for Windows
-			// it is
-			// already in root.
-			if (config.os == TestConfiguration.OS.LINUX) {
-				bw.write("rm execCentral.bat" + System.lineSeparator());
-				bw.flush();
-				br.readLine();
-				System.out.println("Cleaned up Linux uplink");
-			}
 
 			testUplinkDownloadErrorHandling(br, bw);
 			testCatErrorHandling(br, bw, config);
@@ -482,8 +473,11 @@ public class RunnerTestGeneric {
 			bw.flush();
 			String output = br.readLine();
 			if (config.os == TestConfiguration.OS.LINUX) {
-				assertEquals(output, TestConstants.EXECUTIONROOT_LINUX);
-				// testdir
+				if (config.isRemote()) {
+					assertEquals(output, TestConstants.EXECUTIONROOT_LINUX);
+				}else{
+					assertEquals(output, Paths.get("").toAbsolutePath().toString());
+				}
 			} else if (config.lang.equals("Native")) {
 				if (config.isRemote()) {
 					assertTrue(output.startsWith("C:\\Users\\"));
@@ -1093,7 +1087,11 @@ public class RunnerTestGeneric {
 		
 		bw.write("shell 0" + System.lineSeparator());
 		if(config.os == OS.LINUX) {
-			bw.write("python3 /home/kali/dev/basic_io_loop.py" + System.lineSeparator());
+			if(config.isRemote()){
+				bw.write("python3 " + TestConstants.EXECUTIONROOT_LINUX + "/basic_io_loop.py" + System.lineSeparator());
+			}else{
+				bw.write("python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py" + System.lineSeparator());
+			}
 		}else {
 			bw.write("python test_support_scripts" + System.getProperty("file.separator")+ System.getProperty("file.separator") + "basic_io_loop.py" + System.lineSeparator());
 		}
@@ -1137,7 +1135,11 @@ public class RunnerTestGeneric {
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
 		if(config.os == OS.LINUX) {
-			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py", response);
+			if(config.isRemote()){
+				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/basic_io_loop.py", response);
+			}else{
+				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py", response);
+			}
 		}else {
 			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py", response);
 		}
@@ -1160,7 +1162,11 @@ public class RunnerTestGeneric {
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
 		if(config.os == OS.LINUX) {
-			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py exited with code 139", response);
+			if(config.isRemote()){
+				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/basic_io_loop.py exited with code 139", response);
+			}else{
+				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py exited with code 139", response);
+			}
 		}else {
 			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py exited with code 139", response);
 		}
@@ -1178,7 +1184,11 @@ public class RunnerTestGeneric {
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
 		if(config.os == OS.LINUX) {
-			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py exited with code 139", response);
+			if(config.isRemote()){
+				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/basic_io_loop.py exited with code 139", response);
+			}else{
+				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py exited with code 139", response);
+			}
 		}else {
 			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py exited with code 139", response);
 		}

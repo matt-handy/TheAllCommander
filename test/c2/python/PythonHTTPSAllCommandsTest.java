@@ -11,23 +11,24 @@ class PythonHTTPSAllCommandsTest extends ClientServerTest {
 
 	@Test
 	void testHTTPS() {
-		// Don't enable on Linux for now
 		if (System.getProperty("os.name").contains("Windows")) {
 			initiateServer();
-			spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
-
-			TestConfiguration.OS osConfig = null;
-			if (System.getProperty("os.name").contains("Windows")) {
-				osConfig = TestConfiguration.OS.WINDOWS;
-			} else {
-				osConfig = TestConfiguration.OS.LINUX;
-			}
-
-			TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "HTTPS");
-			RunnerTestGeneric.test(testConfig);
-
-			teardown();
+		} else {
+			initiateServer("test_linux.properties");
 		}
+		spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
+
+		TestConfiguration.OS osConfig = null;
+		if (System.getProperty("os.name").contains("Windows")) {
+			osConfig = TestConfiguration.OS.WINDOWS;
+		} else {
+			osConfig = TestConfiguration.OS.LINUX;
+		}
+
+		TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "HTTPS");
+		RunnerTestGeneric.test(testConfig);
+
+		teardown();
 	}
 
 }
