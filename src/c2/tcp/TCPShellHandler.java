@@ -19,6 +19,7 @@ import c2.http.HTTPSManager;
 import c2.session.IOManager;
 import c2.tcp.GenericTCPInitiator.OS;
 import util.Time;
+import util.test.OutputStreamWriterHelper;
 
 public class TCPShellHandler implements Runnable {
 
@@ -251,7 +252,9 @@ public class TCPShellHandler implements Runnable {
 	}
 
 	private void operateWindowsCommand(OutputStreamWriter bw, String nextCommand) throws IOException {
-		if (nextCommand.equalsIgnoreCase("getUID")) {
+		if(nextCommand.equalsIgnoreCase("die")) {
+			OutputStreamWriterHelper.writeAndSend(bw, "exit");
+		}else if (nextCommand.equalsIgnoreCase("getUID")) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Username: " + username);
 			sb.append(System.lineSeparator());

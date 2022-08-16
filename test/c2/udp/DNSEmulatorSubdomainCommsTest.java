@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -17,6 +18,7 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import c2.Constants;
@@ -42,6 +44,18 @@ class DNSEmulatorSubdomainCommsTest {
 			0x00, // null byte
 			0x00, 0x01, 0x00, 0x01 };// Class flags
 
+	@AfterEach
+	void cleanup() {
+		try {
+			Files.deleteIfExists(Paths.get("test", "HOSTuserUDP"));
+			Files.deleteIfExists(Paths.get("test", "HOSTuserUDP987"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 	@Test
 	void testDetectEndPacket() {
 		assertTrue(DNSEmulatorSubdomainComms.isLastInSequence(TEST_END_PACKET));

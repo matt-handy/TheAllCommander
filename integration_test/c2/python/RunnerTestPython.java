@@ -15,22 +15,9 @@ public class RunnerTestPython extends ClientServerTest {
 
 	@Test
 	void testLocal() {
-		testHTTPS();
 		testDNS();
 		testHTTPSTwoSessions();
 		testDNSTwoSessions();
-	}
-	
-	public static void testHTTPS() {
-		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "httpsAgent.py\"";
-		System.out.println("Spawning: " + clientCmd);
-		spawnClient(clientCmd);
-		
-		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "HTTPS");
-		RunnerTestGeneric.test(testConfig);
-		
-		teardown();
 	}
 	
 	public static void testHTTPSTwoSessions() {

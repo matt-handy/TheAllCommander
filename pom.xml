@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>TheAllCommander</groupId>
 	<artifactId>TheAllCommander</artifactId>
-	<version>0.9.1-Release</version>
+	<version>0.9.2-Release</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<testSourceDirectory>test</testSourceDirectory>

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.CertificateException;
@@ -26,6 +27,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +37,17 @@ import c2.session.IOManager;
 
 class SocksOverHTTPSTest {
 
+	@AfterEach
+	void cleanup() {
+		try {
+			Files.deleteIfExists(Paths.get("test", "testuserHTTPS"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 	@BeforeEach
 	void setupHTTPS() {
 		TrustManager[] trustAllCerts = new TrustManager[] { (TrustManager) new X509TrustManager() {

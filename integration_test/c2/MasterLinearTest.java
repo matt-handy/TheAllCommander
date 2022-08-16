@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import c2.nativeshell.RunnerTestNativeLinuxDaemon;
-import c2.nativeshell.RunnerTestNativeWindowsDaemon;
 import c2.portforward.PythonPortForwardTest;
 import c2.portforward.socks.PythonSocks5Test;
 import c2.python.RunnerTestKeyloggerDNS;
@@ -45,13 +44,8 @@ class MasterLinearTest {
 		System.out.println("Testing Linux Native Shell");
 		RunnerTestNativeLinuxDaemon.test();
 		
-		//Native daemon tests
-		System.out.println("Testing Windows Native");
-		RunnerTestNativeWindowsDaemon.test();
-		
 		//Python
 		System.out.println("Testing Python");
-		RunnerTestPython.testHTTPS();
 		RunnerTestPython.testDNS();
 		RunnerTestPythonEmail.testEmail();
 		

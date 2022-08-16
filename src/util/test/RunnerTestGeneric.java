@@ -32,7 +32,6 @@ import c2.Constants;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
 import c2.session.macro.SpawnFodhelperElevatedSessionMacro;
-import jdk.management.jfr.ConfigurationInfo;
 import util.Time;
 import util.test.TestConfiguration.OS;
 
@@ -322,7 +321,7 @@ public class RunnerTestGeneric {
 				String output = br.readLine();
 				assertEquals(output, "Daemon alive");
 			}
-
+			
 			if (config.isExecInRoot()) {
 				System.out.println("cd test");
 				bw.write("cd test" + System.lineSeparator());
@@ -330,14 +329,14 @@ public class RunnerTestGeneric {
 				bw.write("cd .." + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
-				if (config.os != OS.LINUX) {
+				if (!config.isRemote()) {
 					assertEquals(Paths.get("test").toAbsolutePath().toString(), output);
 					output = br.readLine();
 					assertEquals(Paths.get("").toAbsolutePath().toString(), output);
 				} else {
-					assertEquals("/home/" + TestConstants.USERNAME_LINUX + "/dev/test", output);
+					assertEquals(TestConstants.EXECUTIONROOT_LINUX + "/test", output);
 					output = br.readLine();
-					assertEquals("/home/" + TestConstants.USERNAME_LINUX + "/dev", output);
+					assertEquals(TestConstants.EXECUTIONROOT_LINUX, output);
 				}
 			}
 
@@ -391,90 +390,8 @@ public class RunnerTestGeneric {
 
 			testPwd(br, bw, config);
 
-			System.out.println("uplink test");
-			if (config.os == TestConfiguration.OS.LINUX) {
-				bw.write("uplink test_uplink" + System.lineSeparator());
-				bw.flush();
-				output = br.readLine();
-				assertEquals(output,
-						"<control> uplinked test_uplink VGhpcyBpcyBhIHRlc3QgZmlsZSB0byB1cGxpbmsgb24gTGludXguIEl0IGhhcyBubyBwb2ludC4K");
-			} else {
-				if (config.isExecInRoot()) {
-					byte targetFile[] = Files.readAllBytes(Paths.get("execCommander.bat"));
-					String targetB64 = Base64.getEncoder().encodeToString(targetFile);
-					if (config.isExecInRoot()) {
-						bw.write("uplink " + "execCommander.bat" + System.lineSeparator());
-					} else {
-						bw.write("uplink " + "..\\..\\test\\execCommander.bat" + System.lineSeparator());
-					}
-					bw.flush();
-					output = br.readLine();
-					if (config.lang.equals("C++") || config.lang.equals("Native")) {
-						assertEquals(output, "<control> uplinked execCommander.bat " + targetB64);
-					} else {
-						assertEquals(output, "<control> uplinked execCommander.bat " + targetB64);
-					}
-				}
-			}
-
-			//Currently CURL wraps multiline output, corrupting the string that carries file contents. Need
-			//to have a way to handle large lines so there is no break.
-			if (config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
-				System.out.println("Testing download");
-
-				byte[] fileBytes = Files.readAllBytes(Paths.get("config", "test.properties"));
-				byte[] encoded = Base64.getEncoder().encode(fileBytes);
-				String encodedString = new String(encoded, StandardCharsets.US_ASCII);
-				Path filePath = Paths.get("config", "test.properties");
-				String downloadCommand = "<control> download " + filePath.getFileName().toString().replaceAll(" ", "_") + " "
-						+ encodedString;
-				OutputStreamWriterHelper.writeAndSend(bw, downloadCommand);
-				// Give time for endpoint to receive
-				Time.sleepWrapped(5000);
-				output = br.readLine();
-				assertEquals(output, "File written: test.properties");
-
-				if (config.isRemote()) {
-					bw.write("uplink msbuild.txt" + System.lineSeparator());
-					bw.flush();
-					output = br.readLine();
-					assertEquals(output,
-							"<control> uplinked msbuild.txt PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+");
-					bw.write("del msbuild.txt" + System.lineSeparator());
-					bw.flush();
-					output = br.readLine();// Blank line
-					output = br.readLine();// Prompt
-				} else {
-					assertTrue(Files.exists(Paths.get("test.properties")));
-					byte[] newFileBytes = Files.readAllBytes(Paths.get("test.properties"));
-					assertEquals(newFileBytes.length, fileBytes.length);
-					for (int idx = 0; idx < newFileBytes.length; idx++) {
-						assertEquals(fileBytes[idx], newFileBytes[idx]);
-					}
-					Files.delete(Paths.get("test.properties"));
-				}
-			} else if (config.os == TestConfiguration.OS.LINUX) {
-				System.out.println("Download test executing");
-				byte[] fileBytes = Files.readAllBytes(Paths.get("execCentral.bat"));
-				byte[] encoded = Base64.getEncoder().encode(fileBytes);
-				String encodedString = new String(encoded, StandardCharsets.US_ASCII);
-				bw.write("<control> download " + "execCentral.bat" + " " + encodedString + System.lineSeparator());
-				bw.flush();
-				// Give time for endpoint to receive
-				try {
-					Thread.sleep(5000);
-				} catch (Exception ex) {
-				}
-				output = br.readLine();
-				assertEquals(output, "File written: execCentral.bat");
-
-				bw.write("uplink execCentral.bat" + System.lineSeparator());
-				bw.flush();
-				output = br.readLine();
-				String base64ExecCentral = encodeFileToBase64Binary("execCentral.bat");
-				assertEquals(output, "<control> uplinked execCentral.bat " + base64ExecCentral);
-			}
-
+			testDownloadAndUplinkNominal(br, bw, config);
+			
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
 					|| config.lang.equals("python") || config.lang.equals("Java"))
 					&& config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
@@ -509,8 +426,12 @@ public class RunnerTestGeneric {
 			testUplinkDownloadWithSpaces(br, bw, config);
 			testClientIdentifesExecutable(br, bw, config);
 
-			System.out.println("Testing shell capability");
-			testShell(br, bw, config);
+			if(config.lang.equals("Native")) {
+				System.out.println("Native shell, cannot test sub shell spawning");
+			}else {
+				System.out.println("Testing shell capability");
+				testShell(br, bw, config);
+			}
 			
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
@@ -519,8 +440,6 @@ public class RunnerTestGeneric {
 				Thread.sleep(2500);
 			} catch (InterruptedException e) {
 			}
-
-			// TODO: PS test
 
 			bw.close();
 			br.close();
@@ -534,6 +453,26 @@ public class RunnerTestGeneric {
 		}
 
 		cleanup(config.lang);
+	}
+	
+	private static void testDownloadAndUplinkNominal(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		//Test download and uplink as a pair
+		System.out.println("Testing uplink and download - nominal case");
+		OutputStreamWriterHelper.writeAndSend(bw, "<control> download test_uplink PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+");
+		String output = br.readLine();
+		assertEquals(output, "File written: test_uplink");
+		OutputStreamWriterHelper.writeAndSend(bw, "uplink test_uplink");
+		output = br.readLine();
+		assertEquals(output,
+				"<control> uplinked test_uplink PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+");
+		if(config.os == OS.WINDOWS) {
+			OutputStreamWriterHelper.writeAndSend(bw, "del test_uplink");
+		}else {
+			OutputStreamWriterHelper.writeAndSend(bw, "rm test_uplink");
+		}
+		if(!(config.os == OS.WINDOWS && config.lang.equals("Native"))) {
+			output = br.readLine();// Blank line
+		}
 	}
 
 	private static void testPwd(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
@@ -577,6 +516,10 @@ public class RunnerTestGeneric {
 
 	private static void testClientIdentifesExecutable(BufferedReader br, OutputStreamWriter bw,
 			TestConfiguration config) {
+		if(config.lang.equals("Native")) {
+			System.out.println("Native shell, cannot test client executable identification");
+			return;
+		}
 		try {
 			if (config.lang.equals("python")) {
 				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
@@ -584,8 +527,12 @@ public class RunnerTestGeneric {
 				String output = br.readLine();
 				String[] respElements = output.split(" ");
 				assertEquals(2, respElements.length);
-				assertTrue(respElements[0].startsWith("C:\\"));
-				assertTrue(respElements[0].endsWith("python.exe"));
+				if(config.os == OS.WINDOWS) {
+					assertTrue(respElements[0].startsWith("C:\\"));
+					assertTrue(respElements[0].endsWith("python.exe"));
+				}else {
+					assertEquals("/usr/bin/python3", respElements[0]);
+				}
 				if (config.protocol.equals("DNS")) {
 					assertEquals(Paths.get("agents", "python", "dnsSimpleAgent.py").toAbsolutePath().toString(),
 							respElements[1]);
@@ -753,6 +700,17 @@ public class RunnerTestGeneric {
 			fail(ex.getMessage());
 		}
 	}
+	
+	public static void cleanLogs() {
+		Path logPath = Paths.get("test", "log");
+		try {
+			Files.walk(logPath).sorted(Comparator.reverseOrder()).map(Path::toFile)
+					.forEach(File::delete);
+		} catch (IOException e2) {
+			e2.printStackTrace();
+			fail("Cannot clean up logs");
+		}
+	}
 
 	public static void cleanup(String lang) {
 		File dir = new File("test");
@@ -800,8 +758,7 @@ public class RunnerTestGeneric {
 		String output = br.readLine();
 		assertEquals(output, "Clipboard captured");
 
-		if (!isRemote) {// TODO: In project for remote test mgmt daemon, get hostname and add to cleanup
-						// here
+		if (!isRemote) {
 			File dir = new File("test");
 
 			File[] matches = dir.listFiles(new FilenameFilter() {
@@ -911,7 +868,7 @@ public class RunnerTestGeneric {
 			output = br.readLine();
 			assertEquals(output, "Data written");
 
-			if (config.os != TestConfiguration.OS.LINUX && !config.isRemote()) {
+			if (!config.isRemote()) {
 				BufferedReader fileReader = new BufferedReader(new FileReader("newFile.txt"));
 				;
 				String line = fileReader.readLine();
@@ -953,12 +910,15 @@ public class RunnerTestGeneric {
 			bw.write("<cancel>" + System.lineSeparator());
 			bw.flush();
 
+			/*
+			//TODO FLAG
 			// Minimum beacon time
 			try {
 				Thread.sleep(2500);
 			} catch (InterruptedException ex) {
 				// ignore
 			}
+			*/
 			output = br.readLine();
 			assertEquals(output, "Abort: No file write");
 
@@ -976,18 +936,20 @@ public class RunnerTestGeneric {
 			bw.write("<done>" + System.lineSeparator());
 			bw.flush();
 
+			/*
+			//TODO FLAG
 			// Minimum beacon time
 			try {
 				Thread.sleep(2500);
 			} catch (InterruptedException ex) {
 				// ignore
 			}
-
+			*/
 			System.out.println("Checking for write confirmation");
 			output = br.readLine();
 			assertEquals(output, "Data written");
 
-			if (config.os == TestConfiguration.OS.LINUX || config.isRemote()) {
+			if (config.isRemote()) {
 				bw.write("cat newFile.txt" + System.lineSeparator());
 				bw.flush();
 				output = br.readLine();
@@ -1049,7 +1011,7 @@ public class RunnerTestGeneric {
 		// We will test in the >> use case that this file write occured
 		byte[] f1;
 		byte[] f2;
-		if (config.os != TestConfiguration.OS.LINUX && !config.isRemote()) {
+		if (!config.isRemote()) {
 			f1 = Files.readAllBytes(Paths.get(targetFileRoot));
 			f2 = Files.readAllBytes(Paths.get(targetTempCopyRoot));
 			assertTrue(Arrays.equals(f1, f2));
@@ -1058,15 +1020,17 @@ public class RunnerTestGeneric {
 		System.out.println("Test cat copying appended file");
 		bw.write("cat " + targetFile + " >> " + targetTempCopy + System.lineSeparator());
 		bw.flush();
+		/* TODO: FLAG
 		// Minimum beacon time
 		try {
 			Thread.sleep(2500);
 		} catch (InterruptedException ex) {
 			// ignore
 		}
+		*/
 		output = br.readLine();
 		assertEquals(output, "Appended file");
-		if (config.os == TestConfiguration.OS.LINUX || config.isRemote()) {
+		if (config.isRemote()) {
 			bw.write("uplink execCentral.bat.tmp" + System.lineSeparator());
 			bw.flush();
 			output = br.readLine();
@@ -1175,7 +1139,7 @@ public class RunnerTestGeneric {
 		if(config.os == OS.LINUX) {
 			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py", response);
 		}else {
-			assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py", response);
+			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py", response);
 		}
 		response = br.readLine();
 		assertEquals("Shell 1: No Process", response);
@@ -1198,7 +1162,7 @@ public class RunnerTestGeneric {
 		if(config.os == OS.LINUX) {
 			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py exited with code 139", response);
 		}else {
-			assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py exited with code 139", response);
+			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py exited with code 139", response);
 		}
 		response = br.readLine();
 		assertEquals("Shell 1: No Process", response);
@@ -1216,7 +1180,7 @@ public class RunnerTestGeneric {
 		if(config.os == OS.LINUX) {
 			assertEquals("Shell 0: python3 /home/kali/dev/basic_io_loop.py exited with code 139", response);
 		}else {
-			assertEquals("Shell 0: python test_support_scripts\\\\basic_io_loop.py exited with code 139", response);
+			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py exited with code 139", response);
 		}
 		response = br.readLine();
 		assertEquals("", response);
@@ -1231,10 +1195,5 @@ public class RunnerTestGeneric {
 		assertEquals("Session Destroyed", response);
 		response = br.readLine();
 		assertEquals("No shells active", response);
-	}
-
-	private static String encodeFileToBase64Binary(String fileName) throws IOException {
-		byte[] encoded = Base64.getEncoder().encode(Files.readAllBytes(Paths.get(fileName)));
-		return new String(encoded, StandardCharsets.US_ASCII);
 	}
 }

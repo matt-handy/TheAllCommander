@@ -103,7 +103,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	void checkAndFlushEmail() {
 		if (System.getProperty("os.name").contains("Windows")) {
 			Properties prop = setup();
-			if (prop.getProperty(Constants.DAEMON_EMAIL_PORT) != null) {
+			if (prop.getProperty(Constants.COMMSERVICES).contains("EmailHandler")) {
 				flushC2Emails();
 			}
 		}
@@ -385,7 +385,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		if (System.getProperty("os.name").contains("Windows")) {
 			Properties prop = setup();
 
-			if (prop.getProperty(Constants.DAEMON_EMAIL_PORT) != null) {
+			if (prop.getProperty(Constants.COMMSERVICES).contains("EmailHandler")) {
 				flushC2Emails();
 				// TODO: Re-enable this test. It works when done manually, but for some reason
 				// automatic execution fails

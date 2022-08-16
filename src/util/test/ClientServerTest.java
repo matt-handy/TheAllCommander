@@ -50,6 +50,7 @@ public class ClientServerTest {
 	protected static void teardown() {
 		service.shutdownNow();
 		runner.main.awaitFullShutdown();
+		RunnerTestGeneric.cleanLogs();
 	}
 	
 	protected static void executeStandardTest(String daemonLaunchArg, TestConfiguration config) {
