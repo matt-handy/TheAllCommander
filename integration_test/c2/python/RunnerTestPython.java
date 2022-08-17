@@ -15,7 +15,6 @@ public class RunnerTestPython extends ClientServerTest {
 
 	@Test
 	void testLocal() {
-		testDNS();
 		testHTTPSTwoSessions();
 		testDNSTwoSessions();
 	}
@@ -39,17 +38,6 @@ public class RunnerTestPython extends ClientServerTest {
 		teardown();
 	}
 
-	public static void testDNS() {
-		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "dnsSimpleAgent.py\"";
-		spawnClient(clientCmd);
-		
-		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "DNS");
-		RunnerTestGeneric.test(testConfig);
-		
-		teardown();
-	}
-	
 	public static void testDNSTwoSessions() {
 		initiateServer();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "dnsSimpleAgent.py\"";

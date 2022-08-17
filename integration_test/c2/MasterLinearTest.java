@@ -41,7 +41,6 @@ class MasterLinearTest {
 		
 		//Python
 		System.out.println("Testing Python");
-		RunnerTestPython.testDNS();
 		RunnerTestPythonEmail.testEmail();
 		
 		System.out.println("Testing Python multiple sessions");
