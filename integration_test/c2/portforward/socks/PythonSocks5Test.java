@@ -16,9 +16,9 @@ import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
 
-import c2.smtp.EmailHandlerTester;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.EmailHelper;
 import util.test.RunnerTestGeneric;
 import util.test.TestConstants;
 import util.test.socks5.SocksClientEmulator;
@@ -58,7 +58,7 @@ public class PythonSocks5Test extends ClientServerTest {
 	}
 	
 	static void testEmailDaemonNominalConnectionS() {
-		EmailHandlerTester.flushC2Emails();
+		EmailHelper.flushC2Emails();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "emailAgent.py\"";
 		testDaemonConnection(clientCmd, false, true);
 	}
@@ -137,7 +137,7 @@ public class PythonSocks5Test extends ClientServerTest {
 	}
 	
 	static void testEmailDaemonConnectionBrokenWithServerS() {
-		EmailHandlerTester.flushC2Emails();
+		EmailHelper.flushC2Emails();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "emailAgent.py\"";
 		testDaemonConnection(clientCmd, true, true);
 	}

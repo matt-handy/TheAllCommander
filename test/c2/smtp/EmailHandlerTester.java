@@ -22,52 +22,24 @@ import org.junit.jupiter.api.Test;
 import c2.Constants;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.EmailHelper;
 import util.test.RunnerTestGeneric;
 
 public class EmailHandlerTester extends ClientServerTest{
 
 
-	static Properties setup() {
-		try (InputStream input = new FileInputStream("config" + File.separator + "test.properties")) {
-
-			Properties prop = new Properties();
-
-			// load a properties file
-			prop.load(input);
-
-			return prop;
-		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
-			fail(ex.getMessage());
-			return null;
-		}
-	}
-	
 	@Test
-	void testLocal() {
-		test();
-	}
-	
-	public static void test() {
-		testNoServer();
-		testIntegratedWithC2();
-	}
-	
-	public static void flushC2Emails() {
-		EmailHandler receiveHandler = new EmailHandler();
-		try {
-			receiveHandler.initialize(null, setup(), null, null);
-		} catch (Exception ex) {
-			fail(ex.getMessage());
+	void testNoServer() {
+		if (System.getProperty("os.name").contains("Windows")) {
+			Properties prop = EmailHelper.setup();
+			if (!prop.getProperty(Constants.COMMSERVICES).contains("EmailHandler")) {
+				System.out.println("TheAllCommander not configured for email operations, skipping test.");
+				return;
+			}
+		}else {
+			System.out.println("SMTP integration not currently supported on Linux.");
+			return;
 		}
-		
-		SimpleEmail email = receiveHandler.getNextMessage();
-		while(email != null) {
-			email = receiveHandler.getNextMessage();
-		}
-	}
-	
-	static void testNoServer() {
 		final String SUBJECT = "Test";
 		final String BODY = "This is my message";
 		// Ports 26 and 587 will connect, 465 seems to hang
@@ -75,23 +47,34 @@ public class EmailHandlerTester extends ClientServerTest{
 		EmailHandler xMitHandler = new EmailHandler();
 		try {
 			System.out.println("Initialize receiver");
-			receiveHandler.initialize(null, setup(), null, null);
+			receiveHandler.initialize(null, EmailHelper.setup(), null, null);
 			System.out.println("Initialize xmitter");
-			xMitHandler.initialize(null, setup(), null, null);
+			xMitHandler.initialize(null, EmailHelper.setup(), null, null);
 		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
 		System.out.println("Sending email");
-		xMitHandler.sendEmail(SUBJECT, BODY, setup().getProperty(Constants.DAEMON_EMAIL_USERNAME));
+		xMitHandler.sendEmail(SUBJECT, BODY, EmailHelper.setup().getProperty(Constants.DAEMON_EMAIL_USERNAME));
 		Time.sleepWrapped(500);
 		SimpleEmail msg = receiveHandler.getNextMessage();
 		assertNotNull(msg);
 		assertTrue(msg.body.startsWith(BODY));
 		assertEquals(msg.subject, SUBJECT);
-		assertEquals(msg.sender, setup().getProperty(Constants.DAEMON_EMAIL_USERNAME));
+		assertEquals(msg.sender, EmailHelper.setup().getProperty(Constants.DAEMON_EMAIL_USERNAME));
 	}
 
-	static void testIntegratedWithC2() {
+	@Test
+	void testIntegratedWithC2() {
+		if (System.getProperty("os.name").contains("Windows")) {
+			Properties prop = EmailHelper.setup();
+			if (!prop.getProperty(Constants.COMMSERVICES).contains("EmailHandler")) {
+				System.out.println("TheAllCommander not configured for email operations, skipping test.");
+				return;
+			}
+		}else {
+			System.out.println("SMTP integration not currently supported on Linux.");
+			return;
+		}
 		String TEST_IO = "This is some IO";
 		try {
 			initiateServer();
@@ -102,7 +85,7 @@ public class EmailHandlerTester extends ClientServerTest{
 		EmailHandler xMitHandler = new EmailHandler();
 		try {
 			System.out.println("Initialize xmitter");
-			xMitHandler.initialize(null, setup(), null, null);
+			xMitHandler.initialize(null, EmailHelper.setup(), null, null);
 		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
@@ -110,7 +93,7 @@ public class EmailHandlerTester extends ClientServerTest{
 		try {
 			xMitHandler.sendEmail(
 					"HOSTNAME:" + InetAddress.getLocalHost().getHostName() + " USERNAME:HAXOR PROTOCOL:SMTP", TEST_IO,
-					setup().getProperty(Constants.DAEMON_EMAIL_USERNAME));
+					EmailHelper.setup().getProperty(Constants.DAEMON_EMAIL_USERNAME));
 		} catch (UnknownHostException e1) {
 			fail(e1.getMessage());
 		}

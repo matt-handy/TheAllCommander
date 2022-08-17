@@ -23,9 +23,9 @@ import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 
 import c2.Constants;
-import c2.smtp.EmailHandlerTester;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.EmailHelper;
 import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
 import util.test.TestConstants;
@@ -106,7 +106,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 	}
 
 	public static void testEmail() {
-		EmailHandlerTester.flushC2Emails();
+		EmailHelper.flushC2Emails();
 		initiateServer();
 		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python"
 				+ File.separator + "emailAgent.py\"";

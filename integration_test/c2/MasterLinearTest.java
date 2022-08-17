@@ -15,7 +15,6 @@ import c2.python.RunnerTestKeyloggerHTTPS;
 import c2.python.RunnerTestPython;
 import c2.python.RunnerTestPythonEmail;
 import c2.rdp.RunnerTestPythonHTTPSDaemonWinRDP;
-import c2.smtp.EmailHandlerTester;
 import c2.win.RunnerTestDaemonHarvestCookiesNative;
 import c2.filereceiver.*;
 
@@ -31,10 +30,6 @@ class MasterLinearTest {
 
 	@Test
 	void test() {
-		//Daemon tests
-		//Protocol verification tests
-		EmailHandlerTester.test();
-		
 		//Test Keyloggers
 		RunnerTestKeyloggerHTTPS.test();
 		RunnerTestKeyloggerDNS.test();

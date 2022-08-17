@@ -466,7 +466,7 @@ public class RunnerTestGeneric {
 		}else {
 			OutputStreamWriterHelper.writeAndSend(bw, "rm test_uplink");
 		}
-		if(!(config.os == OS.WINDOWS && config.lang.equals("Native"))) {
+		if(!config.lang.equals("Native")) {
 			output = br.readLine();// Blank line
 		}
 	}
