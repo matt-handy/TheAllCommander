@@ -14,12 +14,12 @@ import java.util.Random;
 
 public class AESEncryptor implements Encryptor {
 	private byte[] key;
-	private Cipher _Cipher;
+	private Cipher cipher;
 
 	public AESEncryptor(byte[] key) {
 		this.key = key;
 		try {
-			_Cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+			cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 			// This can't happen with this algo
@@ -37,10 +37,10 @@ public class AESEncryptor implements Encryptor {
 			random.nextBytes(iv);
 			IvParameterSpec ivspec = new IvParameterSpec(iv);
 			Key SecretKey = new SecretKeySpec(key, "AES");
-			_Cipher.init(Cipher.ENCRYPT_MODE, SecretKey, ivspec);
+			cipher.init(Cipher.ENCRYPT_MODE, SecretKey, ivspec);
 
 			
-			byte[] encryptedPayload = _Cipher.doFinal(strToEncrypt.getBytes());
+			byte[] encryptedPayload = cipher.doFinal(strToEncrypt.getBytes());
 			byte[] c = new byte[iv.length + encryptedPayload.length];
 			System.arraycopy(iv, 0, c, 0, iv.length);
 			System.arraycopy(encryptedPayload, 0, c, iv.length, encryptedPayload.length);
@@ -52,17 +52,21 @@ public class AESEncryptor implements Encryptor {
 	}
 
 	@Override
-	public String decrypt(String EncryptedMessage) {
+	public String decrypt(String encryptedMessage) {
 		try {
-			byte DecodedMessage[] = Base64.getDecoder().decode(EncryptedMessage);
-			byte iv[] = Arrays.copyOf(DecodedMessage, 16);
-			byte message[] = Arrays.copyOfRange(DecodedMessage, 16, DecodedMessage.length);
+			byte decodedMessage[] = Base64.getDecoder().decode(encryptedMessage);
+			byte iv[] = Arrays.copyOf(decodedMessage, 16);
+			byte message[] = Arrays.copyOfRange(decodedMessage, 16, decodedMessage.length);
 			IvParameterSpec ivspec = new IvParameterSpec(iv);
 
 			Key SecretKey = new SecretKeySpec(key, "AES");
-			_Cipher.init(Cipher.DECRYPT_MODE, SecretKey, ivspec);
+			cipher.init(Cipher.DECRYPT_MODE, SecretKey, ivspec);
 
-			String dMessage = new String(_Cipher.doFinal(message));
+			if(message.length % 16 != 0) {
+				System.out.println("Improper message: " + encryptedMessage);
+			}
+			
+			String dMessage = new String(cipher.doFinal(message));
 			return dMessage;
 
 		} catch (Exception e) {

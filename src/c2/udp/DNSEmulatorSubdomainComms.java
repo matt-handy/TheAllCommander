@@ -199,8 +199,6 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 						}
 					}
 
-					// System.out.println(data);
-
 					try {
 						data = encryptor.decrypt(data);
 					} catch (IllegalArgumentException ex) {

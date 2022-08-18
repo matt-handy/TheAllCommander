@@ -80,6 +80,8 @@ class DNSSimpleAgent(LocalAgent):
 			headerbytes = bytes(lmessage, 'ascii')
 			padded = pad(headerbytes, AES.block_size)
 			ct_bytes = cipher.encrypt(padded)
+			if not len(ct_bytes) % 16 == 0:
+				print("Not correct len: " + len(ct_bytes));
 			full_payload = iv + ct_bytes
 			im_b64 = base64.b64encode(full_payload).decode('ascii')
 			n=63
