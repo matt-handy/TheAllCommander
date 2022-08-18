@@ -1093,7 +1093,7 @@ public class RunnerTestGeneric {
 		bw.write("shell 0" + System.lineSeparator());
 		if(config.os == OS.LINUX) {
 			if(config.isRemote()){
-				bw.write("python3 " + TestConstants.EXECUTIONROOT_LINUX + "/basic_io_loop.py" + System.lineSeparator());
+				bw.write("python3 " + TestConstants.EXECUTIONROOT_LINUX + "/TheAllCommander/test_support_scripts/basic_io_loop.py" + System.lineSeparator());
 			}else{
 				bw.write("python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py" + System.lineSeparator());
 			}
@@ -1141,7 +1141,7 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		if(config.os == OS.LINUX) {
 			if(config.isRemote()){
-				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/basic_io_loop.py", response);
+				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/TheAllCommander/test_support_scripts/basic_io_loop.py", response);
 			}else{
 				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py", response);
 			}
@@ -1168,7 +1168,7 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		if(config.os == OS.LINUX) {
 			if(config.isRemote()){
-				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/basic_io_loop.py exited with code 139", response);
+				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/TheAllCommander/test_support_scripts/basic_io_loop.py exited with code 139", response);
 			}else{
 				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py exited with code 139", response);
 			}
@@ -1190,7 +1190,7 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		if(config.os == OS.LINUX) {
 			if(config.isRemote()){
-				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/basic_io_loop.py exited with code 139", response);
+				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/TheAllCommander/test_support_scripts/basic_io_loop.py exited with code 139", response);
 			}else{
 				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py exited with code 139", response);
 			}
