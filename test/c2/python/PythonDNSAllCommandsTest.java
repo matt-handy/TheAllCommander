@@ -10,12 +10,11 @@ import util.test.TestConstants;
 class PythonDNSAllCommandsTest extends ClientServerTest {
 
 	@Test
-	void testHTTPS() {
+	void testDNS() {
 		if (System.getProperty("os.name").contains("Windows")) {
 			initiateServer();
 		} else {
-			System.out.println("Linux does not test DNS integration by default for now");
-			//initiateServer("test_linux.properties");
+			initiateServer("test_linux.properties");
 		}
 		spawnClient(TestConstants.PYTHON_DNSDAEMON_TEST_EXE);
 
@@ -28,7 +27,6 @@ class PythonDNSAllCommandsTest extends ClientServerTest {
 
 		TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "DNS");
 		RunnerTestGeneric.test(testConfig);
-
 		teardown();
 	}
 
