@@ -22,6 +22,7 @@ public class SocksClientEmulator implements Runnable {
 
 	private boolean alive = true;
 	private int localSocksPort;
+	private int targetClientPort;
 	private boolean sendIp;
 	private TargetEmulator target;
 	private boolean testBreak;// Tests that a connection was broken
@@ -30,20 +31,22 @@ public class SocksClientEmulator implements Runnable {
 
 	private boolean testEmailLatency = false;
 
-	public SocksClientEmulator(int localSocksPort, boolean sendIp, TargetEmulator target, boolean testBreak) {
+	public SocksClientEmulator(int localSocksPort, boolean sendIp, TargetEmulator target, boolean testBreak, int targetClientPort) {
 		this.localSocksPort = localSocksPort;
 		this.sendIp = sendIp;
 		this.target = target;
 		this.testBreak = testBreak;
+		this.targetClientPort = targetClientPort;
 	}
 
 	public SocksClientEmulator(int localSocksPort, boolean sendIp, TargetServerEmulator target, boolean testBreak,
-			boolean testEmailLatency) {
+			boolean testEmailLatency, int targetClientPort) {
 		this.localSocksPort = localSocksPort;
 		this.sendIp = sendIp;
 		this.target = target;
 		this.testBreak = testBreak;
 		this.testEmailLatency = testEmailLatency;
+		this.targetClientPort = targetClientPort;
 	}
 
 	private CountDownLatch cdl = new CountDownLatch(1);
@@ -91,8 +94,10 @@ public class SocksClientEmulator implements Runnable {
 					os.write(localhost.length());
 					os.write(localhost.getBytes());
 				}
-				os.write(16);// Order connection to port 4096
-				os.write(0);
+				os.write((byte) ((targetClientPort & 0xFF00) >> 8));
+				os.write((byte) (targetClientPort & 0xFF));
+				//os.write(16);// Order connection to port 4096
+				//os.write(0);
 				os.flush();
 
 				//System.out.println("Reading connect confirm code");
@@ -104,13 +109,21 @@ public class SocksClientEmulator implements Runnable {
 				//System.out.println("Client Checking Success");
 				assertEquals(SocksHandler.getSuccessCode(), response[1]);
 				assertEquals(0, response[2]);// Reserved
+				//System.out.println("IPv4: " + response[3] );
 				assertEquals(1, response[3]);// IPv4 connection
+				//System.out.println("IPv4: " + response[4] );
 				assertEquals(0, response[4]);// IPv4 byte
+				//System.out.println("IPv4: " + response[5] );
 				assertEquals(0, response[5]);// IPv4 byte
+				//System.out.println("IPv4: " + response[6] );
 				assertEquals(0, response[6]);// IPv4 byte
+				//System.out.println("IPv4: " + response[7] );
 				assertEquals(0, response[7]);// IPv4 byte
-				assertEquals(35, response[8]);// port
-				assertEquals(40, response[9]);// port
+				//System.out.println("Port: " + response[8] );
+				assertEquals((byte) ((localSocksPort & 0xFF00) >> 8), response[8]);// port
+				//System.out.println("Port: " + response[9] );
+				assertEquals((byte) (localSocksPort & 0x00FF), response[9]);// port
+				//System.out.println("Client Checked Success");
 				if (target != null) {
 					//Sometimes we have to wait briefly for the target emulator to recognize it has a socket.
 					//System.out.println("Client has connection? " + target.hasConnection());
@@ -119,6 +132,7 @@ public class SocksClientEmulator implements Runnable {
 						Time.sleepWrapped(10);
 						counter++;
 					}
+					//System.out.println("Client has connection? " + target.hasConnection());
 					assertTrue(target.hasConnection());
 					//System.out.println("They do");
 				}

@@ -153,7 +153,7 @@ class PortForwardOutboundLoop(Thread):
 				except Exception as e:
 					print("Cannot connect {}".format(e), file=sys.stderr)
 				self.socketLock.release()    
-			time.sleep(0.001)    
+			time.sleep(0.1)    
 
 	def updateSocket(self, newSocket):
 		self.remoteSocket = newSocket
@@ -185,7 +185,7 @@ class PortForwardInboundLoop(Thread):
 			dummy = 0
 			try:
 				if not self.hasStartedTransmission:
-					time.sleep(0.001)
+					time.sleep(0.1)
 					continue
 				# keep reading into the buffer until
 				# there's no more data or we timeout

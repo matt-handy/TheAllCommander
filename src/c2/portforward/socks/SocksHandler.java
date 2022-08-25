@@ -386,7 +386,7 @@ public class SocksHandler implements Runnable {
 					break;
 				}
 			}
-			if (!response.equals("socksEstablished" + System.lineSeparator())) {// TODO replace with constant
+			if (response == null || !response.equals("socksEstablished" + System.lineSeparator())) {// TODO replace with constant
 				replyCommand(getFailCode()); // Connection Refused
 				throw new Exception("Socks 4 - Can't connect to " + command);
 			}

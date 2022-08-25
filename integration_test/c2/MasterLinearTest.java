@@ -7,15 +7,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import c2.nativeshell.RunnerTestNativeLinuxDaemon;
-import c2.portforward.PythonPortForwardTest;
-import c2.portforward.socks.PythonSocks5Test;
 import c2.python.RunnerTestKeyloggerDNS;
 import c2.python.RunnerTestKeyloggerEmail;
 import c2.python.RunnerTestKeyloggerHTTPS;
 import c2.python.RunnerTestPython;
 import c2.python.RunnerTestPythonEmail;
-import c2.rdp.RunnerTestPythonHTTPSDaemonWinRDP;
 import c2.win.RunnerTestDaemonHarvestCookiesNative;
+import c2.win.RunnerTestPythonHTTPSDaemonWinRDP;
 import c2.filereceiver.*;
 
 class MasterLinearTest {
@@ -47,14 +45,6 @@ class MasterLinearTest {
 		RunnerTestPython.testHTTPSTwoSessions();
 		RunnerTestPython.testDNSTwoSessions();
 
-		//Test Socks
-		PythonSocks5Test.testAll();
-		
-		//Port forward
-		PythonPortForwardTest.testHTTPS();
-		PythonPortForwardTest.testDNS();
-		PythonPortForwardTest.testEmail();
-		
 		//Macro command execution tests
 		try {
 			RunnerTestDaemonHarvestCookiesNative.testAll();

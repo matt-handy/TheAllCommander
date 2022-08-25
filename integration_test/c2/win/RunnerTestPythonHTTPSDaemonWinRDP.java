@@ -1,4 +1,4 @@
-package c2.rdp;
+package c2.win;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -6,13 +6,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -20,10 +19,7 @@ import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
 
-import c2.portforward.PythonPortForwardTest;
-import c2.portforward.PythonPortForwardTest.DummyRemoteService;
 import c2.session.CommandMacroManager;
-import c2.win.WindowsCmdLineHelper;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.RunnerTestGeneric;
@@ -33,6 +29,48 @@ import util.test.TestConstants;
 
 public class RunnerTestPythonHTTPSDaemonWinRDP extends ClientServerTest {
 
+	public static final String INCOMING_TEST_STR = "This is an incoming transmission";
+	public static final String OUTGOING_TEST_STR = "This is an outgoing transmission";
+	
+	public static class DummyRemoteService implements Runnable {
+
+		final int port;
+		final int counter;
+
+		public DummyRemoteService(int port, int counter) {
+			this.port = port;
+			this.counter = counter;
+		}
+
+		@Override
+		public void run() {
+
+			try {
+				ServerSocket ss = new ServerSocket(port);
+				Socket incoming = ss.accept();
+
+				byte[] incomingData = new byte[4096];
+				System.out.println("Dummy thread reading");
+				int bytesRead = incoming.getInputStream().read(incomingData);
+				System.out.println("Dummy thread read");
+				String dataFeed = new String(Arrays.copyOf(incomingData, bytesRead));
+				assertEquals(INCOMING_TEST_STR + counter, dataFeed);
+
+				incoming.getOutputStream().write((OUTGOING_TEST_STR + counter).getBytes());
+				incoming.getOutputStream().flush();
+
+				System.out.println("Closing dummy");
+				incoming.close();
+				ss.close();
+				System.out.println("Closed dummy");
+			} catch (IOException ex) {
+				ex.printStackTrace();
+				fail(ex.getMessage());
+			}
+		}
+
+	}
+	
 	@Test
 	void testLocal() {
 		test();
@@ -52,7 +90,7 @@ public class RunnerTestPythonHTTPSDaemonWinRDP extends ClientServerTest {
 	public static void RDPTestRunner() {
 		try {
 			ExecutorService service = Executors.newCachedThreadPool();
-			PythonPortForwardTest.DummyRemoteService drs = new PythonPortForwardTest.DummyRemoteService(3389, 1);
+			DummyRemoteService drs = new DummyRemoteService(3389, 1);
 			service.submit(drs);
 			
 			//Path clientChiselBin;
@@ -114,7 +152,7 @@ public class RunnerTestPythonHTTPSDaemonWinRDP extends ClientServerTest {
 			
 			//Try connecting to local server port and xmitting data to receiver
 			TestConfiguration config = new TestConfiguration(OS.WINDOWS, "N/A", "N/A");
-			PythonPortForwardTest.testProxyMessage(40000, 1, config);
+			testProxyMessage(40000, 1, config);
 			
 			// Test that the "log" is output to the client at the end, and that the RDP
 			// group and user were not added
@@ -141,6 +179,38 @@ public class RunnerTestPythonHTTPSDaemonWinRDP extends ClientServerTest {
 		}
 	}
 
+	public static void testProxyMessage(int port, int counter, TestConfiguration config) throws IOException {
+		Socket socket = new Socket(InetAddress.getLocalHost(), port);
+		assertTrue(socket.isConnected());
+
+		Time.sleepWrapped(500);// Let all the threads start
+
+		System.out.println("Firing test message");
+		socket.getOutputStream().write((INCOMING_TEST_STR + counter).getBytes());
+		socket.getOutputStream().flush();
+
+		byte[] incomingData = new byte[4096];
+		System.out.println("Reading Test Return");
+		int bytesRead = socket.getInputStream().read(incomingData);
+		System.out.println("Read Test Return");
+		String dataFeed = new String(Arrays.copyOf(incomingData, bytesRead));
+		assertEquals(OUTGOING_TEST_STR + counter, dataFeed);
+
+		Time.sleepWrapped(1000);// Let the other thread die, then let the client detect that this message can't
+								// be sent
+		socket.getOutputStream().write(INCOMING_TEST_STR.getBytes());
+		socket.getOutputStream().flush();
+
+		if (config.os == TestConfiguration.OS.LINUX) {
+			// Linux needs a second message to figure out the socket is dead.
+			Time.sleepWrapped(1000);
+			socket.getOutputStream().write(INCOMING_TEST_STR.getBytes());
+			socket.getOutputStream().flush();
+		}
+
+		socket.close();
+	}
+	
 	private static boolean validateClientsideChisel() {
 
 		List<String> processes = WindowsCmdLineHelper.listRunningProcesses();

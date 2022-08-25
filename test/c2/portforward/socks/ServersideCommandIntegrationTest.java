@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,13 +52,19 @@ class ServersideCommandIntegrationTest {
 		io.addSession("fake", "fake", "fake");
 		ExecutorService service = Executors.newCachedThreadPool();
 
-		TargetDaemonEmulator targetDaemon = new TargetDaemonEmulator(io, 2, 1, false, false);
+		Random rnd = new Random();
+		int targetPort = 40000 + rnd.nextInt(1000);
+		int targetServicePort = 40000 + rnd.nextInt(1000);
+		System.out.println("Target SOCKS: " + targetPort);
+		System.out.println("Target Service: " + targetServicePort);
+		
+		TargetDaemonEmulator targetDaemon = new TargetDaemonEmulator(io, 2, 1, false, false, targetServicePort);
 		service.submit(targetDaemon);
 		
 		ServersideCommandPreprocessor preprocessor = new ServersideCommandPreprocessor(io);
-		preprocessor.processCommand("startSocks5 9000", 2);
+		preprocessor.processCommand("startSocks5 " + targetPort, 2);
 		
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, false, null, false);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(targetPort, false, null, false, targetServicePort);
 		service.submit(clientEmulator);
 		assertTrue(clientEmulator.isComplete());
 		
@@ -66,7 +73,7 @@ class ServersideCommandIntegrationTest {
 		boolean caughtException = false;
 		try {
 			//This should fail
-			new Socket("127.0.0.1", 9000);
+			new Socket("127.0.0.1", targetPort);
 		}catch(IOException ex) {
 			caughtException = true;
 		}

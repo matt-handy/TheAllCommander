@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,14 +27,17 @@ class LocalSocksListenerTest {
 		io.addSession("fake", "fake", "fake");
 		ExecutorService service = Executors.newCachedThreadPool();
 
-		TargetDaemonEmulator targetDaemon = new TargetDaemonEmulator(io, 2, 1, false, false);
+		Random rnd = new Random();
+		int targetServicePort = 40000 + rnd.nextInt(1000);
+		
+		TargetDaemonEmulator targetDaemon = new TargetDaemonEmulator(io, 2, 1, false, false, targetServicePort);
 		service.submit(targetDaemon);
 
 		LocalSocksListener localSocks = new LocalSocksListener(io, 9000, 2, false);
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, false, targetDaemon, false);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, false, targetDaemon, false, targetServicePort);
 		service.submit(clientEmulator);
 		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
@@ -52,11 +56,14 @@ class LocalSocksListenerTest {
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 		
-		TargetServerEmulator targetService = new TargetServerEmulator(4096, false);
+		Random rnd = new Random();
+		int targetServicePort = 40000 + rnd.nextInt(1000);
+		
+		TargetServerEmulator targetService = new TargetServerEmulator(targetServicePort, false);
 		service.submit(targetService);
 		targetService.awaitStartup();
 
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, false, targetService, false);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, false, targetService, false, targetServicePort);
 		service.submit(clientEmulator);
 		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
@@ -72,7 +79,10 @@ class LocalSocksListenerTest {
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		ExecutorService service = Executors.newCachedThreadPool();
 
-		TargetServerEmulator targetService = new TargetServerEmulator(4096, false);
+		Random rnd = new Random();
+		int targetServicePort = 40000 + rnd.nextInt(1000);
+		
+		TargetServerEmulator targetService = new TargetServerEmulator(targetServicePort, false);
 		service.submit(targetService);
 		targetService.awaitStartup();
 
@@ -80,7 +90,7 @@ class LocalSocksListenerTest {
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 		
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetService, false);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetService, false, targetServicePort);
 		service.submit(clientEmulator);
 		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
@@ -97,14 +107,17 @@ class LocalSocksListenerTest {
 		io.addSession("fake", "fake", "fake");
 		ExecutorService service = Executors.newCachedThreadPool();
 
-		TargetDaemonEmulator targetDaemon = new TargetDaemonEmulator(io, 2, 1, true, false);
+		Random rnd = new Random();
+		int targetServicePort = 40000 + rnd.nextInt(1000);
+		
+		TargetDaemonEmulator targetDaemon = new TargetDaemonEmulator(io, 2, 1, true, false, targetServicePort);
 		service.submit(targetDaemon);
 
 		LocalSocksListener localSocks = new LocalSocksListener(io, 9000, 2, false);
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 		
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetDaemon, false);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetDaemon, false, targetServicePort);
 		service.submit(clientEmulator);
 		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
@@ -120,7 +133,10 @@ class LocalSocksListenerTest {
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		ExecutorService service = Executors.newCachedThreadPool();
 
-		TargetServerEmulator targetService = new TargetServerEmulator(4096, true);
+		Random rnd = new Random();
+		int targetServicePort = 40000 + rnd.nextInt(1000);
+		
+		TargetServerEmulator targetService = new TargetServerEmulator(targetServicePort, true);
 		service.submit(targetService);
 		targetService.awaitStartup();
 
@@ -128,7 +144,7 @@ class LocalSocksListenerTest {
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 		
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetService, true);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetService, true, targetServicePort);
 		service.submit(clientEmulator);
 		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());
@@ -145,14 +161,17 @@ class LocalSocksListenerTest {
 		io.addSession("fake", "fake", "fake");
 		ExecutorService service = Executors.newCachedThreadPool();
 
-		TargetDaemonEmulator targetDaemon = new TargetDaemonEmulator(io, 2, 1, true, true);
+		Random rnd = new Random();
+		int targetServicePort = 40000 + rnd.nextInt(1000);
+		
+		TargetDaemonEmulator targetDaemon = new TargetDaemonEmulator(io, 2, 1, true, true, targetServicePort);
 		service.submit(targetDaemon);
 
 		LocalSocksListener localSocks = new LocalSocksListener(io, 9000, 2, false);
 		service.submit(localSocks);
 		localSocks.awaitStartup();
 		
-		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetDaemon, true);
+		SocksClientEmulator clientEmulator = new SocksClientEmulator(9000, true, targetDaemon, true, targetServicePort);
 		service.submit(clientEmulator);
 		//System.out.println("Awaiting client end");
 		assertTrue(clientEmulator.isComplete());

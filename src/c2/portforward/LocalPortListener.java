@@ -26,6 +26,7 @@ public class LocalPortListener implements Runnable {
 	private boolean needNewConnection = true;
 
 	private CountDownLatch startLatch = new CountDownLatch(1);
+	private CountDownLatch stopLatch = new CountDownLatch(1);
 	
 	public LocalPortListener(IOManager io, int sessionId, String remoteForwardAddr, int localListenPort) {
 		this.io = io;
@@ -74,10 +75,17 @@ public class LocalPortListener implements Runnable {
 			}
 
 		}
+		
+		stopLatch.countDown();
 	}
 
 	public void kill() {
 		stayAlive = false;
+		try {
+			stopLatch.await();
+		} catch (InterruptedException e) {
+			
+		}
 	}
 
 	public boolean acceptNewConnection() {
@@ -125,7 +133,7 @@ public class LocalPortListener implements Runnable {
 						io.forwardTCPTraffic(sessionId, remoteForwardAddr, base64Forward);
 						//System.out.println("Local forwarded to " + remoteForwardAddr + " at " + sessionId + " : " + base64Forward);
 					}
-					Time.sleepWrapped(1);
+					Time.sleepWrapped(50);
 
 				}
 			} catch (IOException ex) {
@@ -166,6 +174,7 @@ public class LocalPortListener implements Runnable {
 					//System.out.println("Returning: " + sessionId + " " + remoteForwardAddr);
 					if (response != null) {
 						byte[] traffic = Base64.getDecoder().decode(response);
+						//System.out.println("Traffic");
 						outputStream.write(traffic);
 						outputStream.flush();
 					}

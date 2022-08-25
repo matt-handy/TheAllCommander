@@ -17,14 +17,17 @@ public class TargetDaemonEmulator implements Runnable, TargetEmulator {
 	private boolean testBreak;
 	private boolean socksEstablished = false;
 	
+	private int targetPort;
+	
 	private CountDownLatch socketCloseLatch = new CountDownLatch(1);
 
-	public TargetDaemonEmulator(IOManager io, int sessionId, int proxyId, boolean sendIp, boolean testBreak) {
+	public TargetDaemonEmulator(IOManager io, int sessionId, int proxyId, boolean sendIp, boolean testBreak, int targetPort) {
 		this.io = io;
 		this.sessionId = sessionId;
 		this.proxyId = proxyId;
 		this.sendIp = sendIp;
 		this.testBreak = testBreak;
+		this.targetPort = targetPort;
 	}
 
 	public void run() {
@@ -33,13 +36,13 @@ public class TargetDaemonEmulator implements Runnable, TargetEmulator {
 			proxyStartCmd = io.pollCommand(sessionId);
 			Thread.yield();
 		}
-		// System.out.println("Have command from io:" + proxyStartCmd + ":");
+		//System.out.println("Have command from io:" + proxyStartCmd + ": against expected port of " + targetPort);
 		if (sendIp) {
-			assertEquals("startSocks proxyID:" + proxyId + " /127.0.0.1:4096", proxyStartCmd);
+			assertEquals("startSocks proxyID:" + proxyId + " /127.0.0.1:" + targetPort, proxyStartCmd);
 		} else {
-			assertEquals("startSocks proxyID:" + proxyId + " localhost:4096", proxyStartCmd);
+			assertEquals("startSocks proxyID:" + proxyId + " localhost:" + targetPort, proxyStartCmd);
 		}
-		// System.out.println("sending ack");
+		//System.out.println("sending ack");
 		io.sendIO(sessionId, "socksEstablished" + System.lineSeparator());
 
 		socksEstablished = true;
@@ -49,22 +52,22 @@ public class TargetDaemonEmulator implements Runnable, TargetEmulator {
 			proxyOutgoing = io.grabForwardedTCPTraffic(sessionId, "socksproxy:" + proxyId);
 			Thread.yield();
 		}
-		// System.out.println(proxyOutgoing);
+		//System.out.println(proxyOutgoing);
 		byte[] messageBytes = Base64.getDecoder().decode(proxyOutgoing);
 		String outgoingMessage = new String(messageBytes, StandardCharsets.UTF_8);
-		// System.out.println(":" + outgoingMessage + ":");
+		//System.out.println(":" + outgoingMessage + ":");
 		assertEquals(SocksClientEmulator.TEST_OUTGOING_MESSAGE, outgoingMessage);
 		if (testBreak) {
-			// System.out.println("Daemon emulator send terminate");
+			//System.out.println("Daemon emulator send terminate");
 			io.queueForwardedTCPTraffic(sessionId, "socksproxy:" + proxyId,
 					Base64.getEncoder().encodeToString("socksterminatedatdaemon".getBytes()));
 			socketCloseLatch.countDown();
 		} else {
-			// System.out.println("Daemon emulator send msg");
+			//System.out.println("Daemon emulator send msg");
 			io.queueForwardedTCPTraffic(sessionId, "socksproxy:" + proxyId, Base64.getEncoder()
 					.encodeToString(SocksClientEmulator.TEST_INCOMING_MESSAGE.getBytes(StandardCharsets.UTF_8)));
 		}
-		// System.out.println("Finished daemon emulator");
+		//System.out.println("Finished daemon emulator");
 	}
 
 	@Override

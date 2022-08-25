@@ -86,7 +86,7 @@ public class TargetServerEmulator implements Runnable, TargetEmulator {
 				}
 			}
 		} catch (IOException ex) {
-
+			ex.printStackTrace();
 		}
 	}
 }

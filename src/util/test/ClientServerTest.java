@@ -11,6 +11,7 @@ public class ClientServerTest {
 
 	protected static ExecutorService service;
 	protected static ServerRunner runner;
+	protected static ChildManager childManager;
 	
 	public static final String DEFAULT_SERVER_CONFIG = "test.properties";
 	
@@ -27,24 +28,46 @@ public class ClientServerTest {
 		runner.main.awaitFullStartup();
 	}
 	
-	protected static void spawnClient(String clientStartArgs) {
-		Runnable runner2 = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Process process = Runtime.getRuntime()
-							.exec(clientStartArgs);
-					process.waitFor();
-				} catch (IOException | InterruptedException e) {
-					e.printStackTrace();
-				}
-
+	public static class ChildManager implements Runnable {
+		private String clientStartArgs;
+		private Process process = null;
+			
+		public ChildManager(String clientStartArgs) {
+			this.clientStartArgs = clientStartArgs;
+		}
+		
+		@Override
+		public void run() {
+			try {
+				process = Runtime.getRuntime()
+						.exec(clientStartArgs);
+				process.waitFor();
+			} catch (IOException | InterruptedException e) {
+				e.printStackTrace();
 			}
-		};
 
-		service.submit(runner2);
+		}
+		
+		public void awaitProcess() {
+			if(process != null) {
+				try {
+					process.waitFor();
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+	}
+	
+	protected static void spawnClient(String clientStartArgs) {
+		childManager = new ChildManager(clientStartArgs);
+		
+		service.submit(childManager);
 		//Give time for the daemons to make contact, especially important for SMB
 		Time.sleepWrapped(3000);
+	}
+	
+	protected static void awaitClient() {
+		childManager.awaitProcess();
 	}
 	
 	protected static void teardown() {
