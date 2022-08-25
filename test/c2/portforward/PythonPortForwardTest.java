@@ -80,9 +80,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 		//Tests not yet validated on Linux
 		if (System.getProperty("os.name").contains("Windows")) {
 		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python"
-				+ File.separator + "httpsAgent.py\"";
-		spawnClient(clientCmd);
+		spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "HTTPS");
 		testProxy(testConfig);
