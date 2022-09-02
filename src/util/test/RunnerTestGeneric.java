@@ -415,13 +415,21 @@ public class RunnerTestGeneric {
 			testUplinkDownloadErrorHandling(br, bw);
 			testCatErrorHandling(br, bw, config);
 			testUplinkDownloadWithSpaces(br, bw, config);
-			testClientIdentifesExecutable(br, bw, config);
-
+			if(!config.lang.equals("Java")){
+				testClientIdentifesExecutable(br, bw, config);
+			}else {
+				System.out.println("Java daemon prototype cannot identify executable arguments");
+			}
+			
 			if(config.lang.equals("Native")) {
 				System.out.println("Native shell, cannot test sub shell spawning");
 			}else {
-				if(config.lang.equals("python") && config.os == OS.LINUX) {
-					System.out.println("Python shell capability not yet working on Linux");
+				if(config.os == OS.LINUX) {
+					System.out.println("Shell capability not yet working on Linux");
+				}else if (config.lang.equals("C#")) {
+					System.out.println("Shell capability not yet working on C#");
+				}else if(config.lang.equals("Java")){
+					System.out.println("Shell capability not yet working on Java");
 				}else {
 					System.out.println("Testing shell capability");
 					testShell(br, bw, config);
@@ -433,7 +441,8 @@ public class RunnerTestGeneric {
 			bw.flush();
 
 			try {
-				Thread.sleep(2500);
+				//TODO: once all tests are refactored to use the client "wait for teardown" functionality, eliminate this wait
+				Thread.sleep(3500);
 			} catch (InterruptedException e) {
 			}
 
@@ -706,8 +715,7 @@ public class RunnerTestGeneric {
 			Files.walk(logPath).sorted(Comparator.reverseOrder()).map(Path::toFile)
 					.forEach(File::delete);
 		} catch (IOException e2) {
-			e2.printStackTrace();
-			fail("Cannot clean up logs");
+			//Will delete on next attempt
 		}
 	}
 

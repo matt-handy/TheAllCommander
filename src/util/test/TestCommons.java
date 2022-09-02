@@ -29,7 +29,7 @@ public class TestCommons {
 		try {
 			Files.deleteIfExists(Paths.get("test", InetAddress.getLocalHost().getHostName()));
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 	

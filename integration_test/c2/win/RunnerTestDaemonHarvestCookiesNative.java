@@ -145,7 +145,7 @@ public class RunnerTestDaemonHarvestCookiesNative {
 
 			System.out.println("Reading IO response");
 			String line = br.readLine();
-			assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\..\\Local\\Google\\Chrome\\User Data\\Default\\Cookies'", line);
+			assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\..\\Local\\Google\\Chrome\\User Data\\Default\\Network\\Cookies'", line);
 			
 			line = br.readLine();
 			assertEquals("Macro Executor: 'Captured Chrome Cookies'", line);
