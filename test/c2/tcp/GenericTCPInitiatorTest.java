@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import c2.Constants;
 import c2.session.IOManager;
 import c2.session.Session;
+import c2.session.log.IOLogger;
 import util.Time;
 import util.test.RunnerTestGeneric;
 
@@ -52,7 +53,7 @@ class GenericTCPInitiatorTest {
 
 	@Test
 	void testWindows() {
-		IOManager io = new IOManager(Paths.get("test", "log"), null);
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 		Random rnd = new Random();
 		int testPort = 40000 + rnd.nextInt(1000);
 		spinUpGenericTCPInitiatorTest(testPort, io);
@@ -113,7 +114,7 @@ class GenericTCPInitiatorTest {
 
 	@Test
 	void testLinux() {
-		IOManager io = new IOManager(Paths.get("test", "log"), null);
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 		Random rnd = new Random();
 		int testPort = 40000 + rnd.nextInt(1000);
 		spinUpGenericTCPInitiatorTest(testPort, io);

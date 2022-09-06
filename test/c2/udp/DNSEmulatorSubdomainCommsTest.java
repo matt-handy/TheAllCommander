@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import c2.Constants;
 import c2.crypto.AESEncryptor;
 import c2.session.IOManager;
+import c2.session.log.IOLogger;
 import util.Time;
 
 class DNSEmulatorSubdomainCommsTest {
@@ -151,7 +152,7 @@ class DNSEmulatorSubdomainCommsTest {
 			prop.setProperty(Constants.WIREENCRYPTTOGGLE, "false");
 			prop.setProperty(Constants.DNSPORT, "8080");
 
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 			testEmulator.initialize(io, prop, null, null);
 
 			testTrivialMessage(prop, testEmulator, io, 2);
@@ -194,7 +195,7 @@ class DNSEmulatorSubdomainCommsTest {
 			// load a properties file
 			prop.load(input);
 
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 
 			testEmulator.initialize(io, prop, null, null);
 			ExecutorService service = Executors.newCachedThreadPool();
@@ -309,7 +310,7 @@ class DNSEmulatorSubdomainCommsTest {
 
 			// Make properties encryption go away
 			prop.setProperty(Constants.WIREENCRYPTTOGGLE, "false");
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 
 			testEmulator.initialize(io, prop, null, null);
 
@@ -384,7 +385,7 @@ class DNSEmulatorSubdomainCommsTest {
 
 			// Make properties encryption go away
 			prop.setProperty(Constants.WIREENCRYPTTOGGLE, "false");
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 
 			testEmulator.initialize(io, prop, null, null);
 
@@ -418,7 +419,7 @@ class DNSEmulatorSubdomainCommsTest {
 
 			// Make properties encryption go away
 			prop.setProperty(Constants.WIREENCRYPTTOGGLE, "false");
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 			testEmulator.initialize(io, prop, null, null);
 			byte[] dnsId = { (byte) 0x98, (byte) 0xfa };
 			byte[] payload = testEmulator.buildResponsePayload("This is your next command", "RANDOMSTRING.domain.com",
@@ -478,7 +479,7 @@ class DNSEmulatorSubdomainCommsTest {
 
 			// Make properties encryption go away
 			prop.setProperty(Constants.WIREENCRYPTTOGGLE, "false");
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 
 			testEmulator.initialize(io, prop, null, null);
 
@@ -583,7 +584,7 @@ class DNSEmulatorSubdomainCommsTest {
 
 			// Make properties encryption go away
 			prop.setProperty(Constants.WIREENCRYPTTOGGLE, "false");
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 			testEmulator.initialize(io, prop, null, null);
 			ExecutorService service = Executors.newCachedThreadPool();
 			service.submit(testEmulator);

@@ -3,6 +3,8 @@ Framework for modeling and researching C2 communications for developing efficien
 
 Featured in DEFCON Demolabs 2022!!!!
 
+Development blog: http://matthandy.net/TAC-development.html
+
 # Why TheAllCommander?
 TheAllCommander allows researchers to easily develop their own communication modules and connect them to this framework, then leverage the existing framework to test elements of the Red Team workflow through the communication protocol for further study. 
 ## What TheAllCommander is...

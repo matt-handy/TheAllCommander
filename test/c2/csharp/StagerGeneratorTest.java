@@ -37,6 +37,7 @@ import c2.session.CommandWizard;
 import c2.session.IOManager;
 import c2.session.SessionInitiator;
 import c2.session.SessionManager;
+import c2.session.log.IOLogger;
 import util.Time;
 
 class StagerGeneratorTest {
@@ -222,7 +223,7 @@ class StagerGeneratorTest {
 				prop.load(input);
 
 				// Make properties encryption go away
-				IOManager io = new IOManager(Paths.get("test"), null);
+				IOManager io = new IOManager(new IOLogger(Paths.get("test")), null);
 
 				List<String> connectionArgs = new ArrayList<>();
 				connectionArgs.add("https://127.0.0.1:8000/csharpboot");
@@ -260,7 +261,7 @@ class StagerGeneratorTest {
 
 	@Test
 	void testMainServerIntegrationErrorHandling() {
-		IOManager io = new IOManager(Paths.get("test"), null);
+		IOManager io = new IOManager(new IOLogger(Paths.get("test")), null);
 		Random random = new Random();
 		int port = 40000 + random.nextInt(1000);
 		CommandMacroManager cmm = new CommandMacroManager(null, io, null);
@@ -316,7 +317,7 @@ class StagerGeneratorTest {
 	}
 
 	private void testServerWizardResponse(String format) {
-		IOManager io = new IOManager(Paths.get("test"), null);
+		IOManager io = new IOManager(new IOLogger(Paths.get("test")), null);
 		Random random = new Random();
 		int port = 40000 + random.nextInt(1000);
 		CommandMacroManager cmm = new CommandMacroManager(null, io, null);
@@ -438,7 +439,7 @@ class StagerGeneratorTest {
 			PrintStream ps = new PrintStream(cmdBuffer);
 
 			// Set up server elements
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test")), null);
 			Random random = new Random();
 			int port = 40000 + random.nextInt(1000);
 			CommandMacroManager cmm = new CommandMacroManager(null, io, null);

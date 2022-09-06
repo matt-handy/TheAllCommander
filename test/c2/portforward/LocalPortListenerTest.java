@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import c2.session.CommandLoader;
 import c2.session.IOManager;
+import c2.session.log.IOLogger;
 import util.Time;
 
 class LocalPortListenerTest {
@@ -26,7 +27,7 @@ class LocalPortListenerTest {
 
 	@Test
 	void test() {
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		int testSessionId = io.addSession("fake", "fake", "fake");
 		LocalPortListener listener = new LocalPortListener(io, testSessionId, REMOTE_FORWARD_NAME, LOCAL_LISTEN_PORT);

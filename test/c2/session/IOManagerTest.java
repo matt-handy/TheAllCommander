@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import c2.session.log.IOLogger;
 import util.test.TestCommons;
 
 class IOManagerTest {
@@ -29,12 +30,13 @@ class IOManagerTest {
 
 	@AfterEach
 	void tearDown() throws Exception {
+		TestCommons.pretestCleanup();
 	}
 
 	@Test
-	void test() {
+	void testIOFlow() {
 		try {
-			IOManager ioManager = new IOManager(Paths.get("test", "log"), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
+			IOManager ioManager = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 			
 			int id = ioManager.addSession("fake", "fake", "fake");
 
@@ -57,7 +59,7 @@ class IOManagerTest {
 			assertEquals(id, 3);
 			assertEquals(ioManager.getSessionId("afake:afake:afake"), 3);
 			
-			Path logFilePath = Paths.get("test", "log", "fakefakefake");
+			Path logFilePath = Paths.get("test", "log", "fake", "fake2");
 			assertTrue(Files.exists(logFilePath));
 			BufferedReader br = new BufferedReader(new FileReader(logFilePath.toFile()));
 			assertTrue(br.readLine().contains("Send command: 'dir'"));
@@ -72,7 +74,7 @@ class IOManagerTest {
 
 	@Test
 	void nonExistantSession() {
-		IOManager ioManager = new IOManager(Paths.get("test", "log"), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
+		IOManager ioManager = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			ioManager.pollCommand(2);
 		});
@@ -105,7 +107,7 @@ class IOManagerTest {
 	
 	@Test
 	void testPortForwardQueues() {
-		IOManager ioManager = new IOManager(Paths.get("test", "log"), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
+		IOManager ioManager = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		int id = ioManager.addSession("fake", "fake", "fake");
 		ioManager.forwardTCPTraffic(id, REMOTE_FORWARD_NAME, "This is a test string");
 		String forwardedData = ioManager.grabForwardedTCPTraffic(id, REMOTE_FORWARD_NAME);

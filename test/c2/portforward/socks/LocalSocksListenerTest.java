@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import c2.session.CommandLoader;
 import c2.session.IOManager;
+import c2.session.log.IOLogger;
 import util.test.socks5.SocksClientEmulator;
 import util.test.socks5.TargetDaemonEmulator;
 import util.test.socks5.TargetServerEmulator;
@@ -22,7 +23,7 @@ class LocalSocksListenerTest {
 	@Test
 	void testHostnameSocksToDaemon() {
 		//System.out.println("testHostnameSocksToDaemon");
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		io.addSession("fake", "fake", "fake");
 		ExecutorService service = Executors.newCachedThreadPool();
@@ -49,7 +50,7 @@ class LocalSocksListenerTest {
 	@Test
 	void testDomainNameSocks() {
 		//System.out.println("testDomainNameSocks");
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		LocalSocksListener localSocks = new LocalSocksListener(io, 9000, 0, true);
 		ExecutorService service = Executors.newCachedThreadPool();
@@ -75,7 +76,7 @@ class LocalSocksListenerTest {
 	@Test
 	void testStandardIpv4Socks() {
 		//System.out.println("testStandardIpv4Socks");
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		ExecutorService service = Executors.newCachedThreadPool();
 
@@ -102,7 +103,7 @@ class LocalSocksListenerTest {
 	@Test
 	void testStandardIpv4SocksToDaemon() {
 		//System.out.println("testStandardIpv4SocksToDaemon");
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		io.addSession("fake", "fake", "fake");
 		ExecutorService service = Executors.newCachedThreadPool();
@@ -129,7 +130,7 @@ class LocalSocksListenerTest {
 	@Test
 	void testLocalSocksConnectionBrokenWithServer() {
 		//System.out.println("testLocalSocksConnectionBrokenWithServer");
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		ExecutorService service = Executors.newCachedThreadPool();
 
@@ -156,7 +157,7 @@ class LocalSocksListenerTest {
 	@Test
 	void testDaemonConnectionBrokenWithServer() {
 		//System.out.println("testDaemonConnectionBrokenWithServer");
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		io.addSession("fake", "fake", "fake");
 		ExecutorService service = Executors.newCachedThreadPool();

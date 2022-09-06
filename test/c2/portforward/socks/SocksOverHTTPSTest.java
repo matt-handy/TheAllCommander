@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import c2.KeyloggerProcessor;
 import c2.http.HTTPSManager;
 import c2.session.IOManager;
+import c2.session.log.IOLogger;
 
 class SocksOverHTTPSTest {
 
@@ -107,7 +108,7 @@ class SocksOverHTTPSTest {
 			prop.load(input);
 
 			// Make properties encryption go away
-			IOManager io = new IOManager(Paths.get("test"), null);
+			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), null);
 
 			KeyloggerProcessor keyProcessor = new KeyloggerProcessor();
 			keyProcessor.initialize("test");

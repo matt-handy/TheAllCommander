@@ -1,80 +1,32 @@
 package c2.session;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import c2.Constants;
+import c2.session.log.IOLogger;
 import util.Time;
 
 public class IOManager {
 
-	public static final SimpleDateFormat ISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-
 	private Map<Integer, Session> sessions = new HashMap<>();
 	private int nextSessionId = 2;
-
-	private Map<Session, File> logs = new HashMap<>();
-	private Path logRoot;
 
 	private CommandLoader cl;
 
 	private ServersideCommandPreprocessor preprocessor;
 
-	private void writeReceivedIO(String io, Session session) throws Exception {
-		String message = "Received IO: '" + io + "'";
-		writeLog(message, session);
-	}
+	private IOLogger logger;
 
-	private void writeSendCommand(String cmd, Session session) throws Exception {
-		String message = "Send command: '" + cmd + "'";
-		writeLog(message, session);
-	}
-
-	private void writeLog(String message, Session session) throws Exception {
-		File logFile = logs.get(session);
-		if (logFile == null) {
-			Path logFilePath = logRoot.resolve(session.uid.replace(":", ""));
-			if (Files.exists(logFilePath)) {
-				logFile = logFilePath.toFile();
-			} else {
-				logFile = Files.createFile(logFilePath).toFile();
-			}
-		}
-
-		FileWriter fw = new FileWriter(logFile, true);
-		BufferedWriter bw = new BufferedWriter(fw);
-		bw.write(ISO8601.format(new Date()));
-		bw.write(" ");
-		bw.write(message);
-		bw.write(System.lineSeparator());
-		bw.close();
-	}
-
-	public IOManager(Path logRoot, CommandLoader cl) {
-		if (Files.notExists(logRoot)) {
-			try {
-				Files.createDirectories(logRoot);
-			} catch (IOException e) {
-				System.out.println("Unable to create logging root");
-				e.printStackTrace();
-			}
-		}
+	public IOManager(IOLogger logger, CommandLoader cl) {
 		sessions.put(1, new Session(1, "default", "default", "default"));
-		this.logRoot = logRoot;
 		this.cl = cl;
 		this.preprocessor = new ServersideCommandPreprocessor(this);
+		this.logger = logger;
 	}
 
 	public ServersideCommandPreprocessor getCommandPreprocessor() {
@@ -204,7 +156,7 @@ public class IOManager {
 			Session session = sessions.get(sessionId);
 			session.sendCommand(command);
 			try {
-				writeSendCommand(command, session);
+				logger.writeSendCommand(command, session);
 			} catch (Exception e) {
 				System.out.println("Can't write to log file");
 				e.printStackTrace();
@@ -247,7 +199,7 @@ public class IOManager {
 			Session session = sessions.get(sessionId);
 			session.sendIO(response);
 			try {
-				writeReceivedIO(response, session);
+				logger.writeReceivedIO(response, session);
 			} catch (Exception e) {
 				System.out.println("Can't write to log file");
 				e.printStackTrace();

@@ -12,27 +12,29 @@ import java.util.Comparator;
 
 public class TestCommons {
 
-	public enum LANGUAGE {CPP, CSHARP, WINDOWS_NATIVE};
-	
+	public enum LANGUAGE {
+		CPP, CSHARP, WINDOWS_NATIVE
+	};
+
 	public static void cleanupExfil() {
 		try {
 			Path path = Paths.get("exfil");
-			if(Files.exists(path)) {
+			if (Files.exists(path)) {
 				Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 			}
 		} catch (IOException e2) {
 			fail("Cannot set up test and delete test log file");
 		}
 	}
-	
+
 	public static void cleanupKeylogger() {
 		try {
 			Files.deleteIfExists(Paths.get("test", InetAddress.getLocalHost().getHostName()));
 		} catch (IOException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 		}
 	}
-	
+
 	public static void pretestCleanup() {
 		cleanupExfil();
 
@@ -46,15 +48,14 @@ public class TestCommons {
 		// purge logging directory
 		try {
 
-			for (File file : Paths.get("test", "log").toFile().listFiles()) {
-				if (!file.isDirectory()) {
-					file.delete();
-				}
+			if (Files.exists(Paths.get("test", "log"))) {
+				Files.walk(Paths.get("test", "log")).sorted(Comparator.reverseOrder()).map(Path::toFile)
+						.forEach(File::delete);
 			}
 
 		} catch (Exception ex) {
-			//Don't worry about it
-			//ex.printStackTrace();
+			// Don't worry about it
+			// ex.printStackTrace();
 		}
 
 		cleanupKeylogger();
