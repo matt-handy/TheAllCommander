@@ -1,6 +1,12 @@
 package util.test;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -14,6 +20,29 @@ public class ClientServerTest {
 	protected static ChildManager childManager;
 	
 	public static final String DEFAULT_SERVER_CONFIG = "test.properties";
+	
+	public static Properties getDefaultSystemTestProperties() {
+		String configName = "config" + File.separator;
+		if(System.getProperty("os.name").contains("Windows")) {
+			configName += "test.properties";
+		}else {
+			configName += "test_linux.properties";
+		}
+		
+		try (InputStream input = new FileInputStream(configName)) {
+
+			Properties prop = new Properties();
+
+			// load a properties file
+			prop.load(input);
+
+			return prop;
+		} catch (IOException ex) {
+			System.out.println("Unable to load config file");
+			fail(ex.getMessage());
+			return null;
+		}
+	}
 	
 	protected static void initiateServer() {
 		initiateServer("test.properties");

@@ -54,11 +54,6 @@ class MasterLinearTest {
 		}
 		
 		RunnerTestPythonHTTPSDaemonWinRDP.test();
-		
-		//Testing daemon exfil
-		RunnerTestPythonHarvest.cleanup();
-		RunnerTestPythonHarvest.testPythonDataExfil();
-		RunnerTestPythonHarvest.cleanup();
 	}
 
 }

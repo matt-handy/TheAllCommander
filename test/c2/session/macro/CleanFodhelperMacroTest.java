@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import c2.Constants;
 import c2.session.CommandLoader;
 import c2.session.IOManager;
+import c2.session.log.IOLogger;
 
 class CleanFodhelperMacroTest {
 
@@ -39,7 +40,7 @@ class CleanFodhelperMacroTest {
 			prop.load(input);
 
 			CommandLoader cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
-			io = new IOManager(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH)), cl);
+			io = new IOManager(new IOLogger(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH))), cl);
 
 			sessionId = io.addSession("noone", "testHost", "protocol");
 		} catch (IOException ex) {
