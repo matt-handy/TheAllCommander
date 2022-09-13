@@ -82,4 +82,5 @@ class DirectoryHarvester(Thread):
 			remoteSocket.send(endMsgLenBytes)
 			remoteSocket.send(endMsg.encode('ascii'))
 		self.isHarvestComplete = True
-		self.daemon.postResponse("Harvest complete: " + dirname)
+		if self.stayAlive:
+			self.daemon.postResponse("Harvest complete: " + dirname)

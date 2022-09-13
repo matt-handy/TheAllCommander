@@ -22,8 +22,7 @@ class HarvesterIntegrationTest  extends ClientServerTest {
 		if (System.getProperty("os.name").contains("Windows")) {
 			initiateServer();
 		} else {
-			return;
-			//initiateServer("test_linux.properties");
+			initiateServer("test_linux.properties");
 		}
 		spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 
@@ -45,6 +44,8 @@ class HarvesterIntegrationTest  extends ClientServerTest {
 			initiateServer();
 		} else {
 			return;
+			//No need to test on linux at this time. The platform dependent piece is tested with the HTTPS element, and the 
+			//remaining control flow logic here is platform independent.
 			//initiateServer("test_linux.properties");
 		}
 		spawnClient(TestConstants.PYTHON_DNSDAEMON_TEST_EXE);
