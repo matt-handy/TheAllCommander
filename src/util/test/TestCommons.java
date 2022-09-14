@@ -13,7 +13,7 @@ import java.util.Comparator;
 public class TestCommons {
 
 	public enum LANGUAGE {
-		CPP, CSHARP, WINDOWS_NATIVE
+		CPP, CSHARP, WINDOWS_NATIVE, PYTHON, JAVA
 	};
 
 	public static void cleanupExfil() {

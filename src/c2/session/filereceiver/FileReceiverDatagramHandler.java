@@ -44,7 +44,7 @@ public class FileReceiverDatagramHandler {
 		OutputStream output = null;
 		boolean finishingFile = false;
 		
-		System.out.println("Remaining: " + state.getBytesRemainingInCurrentFile());
+		//System.out.println("Remaining: " + state.getBytesRemainingInCurrentFile());
 		if(state.getBytesRemainingInCurrentFile() == 0) {
 			ByteBuffer nameLenBuffer = ByteBuffer.wrap(content, 0, 4);
 			int fileNameLength = nameLenBuffer.getInt();

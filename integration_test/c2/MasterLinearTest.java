@@ -12,9 +12,7 @@ import c2.python.RunnerTestKeyloggerEmail;
 import c2.python.RunnerTestKeyloggerHTTPS;
 import c2.python.RunnerTestPython;
 import c2.python.RunnerTestPythonEmail;
-import c2.win.RunnerTestDaemonHarvestCookiesNative;
 import c2.win.RunnerTestPythonHTTPSDaemonWinRDP;
-import c2.filereceiver.*;
 
 class MasterLinearTest {
 
@@ -45,14 +43,6 @@ class MasterLinearTest {
 		RunnerTestPython.testHTTPSTwoSessions();
 		RunnerTestPython.testDNSTwoSessions();
 
-		//Macro command execution tests
-		try {
-			RunnerTestDaemonHarvestCookiesNative.testAll();
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		
 		RunnerTestPythonHTTPSDaemonWinRDP.test();
 	}
 

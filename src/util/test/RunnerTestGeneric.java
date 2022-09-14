@@ -27,6 +27,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 
 import c2.Constants;
 import c2.session.SessionHandler;
@@ -392,6 +393,8 @@ public class RunnerTestGeneric {
 
 			testDownloadAndUplinkNominal(br, bw, config);
 			
+			testUplinkRandomBinaryFile(br, bw, config);
+			
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
 					|| config.lang.equals("python") || config.lang.equals("Java"))
 					&& config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
@@ -458,6 +461,20 @@ public class RunnerTestGeneric {
 		}
 
 		cleanup(config.lang);
+	}
+	
+	private static void testUplinkRandomBinaryFile(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		System.out.println("Testing uplink of random file");
+		Random rnd = new Random();
+		byte[] fileContent = new byte[24845];
+		rnd.nextBytes(fileContent);
+		String expectedFileBase64 = Base64.getEncoder().encodeToString(fileContent);
+		Path tempFilePath = Paths.get("tmp_uplink_test");
+		Files.write(tempFilePath, fileContent);
+		OutputStreamWriterHelper.writeAndSend(bw, "uplink " + tempFilePath.toString());
+		String output = br.readLine();
+		assertEquals("<control> uplinked " + tempFilePath.toString() + " " + expectedFileBase64, output);
+		Files.delete(tempFilePath);
 	}
 	
 	private static void testDownloadAndUplinkNominal(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
