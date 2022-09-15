@@ -222,29 +222,7 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		String edgeAssets = "test" + File.separator + hostname + username + File.separator + "EdgeMaterials"
 				+ File.separator + "Cookies";
 
-		System.out.println("Testing nominal all cookies");
-		// Check that the cookies are in local storage
-		Time.sleepWrapped(75000);
 		
-		assertTrue(Files.exists(Paths.get(firefoxAssets)));
-		assertTrue(Files.exists(Paths.get(firefoxKeysDb)));
-		assertTrue(Files.exists(Paths.get(firefoxLogins)));
-		assertTrue(Files.exists(Paths.get(chromeAssets)));
-		assertTrue(Files.exists(Paths.get(edgeAssets)));
-
-		String appdata = System.getenv("APPDATA");
-		String realChromeCookies = CookiesCommandHelper.CHROME_COOKIES_FILENAME.replace("%APPDATA%", appdata)
-				.replaceAll("\"", "");
-		String realEdgeCookies = CookiesCommandHelper.EDGE_CHROMIUM_FILENAME.replace("%APPDATA%", appdata)
-				.replaceAll("\"", "");
-		byte[] referenceChromeCookies = Files.readAllBytes(Paths.get(realChromeCookies));
-		byte[] copiedChromeCookies = Files.readAllBytes(Paths.get(chromeAssets));
-		areFilesEqual(referenceChromeCookies, copiedChromeCookies);
-
-		byte[] referenceEdgeCookies = Files.readAllBytes(Paths.get(realEdgeCookies));
-		byte[] copiedEdgeCookies = Files.readAllBytes(Paths.get(edgeAssets));
-		areFilesEqual(referenceEdgeCookies, copiedEdgeCookies);
-		// TODO:Firefox equal?
 
 		System.out.println("Reading IO response");
 		String line = br.readLine();
@@ -277,27 +255,43 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		line = br.readLine();
 		assertEquals("Macro Executor: 'Captured Edge Cookies'", line);
 		
-		// Delete local cookies storage
-		Files.deleteIfExists(Paths.get(firefoxAssets));
-		Files.deleteIfExists(Paths.get(firefoxKeysDb));
-		Files.deleteIfExists(Paths.get(firefoxLogins));
-		Files.deleteIfExists(Paths.get(chromeAssets));
-		Files.deleteIfExists(Paths.get(edgeAssets));
+		System.out.println("Testing nominal all cookies");
+		// Check that the cookies are in local storage
+		
+		assertTrue(Files.exists(Paths.get(firefoxAssets)));
+		assertTrue(Files.exists(Paths.get(firefoxKeysDb)));
+		assertTrue(Files.exists(Paths.get(firefoxLogins)));
+		assertTrue(Files.exists(Paths.get(chromeAssets)));
+		assertTrue(Files.exists(Paths.get(edgeAssets)));
 
-		// Delete local cookies storage
-		Files.deleteIfExists(Paths.get(firefoxAssets));
-		Files.deleteIfExists(Paths.get(firefoxKeysDb));
-		Files.deleteIfExists(Paths.get(firefoxLogins));
-		Files.deleteIfExists(Paths.get(chromeAssets));
-		Files.deleteIfExists(Paths.get(edgeAssets));
+		String appdata = System.getenv("APPDATA");
+		String realChromeCookies = CookiesCommandHelper.CHROME_COOKIES_FILENAME.replace("%APPDATA%", appdata)
+				.replaceAll("\"", "");
+		String realEdgeCookies = CookiesCommandHelper.EDGE_CHROMIUM_FILENAME.replace("%APPDATA%", appdata)
+				.replaceAll("\"", "");
+		byte[] referenceChromeCookies = Files.readAllBytes(Paths.get(realChromeCookies));
+		byte[] copiedChromeCookies = Files.readAllBytes(Paths.get(chromeAssets));
+		areFilesEqual(referenceChromeCookies, copiedChromeCookies);
 
-		Time.sleepWrapped(2000);
+		byte[] referenceEdgeCookies = Files.readAllBytes(Paths.get(realEdgeCookies));
+		byte[] copiedEdgeCookies = Files.readAllBytes(Paths.get(edgeAssets));
+		areFilesEqual(referenceEdgeCookies, copiedEdgeCookies);
+		// TODO:Firefox equal?
+
+		
 
 		bw.write("die" + System.lineSeparator());
 		bw.flush();
 
 		Time.sleepWrapped(2000);
 
+		// Delete local cookies storage
+				Files.deleteIfExists(Paths.get(firefoxAssets));
+				Files.deleteIfExists(Paths.get(firefoxKeysDb));
+				Files.deleteIfExists(Paths.get(firefoxLogins));
+				Files.deleteIfExists(Paths.get(chromeAssets));
+				Files.deleteIfExists(Paths.get(edgeAssets));
+		
 		Files.delete(
 				Paths.get("test" + File.separator + hostname + username + File.separator + "FirefoxMaterials"));
 		Files.delete(Paths.get("test" + File.separator + hostname + username + File.separator + "ChromeMaterials"));
