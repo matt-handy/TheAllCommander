@@ -10,3 +10,8 @@ Update Email Daemon support for new Windows cURL formatting changes
 Implement hosting of child shells by daemons
 Implement Recycle Bin cleaning IOC 
 Implement in-band data exfiltration for all platforms
+
+#Release 0.9.3 - September 2022
+Improve unit test framework - integrate full command validation for Python HTTPS and DNS daemons, as well as other integrated macro tests
+Add Developers Guide
+Commands as-run auditing
