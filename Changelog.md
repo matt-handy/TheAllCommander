@@ -15,3 +15,6 @@ Implement in-band data exfiltration for all platforms
 Improve unit test framework - integrate full command validation for Python HTTPS and DNS daemons, as well as other integrated macro tests
 Add Developers Guide
 Commands as-run auditing
+
+#Release 0.9.4 - November 2022
+Add initial Blue Team Guide - provides Indicator of Compromise (IOC) Detection Recommendations for all client side attack emulation.
