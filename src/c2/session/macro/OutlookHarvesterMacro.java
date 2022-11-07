@@ -167,13 +167,16 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 								if (!line.equals("Attempting search with 10 minute timeout")
 										&& !line.equals("Search complete") && !line.equals("")) {// Discard final line
 																									// feed flush at end
-									Path parent = Paths.get(line).getParent();
-									io.sendCommand(sessionId, Commands.CD + " " + parent.toAbsolutePath().toString());
-									outcome.addSentCommand(Commands.CD + " " + parent.toAbsolutePath().toString());
+									//Why not use Paths? Doesn't work cross-platform
+									String pathStr = line.substring(0, line.lastIndexOf("\\"));
+									String command = Commands.CD + " " + pathStr;
+									io.sendCommand(sessionId, command);
+									outcome.addSentCommand(command);
 									response = io.awaitMultilineCommands(sessionId);
 									response = response.replace(System.lineSeparator(), "");
 									outcome.addResponseIo(response);
-									if (!response.equals(parent.toAbsolutePath().toString())) {
+
+									if (!response.equals(pathStr)) {
 										outcome.addError("Unable to switch to PST found directory for harvest");
 									} else {
 										io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);

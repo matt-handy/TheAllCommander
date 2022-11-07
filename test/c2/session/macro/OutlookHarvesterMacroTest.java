@@ -275,8 +275,8 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 		assertEquals("Macro Executor: 'Saving original working directory, proceeding with Outlook harvest'",
 				outcome.getOutput().get(2));
 		assertEquals("Sent Command: 'where /r C:\\ *.pst'", outcome.getOutput().get(3));
-		assertEquals("Received response: 'Attempting search with 10 minute timeout\r\n"
-				+ "C:\\user\\fakedir\\mystuff.pst\r\n"
+		assertEquals("Received response: 'Attempting search with 10 minute timeout" + System.lineSeparator()
+				+ "C:\\user\\fakedir\\mystuff.pst" + System.lineSeparator()
 				+ "Search complete" + System.lineSeparator() + "'", outcome.getOutput().get(4));
 		assertEquals("Sent Command: 'cd C:\\user\\fakedir'", outcome.getOutput().get(5));
 		assertEquals("Received response: 'C:\\user\\fakedir'", outcome.getOutput().get(6));

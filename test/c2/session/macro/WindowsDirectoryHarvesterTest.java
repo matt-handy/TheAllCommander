@@ -185,33 +185,33 @@ class WindowsDirectoryHarvesterTest {
 		MacroOutcome outcome = macro.processCmd(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD, id, "Not used");
 		
 		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
-		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows\r\n"
+		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(2), "Sent Command: 'pwd'");
-		assertEquals(outcome.getOutput().get(3), "Received response: 'C:\\test\r\n"
+		assertEquals(outcome.getOutput().get(3), "Received response: 'C:\\test" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(4), "Macro Executor: 'Saving original working directory, proceeding with macro'");
 		assertEquals(outcome.getOutput().get(5), "Macro Executor: 'Found OneDrive folder: C:\\Users\\test\\OneDrive'");
 		assertEquals(outcome.getOutput().get(6), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Desktop'");
-		assertEquals(outcome.getOutput().get(7), "Received response: 'C:\\Users\\test\\OneDrive\\Desktop\r\n"
+		assertEquals(outcome.getOutput().get(7), "Received response: 'C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(8), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Desktop\r\n"
+		assertEquals(outcome.getOutput().get(8), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(9), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Documents'");
-		assertEquals(outcome.getOutput().get(10), "Received response: 'C:\\Users\\test\\OneDrive\\Documents\r\n"
+		assertEquals(outcome.getOutput().get(10), "Received response: 'C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(11), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Documents\r\n"
+		assertEquals(outcome.getOutput().get(11), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(12), "Macro Executor: 'Found user profile folder: C:\\Users\\test'");
 		assertEquals(outcome.getOutput().get(13), "Sent Command: 'cd C:\\Users\\test\\Desktop'");
-		assertEquals(outcome.getOutput().get(14), "Received response: 'C:\\Users\\test\\Desktop\r\n"
+		assertEquals(outcome.getOutput().get(14), "Received response: 'C:\\Users\\test\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(15), "Received response: 'Started Harvest: C:\\Users\\test\\Desktop\r\n"
+		assertEquals(outcome.getOutput().get(15), "Received response: 'Started Harvest: C:\\Users\\test\\Desktop" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(16), "Sent Command: 'cd C:\\Users\\test\\Documents'");
-		assertEquals(outcome.getOutput().get(17), "Received response: 'C:\\Users\\test\\Documents\r\n"
+		assertEquals(outcome.getOutput().get(17), "Received response: 'C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(18), "Received response: 'Started Harvest: C:\\Users\\test\\Documents\r\n"
+		assertEquals(outcome.getOutput().get(18), "Received response: 'Started Harvest: C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(19), "Sent Command: 'cd C:\\test'");
 		assertEquals(outcome.getOutput().get(20), "Received response: 'C:\\test'");
@@ -243,24 +243,24 @@ class WindowsDirectoryHarvesterTest {
 		MacroOutcome outcome = macro.processCmd(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD, id, "Not used");
 		
 		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
-		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows\r\n"
+		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(2), "Sent Command: 'pwd'");
-		assertEquals(outcome.getOutput().get(3), "Received response: 'C:\\test\r\n"
+		assertEquals(outcome.getOutput().get(3), "Received response: 'C:\\test" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(4), "Macro Executor: 'Saving original working directory, proceeding with macro'");
 		
 		assertEquals(outcome.getOutput().get(5), "Macro Executor: 'Could not find OneDrive folder, proceeding.'");
 		assertEquals(outcome.getOutput().get(6), "Macro Executor: 'Found user profile folder: C:\\Users\\test'");
 		assertEquals(outcome.getOutput().get(7), "Sent Command: 'cd C:\\Users\\test\\Desktop'");
-		assertEquals(outcome.getOutput().get(8), "Received response: 'C:\\Users\\test\\Desktop\r\n"
+		assertEquals(outcome.getOutput().get(8), "Received response: 'C:\\Users\\test\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(9), "Received response: 'Started Harvest: C:\\Users\\test\\Desktop\r\n"
+		assertEquals(outcome.getOutput().get(9), "Received response: 'Started Harvest: C:\\Users\\test\\Desktop" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(10), "Sent Command: 'cd C:\\Users\\test\\Documents'");
-		assertEquals(outcome.getOutput().get(11), "Received response: 'C:\\Users\\test\\Documents\r\n"
+		assertEquals(outcome.getOutput().get(11), "Received response: 'C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(12), "Received response: 'Started Harvest: C:\\Users\\test\\Documents\r\n"
+		assertEquals(outcome.getOutput().get(12), "Received response: 'Started Harvest: C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(13), "Sent Command: 'cd C:\\test'");
 		assertEquals(outcome.getOutput().get(14), "Received response: 'C:\\test'");
@@ -291,7 +291,7 @@ class WindowsDirectoryHarvesterTest {
 		
 		MacroOutcome outcome = macro.processCmd(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD, id, "Not used");
 		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
-		assertEquals(outcome.getOutput().get(1), "Received response: 'Linux\r\n"
+		assertEquals(outcome.getOutput().get(1), "Received response: 'Linux" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(2), "Error: Unsupported operating system: Linux");
 		assertTrue(outcome.hasErrors());
@@ -319,22 +319,22 @@ class WindowsDirectoryHarvesterTest {
 		MacroOutcome outcome = macro.processCmd(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD, id, "Not used");
 		
 		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
-		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows\r\n"
+		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(2), "Sent Command: 'pwd'");
-		assertEquals(outcome.getOutput().get(3), "Received response: 'C:\\test\r\n"
+		assertEquals(outcome.getOutput().get(3), "Received response: 'C:\\test" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(4), "Macro Executor: 'Saving original working directory, proceeding with macro'");
 		assertEquals(outcome.getOutput().get(5), "Macro Executor: 'Found OneDrive folder: C:\\Users\\test\\OneDrive'");
 		assertEquals(outcome.getOutput().get(6), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Desktop'");
-		assertEquals(outcome.getOutput().get(7), "Received response: 'C:\\Users\\test\\OneDrive\\Desktop\r\n"
+		assertEquals(outcome.getOutput().get(7), "Received response: 'C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(8), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Desktop\r\n"
+		assertEquals(outcome.getOutput().get(8), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(9), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Documents'");
-		assertEquals(outcome.getOutput().get(10), "Received response: 'C:\\Users\\test\\OneDrive\\Documents\r\n"
+		assertEquals(outcome.getOutput().get(10), "Received response: 'C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(11), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Documents\r\n"
+		assertEquals(outcome.getOutput().get(11), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(12), "Macro Executor: 'Could not find user profile folder, proceedind.'");
 		assertEquals(outcome.getOutput().get(13), "Sent Command: 'cd C:\\test'");

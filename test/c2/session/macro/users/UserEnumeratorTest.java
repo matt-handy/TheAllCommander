@@ -331,9 +331,9 @@ class UserEnumeratorTest {
 		
 		assertEquals("Sent Command: 'net user'", outcome.getOutput().get(0));
 		//The extra line separator is added as part of the command flushing process through the IO processor
-		assertEquals("Received response: '" + EXAMPLE_USERS_STR + System.lineSeparator() + "'", outcome.getOutput().get(1));
+		assertEquals("Received response: '" + EXAMPLE_USERS_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(1));
 		assertEquals("Sent Command: 'net user /domain'", outcome.getOutput().get(2));
-		assertEquals("Received response: '" + NO_DOMAIN_STR + System.lineSeparator() + "'", outcome.getOutput().get(3));
+		assertEquals("Received response: '" + NO_DOMAIN_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(3));
 		assertEquals("Macro Executor: 'No domain available'", outcome.getOutput().get(4));
 	}
 	
@@ -445,9 +445,9 @@ class UserEnumeratorTest {
 		}
 		
 		assertEquals("Sent Command: 'net localgroup'", outcome.getOutput().get(0));
-		assertEquals("Received response: '" + EXAMPLE_GROUPS_STR + System.lineSeparator() + "'", outcome.getOutput().get(1));
+		assertEquals("Received response: '" + EXAMPLE_GROUPS_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(1));
 		assertEquals("Sent Command: 'net group'", outcome.getOutput().get(2));
-		assertEquals("Received response: '" + NET_GROUP_NO_DC_RESPONSE + System.lineSeparator() + "'", outcome.getOutput().get(3));
+		assertEquals("Received response: '" + NET_GROUP_NO_DC_RESPONSE.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(3));
 		assertEquals("Macro Executor: 'Must be on a domain controller to list groups'", outcome.getOutput().get(4));
 		
 	}
@@ -548,23 +548,23 @@ class UserEnumeratorTest {
 			validateSystemAccountProfileNoDomain(profile);
 			
 			assertEquals("Sent Command: 'net localgroup'", outcome.getOutput().get(0));
-			assertEquals("Received response: '" + EXAMPLE_GROUPS_STR + System.lineSeparator() + "'", outcome.getOutput().get(1));
+			assertEquals("Received response: '" + EXAMPLE_GROUPS_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(1));
 			assertEquals("Sent Command: 'net group'", outcome.getOutput().get(2));
-			assertEquals("Received response: '" + NET_GROUP_NO_DC_RESPONSE + System.lineSeparator() + "'", outcome.getOutput().get(3));
+			assertEquals("Received response: '" + NET_GROUP_NO_DC_RESPONSE.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(3));
 			assertEquals("Macro Executor: 'Must be on a domain controller to list groups'", outcome.getOutput().get(4));
 			assertEquals("Sent Command: 'net user'", outcome.getOutput().get(5));
-			assertEquals("Received response: '" + EXAMPLE_USERS_STR + System.lineSeparator() + "'", outcome.getOutput().get(6));
+			assertEquals("Received response: '" + EXAMPLE_USERS_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(6));
 			assertEquals("Sent Command: 'net user /domain'", outcome.getOutput().get(7));
-			assertEquals("Received response: '" + NO_DOMAIN_STR + System.lineSeparator() + "'", outcome.getOutput().get(8));
+			assertEquals("Received response: '" + NO_DOMAIN_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(8));
 			assertEquals("Macro Executor: 'No domain available'", outcome.getOutput().get(9));
 			assertEquals("Sent Command: 'net user Administrator'", outcome.getOutput().get(10));
-			assertEquals("Received response: '" + EXAMPLE_ADMINISTRATOR_STR + System.lineSeparator() + "'", outcome.getOutput().get(11));
+			assertEquals("Received response: '" + EXAMPLE_ADMINISTRATOR_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(11));
 			assertEquals("Sent Command: 'net user DefaultAccount'", outcome.getOutput().get(12));
-			assertEquals("Received response: '" + EXAMPLE_DEFAULT_ACCOUNT_STR + System.lineSeparator() + "'", outcome.getOutput().get(13));
+			assertEquals("Received response: '" + EXAMPLE_DEFAULT_ACCOUNT_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(13));
 			assertEquals("Sent Command: 'net user Guest'", outcome.getOutput().get(14));
-			assertEquals("Received response: '" + EXAMPLE_GUEST_STR + System.lineSeparator() + "'", outcome.getOutput().get(15));
+			assertEquals("Received response: '" + EXAMPLE_GUEST_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(15));
 			assertEquals("Sent Command: 'net user bob'", outcome.getOutput().get(16));
-			assertEquals("Received response: '" + EXAMPLE_BOB_STR + System.lineSeparator() + "'", outcome.getOutput().get(17));
+			assertEquals("Received response: '" + EXAMPLE_BOB_STR.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(17));
 			assertEquals("Macro Executor: 'Account profile complete'", outcome.getOutput().get(18));
 		}catch(Exception ex) {
 			System.out.println(ex.getMessage());
