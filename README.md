@@ -161,9 +161,19 @@ startSocks5 <port>
 empty_recycle_bin
 	This command deletes the recycle bin contents for the user with the current session to generate a client side indicator of compromise.
 
+harvest_win_user_dir
+	This command initiates an automatic harvest of Windows Desktop and Documents directories.
+	
+harvest_outlook (basic | deep)
+	This command with the "basic" argument will harvest the default .pst and .ost files used by Outlook. In "deep" mode, the tool will search for a non-standard .pst location and harvest it.
+
+enumerate_users
+	This command will enumerate the users present on the system and the domain. If domain access is present, groups are enumerated as well. Current, this command will only work on Windows daemons
+
 # Near Term Project Goals
 DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  
 
+The project currently supports a very basic set of IOC detection recommendations. My goal is to augment this suite to provide robust detection of more IOCs, as well as more recommendations for protection of common data assets.
 
 # Default Commands
 Sometimes it is desirable for daemons to automatically execute commands without human interaction on connecting for the first time with the home server. The configuration file element "hub.cmd.defaults" can be used to specify a file that contains commands to be sent automatically. There are several tags, and an example is included the "test" directory. This functionality is controlled with the configuration flag:
@@ -302,4 +312,6 @@ There are two classes of test for TheAllCommander. One is the standard unit test
 The second, and far more comprehensive, test suite is included in the integration_test directory. These tests are orchestrated through junit, but involve TheAllCommander server being started in its entirety, and one of the test daemons being engaged to run through a standard set of test sequences. This tests both the server and the daemons in an apples-to-apples manner.
 NOTE: Currently automated cross platform testing with Linux requires supplemental software which has not yet been documented. Documentation for automated Linux functional testing is pending. 
 
-Note: There is a default_commands file under "test" which contains the load script for automatic commands, or commands which are executed against a daemon immediately on connection. They are set to a default username and hostname and must be updated if that test will pass. 
+Note: There is a default_commands file under "test" which contains the load script for automatic commands, or commands which are executed against a daemon immediately on connection. They are set to a default username and hostname and must be updated if that test will pass.
+
+NOTE: Automated testing of the outlook harvester macro is disabled by default, and can be activated by setting outlookharvest.live.enable=true in the the test_config.properties file. This is disabled by default since some users are building and testing on production laptops with actual Outlook data, and therefore we want users to opt in to that test. The test starts a local daemon and a local TheAllCommander instance, and ensures that Outlook data is correctly processed by the local instance.  

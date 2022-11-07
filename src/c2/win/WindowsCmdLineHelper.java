@@ -65,8 +65,11 @@ public class WindowsCmdLineHelper {
 	public static String resolveVariableDirectory(IOManager io, int sessionId, String variable) throws Exception{
 		String queryDirCmd = "dir " + variable;
 		io.sendCommand(sessionId, queryDirCmd);
-		Time.sleepWrapped(2000);
-		String dirResponse = io.readAllMultilineCommands(sessionId);
+		String dirResponse = io.awaitMultilineCommands(sessionId);
+		
+		if(dirResponse.contains("File Not Found")) {
+			throw new Exception("Undefined variable: " + variable);
+		}
 		
 		String lines[] = dirResponse.split(System.lineSeparator());
 		if(lines.length < 4) {

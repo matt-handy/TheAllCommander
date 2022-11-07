@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.stream.Stream;
 
 public class TestCommons {
 
@@ -32,6 +33,33 @@ public class TestCommons {
 			Files.deleteIfExists(Paths.get("test", InetAddress.getLocalHost().getHostName()));
 		} catch (IOException e) {
 			// e.printStackTrace();
+		}
+	}
+	
+	public static final Path HARVEST_LANDING_DIR = Paths.get("test", "fileReceiverTest");
+	public static final String HARVEST_TEST_DIR = "harvest_test_source";
+	
+	public static void cleanFileHarvesterDir() {
+		try (Stream<Path> walk = Files.walk(HARVEST_LANDING_DIR)) {
+			walk.sorted(Comparator.reverseOrder()).forEach(TestCommons::deleteDirectory);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+		}
+
+		try (Stream<Path> walk = Files.walk(Paths.get("test", HARVEST_TEST_DIR))) {
+			walk.sorted(Comparator.reverseOrder()).forEach(TestCommons::deleteDirectory);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+		}
+	}
+	
+	static void deleteDirectory(Path path) {
+		try {
+			Files.delete(path);
+		} catch (IOException e) {
+			System.err.printf("Unable to delete this path : %s%n%s", path, e);
 		}
 	}
 

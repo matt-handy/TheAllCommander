@@ -73,6 +73,18 @@ class IOManagerTest {
 	}
 
 	@Test
+	void testAwaitMultilineCommands() {
+		IOManager ioManager = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
+		int id = ioManager.addSession("fake", "otherfake", "moarfake");
+		assertEquals(2, id);
+		String val = ioManager.awaitMultilineCommands(2);
+		assertEquals("", val);
+		
+		val = ioManager.awaitMultilineCommands(2, 20000);
+		assertEquals("", val);
+	}
+	
+	@Test
 	void nonExistantSession() {
 		IOManager ioManager = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {

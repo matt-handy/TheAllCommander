@@ -24,6 +24,14 @@ import c2.session.log.IOLogger;
 
 public class WindowsCmdLineHelperTest {
 
+	public static final String UNDEFINED_VARIABLE_EXAMPLE = " Volume in drive C is OS\r\n"
+			+ " Volume Serial Number is AAA2-0F24\r\n"
+			+ "\r\n"
+			+ " Directory of C:\\Users\\matte\r\n"
+			+ "\r\n"
+			+ "File Not Found\r\n"
+			+ "";
+	
 	public static final String SYSTEMDRIVE_EXAMPLE = " Volume in drive C is OS\r\n"
 			+ " Volume Serial Number is AAA2-0F24\r\n"
 			+ "\r\n"
@@ -180,6 +188,20 @@ public class WindowsCmdLineHelperTest {
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
+	}
+	
+	@Test
+	void testResolveVariableDataNegativePresence() {
+		io.sendIO(sessionId, UNDEFINED_VARIABLE_EXAMPLE);
+		boolean passedExpectedException = false;
+		String testVar = "%BARF%";
+		try {
+			WindowsCmdLineHelper.resolveVariableDirectory(io, sessionId, testVar);
+			passedExpectedException = true;
+		} catch (Exception e) {
+			assertEquals("Undefined variable: " + testVar, e.getMessage());
+		}
+		assertFalse(passedExpectedException, "resolveVariableDirectory failed to throw and exception");
 	}
 	
 }

@@ -30,7 +30,7 @@ class GenericTCPInitiatorTest {
 
 	@AfterEach
 	void cleanup() {
-		RunnerTestGeneric.cleanup("Native");
+		RunnerTestGeneric.cleanup();
 	}
 	
 	private void spinUpGenericTCPInitiatorTest(int port, IOManager io) {

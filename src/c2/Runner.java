@@ -155,7 +155,8 @@ public class Runner {
 		CommandMacroManager cmm = new CommandMacroManager(winManager, ioManager,
 				properties.getProperty(Constants.DAEMONLZHARVEST));
 		cmm.initializeMacros(properties);
-
+		ioManager.setCommandMacroManager(cmm);
+		
 		SessionManager sessionManager = new SessionManager(ioManager, listenPort, cmm);
 
 		Future<?> session = service.submit(sessionManager);

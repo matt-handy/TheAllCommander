@@ -1,6 +1,5 @@
 package c2.session;
 
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,12 +20,18 @@ public class IOManager {
 	private ServersideCommandPreprocessor preprocessor;
 
 	private IOLogger logger;
+	
+	private CommandMacroManager cmm;
 
 	public IOManager(IOLogger logger, CommandLoader cl) {
 		sessions.put(1, new Session(1, "default", "default", "default"));
 		this.cl = cl;
 		this.preprocessor = new ServersideCommandPreprocessor(this);
 		this.logger = logger;
+	}
+	
+	public void setCommandMacroManager(CommandMacroManager cmm) {
+		this.cmm = cmm;
 	}
 
 	public ServersideCommandPreprocessor getCommandPreprocessor() {
@@ -147,7 +152,8 @@ public class IOManager {
 	public synchronized void sendCommand(int sessionId, String command) {
 		if (sessions.containsKey(sessionId)) {
 			CommandPreprocessorOutcome outcome = preprocessor.processCommand(command, sessionId);
-			//Sometimes the command is successful, but we still don't need to send to Daemon
+			// Sometimes the command is successful, but we still don't need to send to
+			// Daemon
 			if (!outcome.outcome || !outcome.sendingCmdToClient) {
 				sendIO(sessionId, outcome.message + System.lineSeparator());
 				return;
@@ -225,24 +231,27 @@ public class IOManager {
 		if (cl != null) {
 			if (!cl.getDefaultCommands().isEmpty()) {
 				for (String cmd : cl.getDefaultCommands()) {
-					System.out.println("Add default cmd: " + cmd);
-					sendCommand(sessionId, cmd);
+					if(cmm == null || !cmm.processCmd(cmd, sessionId, sessions.get(sessionId).uid)) {
+						sendCommand(sessionId, cmd);
+					}
 				}
 			}
 
 			List<String> userCmds = cl.getUserCommands(username);
 			if (userCmds != null) {
 				for (String cmd : userCmds) {
-					System.out.println("Adding user cmd: " + cmd);
-					sendCommand(sessionId, cmd);
+					if(cmm == null || !cmm.processCmd(cmd, sessionId, sessions.get(sessionId).uid)) {
+						sendCommand(sessionId, cmd);
+					}
 				}
 			}
 
 			List<String> hostCmds = cl.getHostCommands(hostname);
 			if (hostCmds != null) {
 				for (String cmd : hostCmds) {
-					System.out.println("Adding host cmd: " + cmd);
-					sendCommand(sessionId, cmd);
+					if(cmm == null || !cmm.processCmd(cmd, sessionId, sessions.get(sessionId).uid)) {
+						sendCommand(sessionId, cmd);
+					}
 				}
 			}
 		}
@@ -328,11 +337,30 @@ public class IOManager {
 			nextIo = pollIO(sessionId);
 		}
 		String cleanedIO = sb.toString();
-		//Need to clean IO if received from Windows on a Linux system
+		// Need to clean IO if received from Windows on a Linux system
 		if (!System.getProperty("os.name").contains("Windows")) {
 			cleanedIO = cleanedIO.replaceAll("\r\n", System.lineSeparator());
 		}
 		return cleanedIO;
+	}
+
+	/**
+	 * Command macro implementations can use this method wait up extended wait
+	 * interval for input from the client
+	 *
+	 * @param sessionId    The sessionID to query
+	 * @param extendedWait The sessionID to query
+	 * @return The assembled sum of all return IO.
+	 */
+	public String awaitMultilineCommands(int sessionId, int extendedWait) {
+		String nextIo = readAllMultilineCommands(sessionId);
+		int counter = 0;
+		while (nextIo.length() == 0 && counter < extendedWait) {
+			nextIo = readAllMultilineCommands(sessionId);
+			counter += Constants.getConstants().getRepollForResponseInterval();
+			Time.sleepWrapped(Constants.getConstants().getRepollForResponseInterval());
+		}
+		return nextIo;
 	}
 
 	/**
@@ -343,14 +371,7 @@ public class IOManager {
 	 * @return The assembled sum of all return IO.
 	 */
 	public String awaitMultilineCommands(int sessionId) {
-		String nextIo = readAllMultilineCommands(sessionId);
-		int counter = 0;
-		while (nextIo.length() == 0 && counter < Constants.getConstants().getMaxResponseWait()) {
-			nextIo = readAllMultilineCommands(sessionId);
-			counter += Constants.getConstants().getRepollForResponseInterval();
-			Time.sleepWrapped(Constants.getConstants().getRepollForResponseInterval());
-		}
-		return nextIo;
+		return awaitMultilineCommands(sessionId, Constants.getConstants().getMaxResponseWait());
 	}
 
 	/**

@@ -43,6 +43,7 @@ public class MacroOutcome {
 	*/
 	public void addError(String error) {
 		errors.add(error);
+		outputLines.add("Error: " + error);
 	}
 	
 	/**

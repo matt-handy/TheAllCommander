@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import c2.Commands;
 import c2.Constants;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
@@ -302,11 +303,9 @@ public class RunnerTestGeneric {
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
 
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// Ensure that python client has connected
-			}
+			// Ensure that python client has connected
+			Time.sleepWrapped(500);
+			
 			System.out.println("Setting up test commander session...");
 			try {
 				if (config.isTestTwoClients()) {
@@ -330,8 +329,9 @@ public class RunnerTestGeneric {
 				bw.write("cd .." + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
+				String testAbsoluteLocation = Paths.get("test").toAbsolutePath().toString();
 				if (!config.isRemote()) {
-					assertEquals(Paths.get("test").toAbsolutePath().toString(), output);
+					assertEquals(testAbsoluteLocation, output);
 					output = br.readLine();
 					assertEquals(Paths.get("").toAbsolutePath().toString(), output);
 				} else {
@@ -339,8 +339,20 @@ public class RunnerTestGeneric {
 					output = br.readLine();
 					assertEquals(TestConstants.EXECUTIONROOT_LINUX, output);
 				}
+				
+				if (!config.isRemote()) {
+					System.out.println("cd absolute path test");
+					OutputStreamWriterHelper.writeAndSend(bw, "cd " + testAbsoluteLocation);
+					OutputStreamWriterHelper.writeAndSend(bw, "cd ..");
+					output = br.readLine();
+					assertEquals(testAbsoluteLocation, output);
+					output = br.readLine();
+					assertEquals(Paths.get("").toAbsolutePath().toString(), output);
+				}
 			}
-
+			
+			testWhereCommand(br, bw, config);
+			
 			System.out.println("getUID test");
 			bw.write("getuid" + System.lineSeparator());
 			bw.flush();
@@ -392,6 +404,8 @@ public class RunnerTestGeneric {
 			testPwd(br, bw, config);
 
 			testDownloadAndUplinkNominal(br, bw, config);
+			
+			testOSEnumeration(br, bw, config);
 			
 			testUplinkRandomBinaryFile(br, bw, config);
 			
@@ -460,7 +474,47 @@ public class RunnerTestGeneric {
 			fail(ex.getMessage());
 		}
 
-		cleanup(config.lang);
+		cleanup();
+	}
+	
+	private static void testOSEnumeration(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		System.out.println("Testing client identifies OS heritage");
+		OutputStreamWriterHelper.writeAndSend(bw, Commands.OS_HERITAGE);
+		if(config.os == OS.WINDOWS) {
+			assertEquals(Commands.OS_HERITAGE_RESPONSE_WINDOWS, br.readLine());
+		}else {//Have not implemented Mac, so Linux is "else" for now
+			assertEquals(Commands.OS_HERITAGE_RESPONSE_LINUX, br.readLine());
+		}
+	}
+	
+	private static void testWhereCommand(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		if(config.os == OS.WINDOWS && !config.lang.equals("Native")) {
+			System.out.println("Testing that where command returns an error on improper formatting");
+			OutputStreamWriterHelper.writeAndSend(bw, "where /d");
+			String output = br.readLine();
+			assertEquals("Attempting search with 10 minute timeout", output);
+			output = br.readLine();
+			assertEquals("Cannot execute command Command 'where /d' returned non-zero exit status 2.", output);
+		
+			System.out.println("Testing where command syntax with no findings");
+			String blueTeamDataDir = Paths.get("blue_team").toAbsolutePath().toString();
+			OutputStreamWriterHelper.writeAndSend(bw, "where /r " + blueTeamDataDir + " *.pst");
+			output = br.readLine();
+			assertEquals("Attempting search with 10 minute timeout", output);
+			output = br.readLine();
+			assertEquals("Search complete with no findings", output);
+			
+			System.out.println("Testing where command syntax with known findings");
+			OutputStreamWriterHelper.writeAndSend(bw, "where /r " + blueTeamDataDir + " *.md");
+			output = br.readLine();
+			assertEquals("Attempting search with 10 minute timeout", output);
+			output = br.readLine();
+			assertEquals(blueTeamDataDir + File.separator + "IOC_Guide.md", output);
+			output = br.readLine();
+			assertEquals("", output);
+			output = br.readLine();
+			assertEquals("Search complete", output);
+		}
 	}
 	
 	private static void testUplinkRandomBinaryFile(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
@@ -736,7 +790,8 @@ public class RunnerTestGeneric {
 		}
 	}
 
-	public static void cleanup(String lang) {
+	public static void cleanup() {
+		cleanLogs();
 		File dir = new File("test");
 		File[] matches = dir.listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String name) {

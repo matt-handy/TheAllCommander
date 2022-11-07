@@ -76,7 +76,7 @@ public class Constants {
 	public static final String MULTIPLESEXPECTEDMAXCLIENTREPORTINGINTERVAL = "daemon.reportinginterval.multiplesexpectedmaxclient";
 	
 	//When looping to wait for response from client, wait no longer than...
-	private int maxResponseWait = 10000;
+	private int maxResponseWait = 15000;
 	//When looping to wait for response from client, wait this long between polls
 	private int repollForResponseInterval = 100;
 	//When waiting a static interval for command action in synchronous text over

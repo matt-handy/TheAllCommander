@@ -183,7 +183,7 @@ public static void testDataExfilBody(TestConfiguration config) {
 	}
 
 public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws InterruptedException {
-	RunnerTestGeneric.cleanup("C++");
+	RunnerTestGeneric.cleanup();
 	
 	System.out.println("Transmitting commands");
 

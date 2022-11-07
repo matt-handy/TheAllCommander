@@ -58,7 +58,6 @@ public class CommandMacroManager {
 	}
 	
 	public boolean processCmd(String commandString, int sessionId, String sessionStr) {
-		//Check for Cookie Clearing
 		for(AbstractCommandMacro macro : macros) {
 			if(macro.isCommandMatch(commandString)) {
 				MacroOutcome outcome = macro.processCmd(commandString, sessionId, sessionStr);

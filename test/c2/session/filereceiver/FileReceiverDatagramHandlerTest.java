@@ -20,6 +20,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Properties;
@@ -36,42 +37,26 @@ import util.Time;
 import util.test.ClientServerTest;
 import util.test.OutputStreamWriterHelper;
 import util.test.RunnerTestGeneric;
+import util.test.TestCommons;
 import util.test.TestConstants;
 
 class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
-	static final Path CONTENT_DIR = Paths.get("test", "fileReceiverTest");
 	static final String TEST_BASE_FOLDER = "test_subfolder";
 	static final String TEST_HOST_NAME = "test_hostname";
-	static final String HARVEST_TEST_DIR = "harvest_test_source";
+	
 
-	static final Path SINGLE_XMISSION_FILE_FOLDER = Paths.get("test", HARVEST_TEST_DIR, "single_file");
-	static final Path DOUBLE_XMISSION_FILE_FOLDER = Paths.get("test", HARVEST_TEST_DIR, "double_file");
-	static final Path TRIPLE_XMISSION_FILE_FOLDER = Paths.get("test", HARVEST_TEST_DIR, "triple_file");
+	static final Path SINGLE_XMISSION_FILE_FOLDER = Paths.get("test", TestCommons.HARVEST_TEST_DIR, "single_file");
+	static final Path DOUBLE_XMISSION_FILE_FOLDER = Paths.get("test", TestCommons.HARVEST_TEST_DIR, "double_file");
+	static final Path TRIPLE_XMISSION_FILE_FOLDER = Paths.get("test", TestCommons.HARVEST_TEST_DIR, "triple_file");
 	static final Path SINGLE_FILE_PATH = Paths.get(SINGLE_XMISSION_FILE_FOLDER.toString(), "s_file");
 	static final Path DOUBLE_FILE_PATH = Paths.get(DOUBLE_XMISSION_FILE_FOLDER.toString(), "d_file");
 	static final Path TRIPLE_FILE_PATH = Paths.get(TRIPLE_XMISSION_FILE_FOLDER.toString(), "t_file");
 
-	static Properties setup() {
-		try (InputStream input = new FileInputStream("config" + File.separator + "test.properties")) {
-
-			Properties prop = new Properties();
-
-			// load a properties file
-			prop.load(input);
-
-			return prop;
-		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
-			fail(ex.getMessage());
-			return null;
-		}
-	}
-
 	public static void flushC2Emails() {
 		EmailHandler receiveHandler = new EmailHandler();
 		try {
-			receiveHandler.initialize(null, setup(), null, null);
+			receiveHandler.initialize(null, ClientServerTest.getDefaultSystemTestProperties(), null, null);
 		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
@@ -84,37 +69,18 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@AfterEach
 	void cleanupTestArtifacts() {
-		try (Stream<Path> walk = Files.walk(CONTENT_DIR)) {
-			walk.sorted(Comparator.reverseOrder()).forEach(FileReceiverDatagramHandlerTest::deleteDirectory);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-		}
-
-		try (Stream<Path> walk = Files.walk(Paths.get("test", HARVEST_TEST_DIR))) {
-			walk.sorted(Comparator.reverseOrder()).forEach(FileReceiverDatagramHandlerTest::deleteDirectory);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-		}
+		TestCommons.cleanFileHarvesterDir();
 	}
 
 	@BeforeEach
 	void checkAndFlushEmail() {
 		if (System.getProperty("os.name").contains("Windows")) {
-			Properties prop = setup();
+			Properties prop = ClientServerTest.getDefaultSystemTestProperties();
 			if (prop.getProperty(Constants.COMMSERVICES).contains("EmailHandler")) {
 				flushC2Emails();
 			}
 		}
-	}
-
-	static void deleteDirectory(Path path) {
-		try {
-			Files.delete(path);
-		} catch (IOException e) {
-			System.err.printf("Unable to delete this path : %s%n%s", path, e);
-		}
+		TestCommons.cleanFileHarvesterDir();
 	}
 
 	private static byte[] intToByteArray(final int i) {
@@ -146,7 +112,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	void verifyDaemonTransferredFilesExistAndCorrect() {
 		try {
 			File[] directories = new File(
-					Paths.get(CONTENT_DIR.toString(), InetAddress.getLocalHost().getHostName()).toString())
+					Paths.get(TestCommons.HARVEST_LANDING_DIR.toString(), InetAddress.getLocalHost().getHostName()).toString())
 							.listFiles(File::isDirectory);
 			// There should only be one session in the directory
 			assertEquals(1, directories.length);
@@ -156,12 +122,20 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 				Path target = Paths.get(directories[0].toPath().toString(), cleanedPath);
 				assertTrue(Files.exists(target));
 				assertFalse(Files.isDirectory(target));
-				byte[] content = Files.readAllBytes(target);
-				byte[] referenceContent = Files.readAllBytes(filePath);
-				assertEquals(referenceContent.length, content.length);
-				for (int idx = 0; idx < referenceContent.length; idx++) {
-					assertEquals(referenceContent[idx], content[idx]);
-				}
+				
+				FileInputStream isReference = new FileInputStream(filePath.toFile());
+				FileInputStream isContent = new FileInputStream(target.toFile());
+			    byte[] chunk = new byte[1024];
+			    byte[] chunkTarget = new byte[1024];
+			    int chunkLen = 0;
+			    while ((chunkLen = isReference.read(chunk)) != -1) {
+			    	assertEquals(chunkLen, isContent.read(chunkTarget), "Files not the same size!");
+			    	for(int idx = 0; idx < chunkLen; idx++) {
+			    		assertEquals(chunk[idx], chunkTarget[idx]);
+			    	}
+			    }
+			    isReference.close();
+			    isContent.close();
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -169,8 +143,8 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		}
 	}
 
-	void verifyFileExistsAndCorrect(String name, int expectedLen) {
-		File[] directories = new File(Paths.get(CONTENT_DIR.toString(), TEST_HOST_NAME).toString())
+	void verifyFileExistsAndCorrect(String name, long expectedLen) {
+		File[] directories = new File(Paths.get(TestCommons.HARVEST_LANDING_DIR.toString(), TEST_HOST_NAME).toString())
 				.listFiles(File::isDirectory);
 		// There should only be one session in the directory
 		assertEquals(1, directories.length);
@@ -180,6 +154,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		Path targetFile = Paths.get(firstChildFolder.toString(), name);
 		assertTrue(Files.exists(targetFile));
 		try {
+			/*
 			byte[] content = Files.readAllBytes(targetFile);
 			assertEquals(expectedLen, content.length);
 			byte currentChar = 65;
@@ -190,6 +165,24 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 					currentChar = 65;
 				}
 			}
+			*/
+			FileInputStream is = new FileInputStream(targetFile.toFile());
+		    byte[] chunk = new byte[1024];
+		    int chunkLen = 0;
+		    byte currentChar = 65;
+		    long masterCount = 0;
+		    while ((chunkLen = is.read(chunk)) != -1) {
+		    	masterCount += chunkLen;
+		    	for(int idx = 0; idx < chunkLen; idx++) {
+		    		assertEquals(currentChar, chunk[idx]);
+		    		currentChar++;
+					if (currentChar > 90) {
+						currentChar = 65;
+					}
+		    	}
+		    }
+		    assertEquals(expectedLen, masterCount);
+		    is.close();
 		} catch (IOException e) {
 			fail("Can't read test file");
 		}
@@ -251,7 +244,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testEndOfTransmissionClosesSessionObject() {
-		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
+		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(TestCommons.HARVEST_LANDING_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
 		assertTrue(handler.hasSessionCurrently(2, 1));
 		handler.processIncoming(2, 1, buildSessionCloseout());
@@ -260,7 +253,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 	@Test
 	void testCanRegisterNewSession() {
-		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
+		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(TestCommons.HARVEST_LANDING_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
 		assertTrue(handler.hasSessionCurrently(2, 1));
 		assertFalse(handler.hasSessionCurrently(2, 2));
@@ -269,7 +262,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	@Test
 	void testSingleFileTransmission() {
 		byte[] testPayload = buildTestPayload(1024, "test1", true);
-		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
+		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(TestCommons.HARVEST_LANDING_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
 		handler.processIncoming(2, 1, testPayload);
 		verifyFileExistsAndCorrect("test1", 1024);
@@ -278,7 +271,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	@Test
 	void testFileOverTwoTransmissions() {
 		byte[] testPayload = buildTestPayload(1024, "test1", true);
-		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
+		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(TestCommons.HARVEST_LANDING_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
 		byte[] xMission = Arrays.copyOfRange(testPayload, 0, 512);
 		handler.processIncoming(2, 1, xMission);
@@ -290,7 +283,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	@Test
 	void testFileOverThreeTransmissions() {
 		byte[] testPayload = buildTestPayload(2048, "test1", true);
-		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
+		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(TestCommons.HARVEST_LANDING_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
 		byte[] xMission = Arrays.copyOfRange(testPayload, 0, 512);
 		handler.processIncoming(2, 1, xMission);
@@ -305,7 +298,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 	void testTwoFileTwoTransmission() {
 		byte[] testPayload = buildTestPayload(1024, "test1", true);
 		byte[] testPayload2 = buildTestPayload(2055, "test2", true);
-		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
+		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(TestCommons.HARVEST_LANDING_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
 		handler.processIncoming(2, 1, testPayload);
 		handler.processIncoming(2, 1, testPayload2);
@@ -327,7 +320,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 			return;
 		}
 		byte[] testPayload = buildTestPayload(1024, "/" + TEST_BASE_FOLDER.toString() + "/test1", false);
-		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(CONTENT_DIR);
+		FileReceiverDatagramHandler handler = new FileReceiverDatagramHandler(TestCommons.HARVEST_LANDING_DIR);
 		handler.registerNewSession(2, 1, TEST_HOST_NAME);
 		handler.processIncoming(2, 1, testPayload);
 		verifyFileExistsAndCorrect("test1", 1024);
@@ -346,7 +339,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		return testPattern;
 	}
 
-	void generateTestFolderAndFiles() {
+	void generateTestFolderAndFiles(boolean supersizeLast) {
 		try {
 			Files.createDirectories(SINGLE_XMISSION_FILE_FOLDER);
 			Files.createDirectories(DOUBLE_XMISSION_FILE_FOLDER);
@@ -354,15 +347,23 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 			Files.write(SINGLE_FILE_PATH, buildTestPattern(50000));
 			Files.write(DOUBLE_FILE_PATH, buildTestPattern(150000));
-			Files.write(TRIPLE_FILE_PATH, buildTestPattern(250000));
+			if(supersizeLast) {
+				Files.write(TRIPLE_FILE_PATH, buildTestPattern(26));
+				for(int idx = 0; idx < 2000; idx++) {
+					Files.write(TRIPLE_FILE_PATH, buildTestPattern(2600000), StandardOpenOption.APPEND);
+				}
+			}else {
+				Files.write(TRIPLE_FILE_PATH, buildTestPattern(250000));
+			}
 		} catch (IOException ex) {
+			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
 	}
 
 	@Test
 	void testFileTransmissionViaPythonHTTPS() {
-		testFileTransmissionViaPython(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE, false);
+		testFileTransmissionViaPython(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE, false, false);
 	}
 
 	@Test
@@ -375,7 +376,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		if (!System.getProperty("os.name").contains("Windows")) {
 			return;
 		}
-		testFileTransmissionViaPython(TestConstants.PYTHON_DNSDAEMON_TEST_EXE, false);
+		testFileTransmissionViaPython(TestConstants.PYTHON_DNSDAEMON_TEST_EXE, false, false);
 	}
 
 	@Test
@@ -383,7 +384,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 		// Only works on Windows && only test if email connection defined in config
 		if (System.getProperty("os.name").contains("Windows")) {
-			Properties prop = setup();
+			Properties prop = ClientServerTest.getDefaultSystemTestProperties();
 
 			if (prop.getProperty(Constants.COMMSERVICES).contains("EmailHandler")) {
 				flushC2Emails();
@@ -396,12 +397,12 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		}
 	}
 
-	void testFileTransmissionViaPython(String daemon, boolean smtpFlush) {
+	void testFileTransmissionViaPython(String daemon, boolean smtpFlush, boolean supersize) {
 		// Tests file per 1 xmission
 		// Tests file with 2 xmissions
 		// Tests file with 3 xmissions
 
-		generateTestFolderAndFiles();
+		generateTestFolderAndFiles(supersize);
 		if (System.getProperty("os.name").contains("Windows")) {
 			initiateServer();
 		} else {
@@ -422,9 +423,9 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
 
 			OutputStreamWriterHelper.writeAndSend(bw,
-					"cd test" + FileSystems.getDefault().getSeparator() + HARVEST_TEST_DIR);
+					"cd test" + FileSystems.getDefault().getSeparator() + TestCommons.HARVEST_TEST_DIR);
 			OutputStreamWriterHelper.writeAndSend(bw, "harvest_pwd");
-			Path harvestDir = Paths.get("test", HARVEST_TEST_DIR);
+			Path harvestDir = Paths.get("test", TestCommons.HARVEST_TEST_DIR);
 			if (smtpFlush) {
 				assertEquals("Daemon alive", br.readLine());
 			}
@@ -434,7 +435,7 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 
 			OutputStreamWriterHelper.writeAndSend(bw, "die");
 
-			Time.sleepWrapped(3000);
+			awaitClient();
 
 			bw.close();
 			br.close();
@@ -449,11 +450,14 @@ class FileReceiverDatagramHandlerTest extends ClientServerTest {
 		teardown();
 	}
 
-	/*
-	 * TODO This validation is not necessary to minimum success definition, expand
-	 * later
-	 * 
-	 * @Test void testFileOverIntLimitViaPythonHTTPS() {
-	 * fail("Not yet implemented"); }
-	 */
+	@Test
+	//We need to validate that this works to support Outlook auditing as .ost and .pst files can be multi-gig
+	void testFileOverIntLimitViaPythonHTTPS() {
+		if(TestConstants.LARGE_HARVEST_TEST_ENABLE) {
+			testFileTransmissionViaPython(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE, false, true);
+		}else {
+			System.out.println("Skipping large file test, can be enabled with largeharvest.test.enable=true");
+		}
+	}
+	 
 }

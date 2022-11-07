@@ -14,6 +14,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
+import c2.Commands;
 import c2.Constants;
 import c2.http.HTTPSManager;
 import c2.session.IOManager;
@@ -139,6 +140,11 @@ public class TCPShellHandler implements Runnable {
 			sb.append(System.lineSeparator());
 			sb.append(System.lineSeparator());
 			ioManager.sendIO(sessionId, sb.toString());
+		}else if(nextCommand.equalsIgnoreCase(Commands.OS_HERITAGE)) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(Commands.OS_HERITAGE_RESPONSE_LINUX);
+			sb.append(System.lineSeparator());
+			ioManager.sendIO(sessionId, sb.toString());
 		} else if (nextCommand.equalsIgnoreCase("die")) {
 			bw.write("exit");
 			bw.write(Constants.NEWLINE);
@@ -254,6 +260,11 @@ public class TCPShellHandler implements Runnable {
 	private void operateWindowsCommand(OutputStreamWriter bw, String nextCommand) throws IOException {
 		if(nextCommand.equalsIgnoreCase("die")) {
 			OutputStreamWriterHelper.writeAndSend(bw, "exit");
+		}else if(nextCommand.equalsIgnoreCase(Commands.OS_HERITAGE)) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(Commands.OS_HERITAGE_RESPONSE_WINDOWS);
+			sb.append(System.lineSeparator());
+			ioManager.sendIO(sessionId, sb.toString());
 		}else if (nextCommand.equalsIgnoreCase("getUID")) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Username: " + username);

