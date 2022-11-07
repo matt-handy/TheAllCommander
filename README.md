@@ -21,7 +21,7 @@ The central server, TheAllCommander, receives incoming connections on a variety 
 Daemons are uniquely identified by the combination of user account, hostname, and protocol. Therefore multiple daemons can exist on a target system via different protocols, or via different user permission levels. It is also possible to spawn a daemon that identifies itself with a UID, which is specified as a unique identifier consisting of 16 alphanumeric characters. If a UID is specified for the daemon, the server will check to see if there is a prior session for the daemon's combination of hostname, user id, and protocol. If there is such a session, but the other daemon has not been in contact with the server within the configurable expected contact time, then the new daemon will assume the session of the previous one. However, if the other session is still active, then the server will allow both sessions to exist simultaneously. See the HTTPS handler reference implementation for details.
 
 # Defense Recommendations
-TheAllCommander has, new with Release 0.9.4, a basic guide for detection of all client side indicators of compromise enumated by this tool. It can be found here: [Blue Team Guide](blue_team\IOC_Guide.md) 
+TheAllCommander has, new with Release 0.9.4, a basic guide for detection of all client side indicators of compromise enumated by this tool. It can be found here: [Blue Team Guide](blue_team/IOC_Guide.md) 
 
 # Interfaces
 Check out the [Developers Guide](DevelopersGuide.md)
