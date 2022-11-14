@@ -92,6 +92,17 @@ public class ClientServerTest {
 				}
 			}
 		}
+		
+		//Kills the process if alive, returns true if process still existed
+		public boolean killProcess() {
+			try {
+				process.exitValue();
+				return false;
+			}catch(IllegalThreadStateException ex) {
+				process.destroyForcibly();
+				return true;
+			}
+		}
 	}
 	
 	protected static void spawnClient(String clientStartArgs) {
@@ -113,6 +124,19 @@ public class ClientServerTest {
 		service.shutdownNow();
 		runner.main.awaitFullShutdown();
 		RunnerTestGeneric.cleanLogs();
+		for(ChildManager manager : childManagers) {
+			if(manager.killProcess()) {
+				System.out.println("Warning: Had to kill: " + manager.clientStartArgs);
+			}
+		}
+	}
+	
+	protected static void cleanupClients() {
+		for(ChildManager manager : childManagers) {
+			if(manager.killProcess()) {
+				System.out.println("Warning: Had to kill: " + manager.clientStartArgs);
+			}
+		}
 	}
 	
 	protected static void executeStandardTest(String daemonLaunchArg, TestConfiguration config) {

@@ -39,7 +39,6 @@ import util.test.TestConfiguration.OS;
 
 public class RunnerTestGeneric {
 
-	
 	public static void testScreenshotsOnFS(String lang) {
 		File dir = new File("test");
 		File[] matches = dir.listFiles(new FilenameFilter() {
@@ -113,7 +112,7 @@ public class RunnerTestGeneric {
 
 		output = br.readLine();
 		assertEquals(SessionInitiator.WIZARD_BANNER, output);
-		
+
 		if (testSecond) {
 			bw.write("3" + System.lineSeparator());
 		} else {
@@ -136,13 +135,15 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		System.out.println("Daemon supplies: " + output);
 		if (isLinux) {
-			assertTrue(output.startsWith(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX));
+			assertTrue(output
+					.startsWith(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX));
 		} else {
 			if (isRemote) {
 				assertTrue(output.contains(baseIndex + ":"));
 			} else {
 				assertTrue(output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName())
-						|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()));// C++ Daemon
+						|| output.contains(baseIndex + ":" + InetAddress.getLocalHost().getHostName().toUpperCase()));// C++
+																														// Daemon
 			}
 		}
 		output = br.readLine();
@@ -305,7 +306,7 @@ public class RunnerTestGeneric {
 
 			// Ensure that python client has connected
 			Time.sleepWrapped(500);
-			
+
 			System.out.println("Setting up test commander session...");
 			try {
 				if (config.isTestTwoClients()) {
@@ -321,7 +322,7 @@ public class RunnerTestGeneric {
 				String output = br.readLine();
 				assertEquals(output, "Daemon alive");
 			}
-			
+
 			if (config.isExecInRoot()) {
 				System.out.println("cd test");
 				bw.write("cd test" + System.lineSeparator());
@@ -339,7 +340,7 @@ public class RunnerTestGeneric {
 					output = br.readLine();
 					assertEquals(TestConstants.EXECUTIONROOT_LINUX, output);
 				}
-				
+
 				if (!config.isRemote()) {
 					System.out.println("cd absolute path test");
 					OutputStreamWriterHelper.writeAndSend(bw, "cd " + testAbsoluteLocation);
@@ -350,9 +351,9 @@ public class RunnerTestGeneric {
 					assertEquals(Paths.get("").toAbsolutePath().toString(), output);
 				}
 			}
-			
+
 			testWhereCommand(br, bw, config);
-			
+
 			System.out.println("getUID test");
 			bw.write("getuid" + System.lineSeparator());
 			bw.flush();
@@ -404,11 +405,11 @@ public class RunnerTestGeneric {
 			testPwd(br, bw, config);
 
 			testDownloadAndUplinkNominal(br, bw, config);
-			
+
 			testOSEnumeration(br, bw, config);
-			
+
 			testUplinkRandomBinaryFile(br, bw, config);
-			
+
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
 					|| config.lang.equals("python") || config.lang.equals("Java"))
 					&& config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
@@ -432,28 +433,28 @@ public class RunnerTestGeneric {
 			testUplinkDownloadErrorHandling(br, bw);
 			testCatErrorHandling(br, bw, config);
 			testUplinkDownloadWithSpaces(br, bw, config);
-			if(!config.lang.equals("Java")){
+			if (!config.lang.equals("Java")) {
 				testClientIdentifesExecutable(br, bw, config);
-			}else {
+			} else {
 				System.out.println("Java daemon prototype cannot identify executable arguments");
 			}
-			
-			if(config.lang.equals("Native")) {
+
+			if (config.lang.equals("Native")) {
 				System.out.println("Native shell, cannot test sub shell spawning");
-			}else {
-				if(config.os == OS.LINUX) {
+			} else {
+				if (config.os == OS.LINUX) {
 					System.out.println("Shell capability not yet working on Linux");
-				}else if (config.lang.equals("C#")) {
+				} else if (config.lang.equals("C#")) {
 					System.out.println("Shell capability not yet working on C#");
-				}else if(config.lang.equals("Java")){
+				} else if (config.lang.equals("Java")) {
 					System.out.println("Shell capability not yet working on Java");
-				}else {
+				} else {
 					System.out.println("Testing shell capability");
 					testShell(br, bw, config);
 				}
-				
+
 			}
-			
+
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 
@@ -470,33 +471,35 @@ public class RunnerTestGeneric {
 
 		cleanup();
 	}
-	
-	private static void testOSEnumeration(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+
+	private static void testOSEnumeration(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
+			throws IOException {
 		System.out.println("Testing client identifies OS heritage");
 		OutputStreamWriterHelper.writeAndSend(bw, Commands.OS_HERITAGE);
-		if(config.os == OS.WINDOWS) {
+		if (config.os == OS.WINDOWS) {
 			assertEquals(Commands.OS_HERITAGE_RESPONSE_WINDOWS, br.readLine());
-		}else {//Have not implemented Mac, so Linux is "else" for now
+		} else {// Have not implemented Mac, so Linux is "else" for now
 			assertEquals(Commands.OS_HERITAGE_RESPONSE_LINUX, br.readLine());
 		}
 	}
-	
-	private static void testWhereCommand(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
-		if(config.os == OS.WINDOWS && !config.lang.equals("Native")) {
+
+	private static void testWhereCommand(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
+			throws IOException {
+		if (config.os == OS.WINDOWS && !config.lang.equals("Native")) {
 			System.out.println("Testing that where command returns an error on improper formatting");
 			OutputStreamWriterHelper.writeAndSend(bw, "where /d");
 			String output = br.readLine();
 			assertEquals("Attempting search with 10 minute timeout", output);
 			output = br.readLine();
-			//if(config.lang.equalsIgnoreCase("Python")) {
-				assertEquals("Cannot execute command Command 'where /d' returned non-zero exit status 2.", output);
-			//}else {
-			//	assertEquals("ERROR: Invalid argument or option - '/d'.", output);
-			//	output = br.readLine();
-			//	assertEquals("Type \"WHERE /?\" for usage help.", br.readLine());
-			//	output = br.readLine();
-			//}
-		
+			// if(config.lang.equalsIgnoreCase("Python")) {
+			assertEquals("Cannot execute command Command 'where /d' returned non-zero exit status 2.", output);
+			// }else {
+			// assertEquals("ERROR: Invalid argument or option - '/d'.", output);
+			// output = br.readLine();
+			// assertEquals("Type \"WHERE /?\" for usage help.", br.readLine());
+			// output = br.readLine();
+			// }
+
 			System.out.println("Testing where command syntax with no findings");
 			String blueTeamDataDir = Paths.get("blue_team").toAbsolutePath().toString();
 			OutputStreamWriterHelper.writeAndSend(bw, "where /r " + blueTeamDataDir + " *.pst");
@@ -504,7 +507,7 @@ public class RunnerTestGeneric {
 			assertEquals("Attempting search with 10 minute timeout", output);
 			output = br.readLine();
 			assertEquals("Search complete with no findings", output);
-			
+
 			System.out.println("Testing where command syntax with known findings");
 			OutputStreamWriterHelper.writeAndSend(bw, "where /r " + blueTeamDataDir + " *.md");
 			output = br.readLine();
@@ -513,44 +516,49 @@ public class RunnerTestGeneric {
 			assertEquals(blueTeamDataDir + File.separator + "IOC_Guide.md", output);
 			output = br.readLine();
 			assertEquals("", output);
-			if(config.lang.equalsIgnoreCase("C++")) {
+			if (config.lang.equalsIgnoreCase("C++")) {
 				assertEquals("", br.readLine());
 			}
 			output = br.readLine();
 			assertEquals("Search complete", output);
 		}
 	}
-	
-	private static void testUplinkRandomBinaryFile(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
-		System.out.println("Testing uplink of random file");
-		Random rnd = new Random();
-		byte[] fileContent = new byte[24845];
-		rnd.nextBytes(fileContent);
-		String expectedFileBase64 = Base64.getEncoder().encodeToString(fileContent);
-		Path tempFilePath = Paths.get("tmp_uplink_test");
-		Files.write(tempFilePath, fileContent);
-		OutputStreamWriterHelper.writeAndSend(bw, "uplink " + tempFilePath.toString());
-		String output = br.readLine();
-		assertEquals("<control> uplinked " + tempFilePath.toString() + " " + expectedFileBase64, output);
-		Files.delete(tempFilePath);
+
+	private static void testUplinkRandomBinaryFile(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
+			throws IOException {
+		if (!config.isRemote()) {
+			System.out.println("Testing uplink of random file");
+			Random rnd = new Random();
+			byte[] fileContent = new byte[24845];
+			rnd.nextBytes(fileContent);
+			String expectedFileBase64 = Base64.getEncoder().encodeToString(fileContent);
+			Path tempFilePath = Paths.get("tmp_uplink_test");
+			Files.write(tempFilePath, fileContent);
+			OutputStreamWriterHelper.writeAndSend(bw, "uplink " + tempFilePath.toString());
+			String output = br.readLine();
+			assertEquals("<control> uplinked " + tempFilePath.toString() + " " + expectedFileBase64, output);
+			Files.delete(tempFilePath);
+		}
 	}
-	
-	private static void testDownloadAndUplinkNominal(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
-		//Test download and uplink as a pair
+
+	private static void testDownloadAndUplinkNominal(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
+			throws IOException {
+		// Test download and uplink as a pair
 		System.out.println("Testing uplink and download - nominal case");
-		OutputStreamWriterHelper.writeAndSend(bw, "<control> download test_uplink PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+");
+		OutputStreamWriterHelper.writeAndSend(bw,
+				"<control> download test_uplink PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+");
 		String output = br.readLine();
 		assertEquals(output, "File written: test_uplink");
 		OutputStreamWriterHelper.writeAndSend(bw, "uplink test_uplink");
 		output = br.readLine();
 		assertEquals(output,
 				"<control> uplinked test_uplink PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+");
-		if(config.os == OS.WINDOWS) {
+		if (config.os == OS.WINDOWS) {
 			OutputStreamWriterHelper.writeAndSend(bw, "del test_uplink");
-		}else {
+		} else {
 			OutputStreamWriterHelper.writeAndSend(bw, "rm test_uplink");
 		}
-		if(!config.lang.equals("Native")) {
+		if (!config.lang.equals("Native")) {
 			output = br.readLine();// Blank line
 		}
 	}
@@ -564,7 +572,7 @@ public class RunnerTestGeneric {
 			if (config.os == TestConfiguration.OS.LINUX) {
 				if (config.isRemote()) {
 					assertEquals(output, TestConstants.EXECUTIONROOT_LINUX);
-				}else{
+				} else {
 					assertEquals(output, Paths.get("").toAbsolutePath().toString());
 				}
 			} else if (config.lang.equals("Native")) {
@@ -576,8 +584,9 @@ public class RunnerTestGeneric {
 			} else {
 				if (config.isExecInRoot()) {
 					assertEquals(output, Paths.get("").toAbsolutePath().toString());
-					//SMTP daemon generates files in working directory, and makes directory enumeration unreliable
-					if(!(config.lang.equals("python") && config.protocol.equals("SMTP"))) {
+					// SMTP daemon generates files in working directory, and makes directory
+					// enumeration unreliable
+					if (!(config.lang.equals("python") && config.protocol.equals("SMTP"))) {
 						System.out.println("dir test");
 						testRootDirEnum(br, bw);
 					}
@@ -591,7 +600,6 @@ public class RunnerTestGeneric {
 				}
 			}
 
-			
 		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}
@@ -599,7 +607,7 @@ public class RunnerTestGeneric {
 
 	private static void testClientIdentifesExecutable(BufferedReader br, OutputStreamWriter bw,
 			TestConfiguration config) {
-		if(config.lang.equals("Native")) {
+		if (config.lang.equals("Native")) {
 			System.out.println("Native shell, cannot test client executable identification");
 			return;
 		}
@@ -610,10 +618,10 @@ public class RunnerTestGeneric {
 				String output = br.readLine();
 				String[] respElements = output.split(" ");
 				assertEquals(2, respElements.length);
-				if(config.os == OS.WINDOWS) {
+				if (config.os == OS.WINDOWS) {
 					assertTrue(respElements[0].startsWith("C:\\"));
 					assertTrue(respElements[0].endsWith("python.exe"));
-				}else {
+				} else {
 					assertEquals("/usr/bin/python3", respElements[0]);
 				}
 				if (config.protocol.equals("DNS")) {
@@ -633,7 +641,8 @@ public class RunnerTestGeneric {
 				assertTrue(output.startsWith("C:\\"));
 				if (config.protocol.equals("HTTPS")) {
 					if (config.isExecInRoot()) {
-						assertTrue(output.endsWith("client_x.exe") || output.endsWith("stager_x.exe") || output.endsWith("test_tmp.exe"));
+						assertTrue(output.endsWith("client_x.exe") || output.endsWith("stager_x.exe")
+								|| output.endsWith("test_tmp.exe"));
 					} else {
 						assertTrue(output.endsWith("MSBuild.exe"));
 					}
@@ -644,26 +653,26 @@ public class RunnerTestGeneric {
 				} else {
 					fail("Implement me");
 				}
-			}else if(config.lang.equals("C++")) {
+			} else if (config.lang.equals("C++")) {
 				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
-				if(config.os == OS.LINUX) {
+				if (config.os == OS.LINUX) {
 					assertTrue(output.startsWith("/home/kali"));
 					if (config.protocol.equals("HTTPS")) {
 						assertTrue(output.endsWith("http_daemon"));
-					}else if (config.protocol.equals("DNS")) {
+					} else if (config.protocol.equals("DNS")) {
 						assertTrue(output.endsWith("dns_daemon"));
 					} else if (config.protocol.equals("SMTP")) {
 						fail("Implement me");
 					} else {
 						fail("Implement me");
 					}
-				}else {
+				} else {
 					assertTrue(output.startsWith("C:\\"));
 					if (config.protocol.equals("HTTPS")) {
 						assertTrue(output.endsWith("daemon.exe"));
-					}else if (config.protocol.equals("DNS")) {
+					} else if (config.protocol.equals("DNS")) {
 						assertTrue(output.endsWith("dns_daemon.exe"));
 					} else if (config.protocol.equals("SMTP")) {
 						assertTrue(output.endsWith("imap_daemon.exe"));
@@ -783,14 +792,13 @@ public class RunnerTestGeneric {
 			fail(ex.getMessage());
 		}
 	}
-	
+
 	public static void cleanLogs() {
 		Path logPath = Paths.get("test", "log");
 		try {
-			Files.walk(logPath).sorted(Comparator.reverseOrder()).map(Path::toFile)
-					.forEach(File::delete);
+			Files.walk(logPath).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 		} catch (IOException e2) {
-			//Will delete on next attempt
+			// Will delete on next attempt
 		}
 	}
 
@@ -994,14 +1002,9 @@ public class RunnerTestGeneric {
 			bw.flush();
 
 			/*
-			//TODO FLAG
-			// Minimum beacon time
-			try {
-				Thread.sleep(2500);
-			} catch (InterruptedException ex) {
-				// ignore
-			}
-			*/
+			 * //TODO FLAG // Minimum beacon time try { Thread.sleep(2500); } catch
+			 * (InterruptedException ex) { // ignore }
+			 */
 			output = br.readLine();
 			assertEquals(output, "Abort: No file write");
 
@@ -1020,14 +1023,9 @@ public class RunnerTestGeneric {
 			bw.flush();
 
 			/*
-			//TODO FLAG
-			// Minimum beacon time
-			try {
-				Thread.sleep(2500);
-			} catch (InterruptedException ex) {
-				// ignore
-			}
-			*/
+			 * //TODO FLAG // Minimum beacon time try { Thread.sleep(2500); } catch
+			 * (InterruptedException ex) { // ignore }
+			 */
 			System.out.println("Checking for write confirmation");
 			output = br.readLine();
 			assertEquals(output, "Data written");
@@ -1103,14 +1101,10 @@ public class RunnerTestGeneric {
 		System.out.println("Test cat copying appended file");
 		bw.write("cat " + targetFile + " >> " + targetTempCopy + System.lineSeparator());
 		bw.flush();
-		/* TODO: FLAG
-		// Minimum beacon time
-		try {
-			Thread.sleep(2500);
-		} catch (InterruptedException ex) {
-			// ignore
-		}
-		*/
+		/*
+		 * TODO: FLAG // Minimum beacon time try { Thread.sleep(2500); } catch
+		 * (InterruptedException ex) { // ignore }
+		 */
 		output = br.readLine();
 		assertEquals(output, "Appended file");
 		if (config.isRemote()) {
@@ -1121,7 +1115,7 @@ public class RunnerTestGeneric {
 					"<control> uplinked execCentral.bat.tmp amF2YSAtY3AgInRhcmdldC8qO3RhcmdldC9saWIvKiIgYzIuUnVubmVyIGNvbmZpZy90ZXN0LnByb3BlcnRpZXNqYXZhIC1jcCAidGFyZ2V0Lyo7dGFyZ2V0L2xpYi8qIiBjMi5SdW5uZXIgY29uZmlnL3Rlc3QucHJvcGVydGllcw==");
 			bw.write("rm execCentral.bat.tmp" + System.lineSeparator());
 			bw.flush();
-			
+
 			br.readLine();
 			System.out.println("Cleaned up cat test");
 		} else {
@@ -1132,13 +1126,13 @@ public class RunnerTestGeneric {
 
 		Files.deleteIfExists(Paths.get(targetTempCopyRoot));
 	}
-	
+
 	static void testShell(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
 		bw.write("shell_list" + System.lineSeparator());
 		bw.flush();
 		String response = br.readLine();
 		assertEquals("No shells active", response);
-		
+
 		bw.write("shell" + System.lineSeparator());
 		bw.write("shell_background" + System.lineSeparator());
 		bw.write("shell_list" + System.lineSeparator());
@@ -1153,7 +1147,7 @@ public class RunnerTestGeneric {
 		assertEquals("Shell 0: No Process", response);
 		response = br.readLine();
 		assertEquals("", response);
-		
+
 		bw.write("shell" + System.lineSeparator());
 		bw.write("shell_background" + System.lineSeparator());
 		bw.write("shell_list" + System.lineSeparator());
@@ -1170,23 +1164,27 @@ public class RunnerTestGeneric {
 		assertEquals("Shell 1: No Process", response);
 		response = br.readLine();
 		assertEquals("", response);
-		
-		//Test program has a simple loop. Asks the user "enter a string", and responds with the entry. 
-		//Enter "crash" to cause a segfault. Enter "quit" to quit gracefully.
-		
+
+		// Test program has a simple loop. Asks the user "enter a string", and responds
+		// with the entry.
+		// Enter "crash" to cause a segfault. Enter "quit" to quit gracefully.
+
 		bw.write("shell 0" + System.lineSeparator());
-		if(config.os == OS.LINUX) {
-			if(config.isRemote()){
-				bw.write("python3 " + TestConstants.EXECUTIONROOT_LINUX + "/TheAllCommander/test_support_scripts/basic_io_loop.py" + System.lineSeparator());
-			}else{
-				bw.write("python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py" + System.lineSeparator());
+		if (config.os == OS.LINUX) {
+			if (config.isRemote()) {
+				bw.write("python3 " + TestConstants.EXECUTIONROOT_LINUX
+						+ "/TheAllCommander/test_support_scripts/basic_io_loop.py" + System.lineSeparator());
+			} else {
+				bw.write("python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py"
+						+ System.lineSeparator());
 			}
-		}else {
-			bw.write("python test_support_scripts" + System.getProperty("file.separator")+ System.getProperty("file.separator") + "basic_io_loop.py" + System.lineSeparator());
+		} else {
+			bw.write("python test_support_scripts" + System.getProperty("file.separator")
+					+ System.getProperty("file.separator") + "basic_io_loop.py" + System.lineSeparator());
 		}
 		bw.write("test_io" + System.lineSeparator());
 		bw.flush();
-		Time.sleepWrapped(7500);//Let the other process do its thing
+		Time.sleepWrapped(7500);// Let the other process do its thing
 		bw.write("shell_background" + System.lineSeparator());
 		bw.write("shell_list" + System.lineSeparator());
 		bw.flush();
@@ -1195,13 +1193,14 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Enter a String:", response);
 		response = br.readLine();
-		if(!config.lang.equals("C++")) {
+		if (!config.lang.equals("C++")) {
 			assertEquals("", response);
 			response = br.readLine();
 			assertEquals("You entered: test_io", response);
-		}else {
-			//C++ may or may not place a newline, so we test if we have a blank link before moving forward
-			if(!response.equals("You entered: test_io")) {
+		} else {
+			// C++ may or may not place a newline, so we test if we have a blank link before
+			// moving forward
+			if (!response.equals("You entered: test_io")) {
 				response = br.readLine();
 				assertEquals("You entered: test_io", response);
 			}
@@ -1209,13 +1208,14 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Enter a String:", response);
 		response = br.readLine();
-		if(!config.lang.equals("C++")) {
+		if (!config.lang.equals("C++")) {
 			assertEquals("", response);
 			response = br.readLine();
 			assertEquals("Proceeding in main shell", response);
-		}else {
-			//C++ may or may not place a newline, so we test if we have a blank link before moving forward
-			if(!response.equals("Proceeding in main shell")) {
+		} else {
+			// C++ may or may not place a newline, so we test if we have a blank link before
+			// moving forward
+			if (!response.equals("Proceeding in main shell")) {
 				response = br.readLine();
 				assertEquals("Proceeding in main shell", response);
 			}
@@ -1223,20 +1223,23 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
-		if(config.os == OS.LINUX) {
-			if(config.isRemote()){
-				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/TheAllCommander/test_support_scripts/basic_io_loop.py", response);
-			}else{
-				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py", response);
+		if (config.os == OS.LINUX) {
+			if (config.isRemote()) {
+				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX
+						+ "/TheAllCommander/test_support_scripts/basic_io_loop.py", response);
+			} else {
+				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py",
+						response);
 			}
-		}else {
-			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py", response);
+		} else {
+			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator")
+					+ System.getProperty("file.separator") + "basic_io_loop.py", response);
 		}
 		response = br.readLine();
 		assertEquals("Shell 1: No Process", response);
 		response = br.readLine();
 		assertEquals("", response);
-		
+
 		System.out.println("Testing crash");
 		bw.write("shell 0" + System.lineSeparator());
 		bw.write("crash" + System.lineSeparator());
@@ -1250,20 +1253,25 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
-		if(config.os == OS.LINUX) {
-			if(config.isRemote()){
-				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/TheAllCommander/test_support_scripts/basic_io_loop.py exited with code 139", response);
-			}else{
-				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py exited with code 139", response);
+		if (config.os == OS.LINUX) {
+			if (config.isRemote()) {
+				assertEquals(
+						"Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX
+								+ "/TheAllCommander/test_support_scripts/basic_io_loop.py exited with code 139",
+						response);
+			} else {
+				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString()
+						+ "/basic_io_loop.py exited with code 139", response);
 			}
-		}else {
-			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py exited with code 139", response);
+		} else {
+			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator")
+					+ System.getProperty("file.separator") + "basic_io_loop.py exited with code 139", response);
 		}
 		response = br.readLine();
 		assertEquals("Shell 1: No Process", response);
 		response = br.readLine();
 		assertEquals("", response);
-		
+
 		bw.write("shell_kill 1" + System.lineSeparator());
 		bw.write("shell_list" + System.lineSeparator());
 		bw.flush();
@@ -1272,18 +1280,23 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		assertEquals("Sessions available: ", response);
 		response = br.readLine();
-		if(config.os == OS.LINUX) {
-			if(config.isRemote()){
-				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX + "/TheAllCommander/test_support_scripts/basic_io_loop.py exited with code 139", response);
-			}else{
-				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py exited with code 139", response);
+		if (config.os == OS.LINUX) {
+			if (config.isRemote()) {
+				assertEquals(
+						"Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX
+								+ "/TheAllCommander/test_support_scripts/basic_io_loop.py exited with code 139",
+						response);
+			} else {
+				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString()
+						+ "/basic_io_loop.py exited with code 139", response);
 			}
-		}else {
-			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator") + System.getProperty("file.separator") + "basic_io_loop.py exited with code 139", response);
+		} else {
+			assertEquals("Shell 0: python test_support_scripts" + System.getProperty("file.separator")
+					+ System.getProperty("file.separator") + "basic_io_loop.py exited with code 139", response);
 		}
 		response = br.readLine();
 		assertEquals("", response);
-		
+
 		bw.write("shell 0" + System.lineSeparator());
 		bw.write("shell_kill" + System.lineSeparator());
 		bw.write("shell_list" + System.lineSeparator());
