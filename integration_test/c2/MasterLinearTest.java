@@ -10,7 +10,6 @@ import c2.nativeshell.RunnerTestNativeLinuxDaemon;
 import c2.python.RunnerTestKeyloggerDNS;
 import c2.python.RunnerTestKeyloggerEmail;
 import c2.python.RunnerTestKeyloggerHTTPS;
-import c2.python.RunnerTestPython;
 import c2.python.RunnerTestPythonEmail;
 import c2.win.RunnerTestPythonHTTPSDaemonWinRDP;
 
@@ -39,10 +38,6 @@ class MasterLinearTest {
 		System.out.println("Testing Python");
 		RunnerTestPythonEmail.testEmail();
 		
-		System.out.println("Testing Python multiple sessions");
-		RunnerTestPython.testHTTPSTwoSessions();
-		RunnerTestPython.testDNSTwoSessions();
-
 		RunnerTestPythonHTTPSDaemonWinRDP.test();
 	}
 

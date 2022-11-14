@@ -84,9 +84,6 @@ class CommanderInterfaceTest extends ClientServerTest {
 
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
-
-			Time.sleepWrapped(3000);
-
 			bw.close();
 			br.close();
 			remote.close();
@@ -96,8 +93,7 @@ class CommanderInterfaceTest extends ClientServerTest {
 			fail(ex.getMessage());
 		}
 
-		Time.sleepWrapped(500);
-
+		awaitClient();
 		teardown();
 	}
 

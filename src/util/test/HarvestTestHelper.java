@@ -175,7 +175,6 @@ public static void testDataExfilBody(TestConfiguration config) {
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 			
-			Time.sleepWrapped(2000);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			fail();
@@ -282,8 +281,6 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 
 		bw.write("die" + System.lineSeparator());
 		bw.flush();
-
-		Time.sleepWrapped(2000);
 
 		// Delete local cookies storage
 				Files.deleteIfExists(Paths.get(firefoxAssets));

@@ -175,8 +175,6 @@ public class TestProcessor extends ClientServerTest {
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 
-			Time.sleepWrapped(2500);
-
 			bw.close();
 			br.close();
 			remote.close();

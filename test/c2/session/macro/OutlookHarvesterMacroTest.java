@@ -132,10 +132,10 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 						} else {
 							io.sendIO(id, "You told me to harvest too many times!!!");
 						}
-					}else {
-						if(harvestCount == 0) {
+					} else {
+						if (harvestCount == 0) {
 							io.sendIO(id, "Started Harvest: C:\\user\\fakedir");
-						}else {
+						} else {
 							io.sendIO(id, "You told me to harvest too many times!!!");
 						}
 					}
@@ -145,7 +145,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 					io.sendIO(id, "C:\\user\\fakedir\\mystuff.pst");
 					io.sendIO(id, "Search complete");
 				} else if (command.equals(Commands.CD + " C:\\user\\fakedir")) {
-					io.sendIO(id, "C:\\user\\fakedir" +  System.lineSeparator());
+					io.sendIO(id, "C:\\user\\fakedir" + System.lineSeparator());
 				} else {
 					System.out.println("Unknown command: " + command);
 				}
@@ -157,7 +157,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 	@AfterEach
 	void cleanup() {
 		RunnerTestGeneric.cleanLogs();
-		
+
 		TestCommons.cleanFileHarvesterDir();
 	}
 
@@ -268,78 +268,84 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 		OutlookHarvesterMacro macro = new OutlookHarvesterMacro();
 		macro.initialize(io, null);
 		MacroOutcome outcome = macro.processCmd(
-				OutlookHarvesterMacro.OUTLOOK_HARVEST_COMMAND + " " + OutlookHarvesterMacro.OUTLOOK_HARVEST_DEEP_SEARCH, id,
-				"ignored");
+				OutlookHarvesterMacro.OUTLOOK_HARVEST_COMMAND + " " + OutlookHarvesterMacro.OUTLOOK_HARVEST_DEEP_SEARCH,
+				id, "ignored");
 		assertEquals("Sent Command: 'pwd'", outcome.getOutput().get(0));
 		assertEquals("Received response: 'C:\\test" + System.lineSeparator() + "'", outcome.getOutput().get(1));
 		assertEquals("Macro Executor: 'Saving original working directory, proceeding with Outlook harvest'",
 				outcome.getOutput().get(2));
 		assertEquals("Sent Command: 'where /r C:\\ *.pst'", outcome.getOutput().get(3));
 		assertEquals("Received response: 'Attempting search with 10 minute timeout" + System.lineSeparator()
-				+ "C:\\user\\fakedir\\mystuff.pst" + System.lineSeparator()
-				+ "Search complete" + System.lineSeparator() + "'", outcome.getOutput().get(4));
+				+ "C:\\user\\fakedir\\mystuff.pst" + System.lineSeparator() + "Search complete" + System.lineSeparator()
+				+ "'", outcome.getOutput().get(4));
 		assertEquals("Sent Command: 'cd C:\\user\\fakedir'", outcome.getOutput().get(5));
 		assertEquals("Received response: 'C:\\user\\fakedir'", outcome.getOutput().get(6));
 		assertEquals("Sent Command: 'harvest_pwd'", outcome.getOutput().get(7));
-		assertEquals("Received response: 'Started Harvest: C:\\user\\fakedir" + System.lineSeparator() + "'", outcome.getOutput().get(8));
+		assertEquals("Received response: 'Started Harvest: C:\\user\\fakedir" + System.lineSeparator() + "'",
+				outcome.getOutput().get(8));
 		assertEquals("Sent Command: 'cd C:\\test'", outcome.getOutput().get(9));
 		assertEquals("Received response: 'C:\\test'", outcome.getOutput().get(10));
-		assertEquals("Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'", outcome.getOutput().get(11));
+		assertEquals(
+				"Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'",
+				outcome.getOutput().get(11));
 	}
 
 	Path determineReferencePSTFile() {
-		Path rootPath; 
+		Path rootPath;
 		Path documentsRoot = Paths.get("C:", "Users", System.getProperty("user.name"), "Documents", "Outlook Files");
-		Path oneDriveDocumentsRoot = Paths.get("C:", "Users", System.getProperty("user.name"),"OneDrive", "Documents", "Outlook Files");
-		if(Files.exists(documentsRoot)) {
+		Path oneDriveDocumentsRoot = Paths.get("C:", "Users", System.getProperty("user.name"), "OneDrive", "Documents",
+				"Outlook Files");
+		if (Files.exists(documentsRoot)) {
 			rootPath = documentsRoot;
-		}else {
+		} else {
 			rootPath = oneDriveDocumentsRoot;
 		}
-		
+
 		File[] matches = rootPath.toFile().listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				return name.endsWith(".pst");
 			}
 		});
-		if(matches != null && matches.length == 1) {
+		if (matches != null && matches.length == 1) {
 			return matches[0].toPath();
-		}else {
+		} else {
 			System.out.println("Warning: no PST file found");
 			return null;
 		}
 	}
-	
+
 	Path determineReferenceOSTFile() {
 		String appdata = System.getenv("APPDATA");
 		Path ostDir;
 		Path defaultOSTDir = Paths.get(OutlookHarvesterMacro.OUTLOOK_OST_DIR.replace("%APPDATA%", appdata));
-		if(Files.exists(defaultOSTDir)){
+		if (Files.exists(defaultOSTDir)) {
 			ostDir = defaultOSTDir;
-		}else {
-			ostDir = Paths.get(OutlookHarvesterMacro.OUTLOOK_OST_WITH_APPDATA_ROAMING_DIR.replace("%APPDATA%", appdata));
+		} else {
+			ostDir = Paths
+					.get(OutlookHarvesterMacro.OUTLOOK_OST_WITH_APPDATA_ROAMING_DIR.replace("%APPDATA%", appdata));
 		}
 		File[] matches = ostDir.toFile().listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				return name.endsWith(".ost");
 			}
 		});
-		if(matches.length == 1) {
+		if (matches.length == 1) {
 			return matches[0].toPath();
-		}else {
+		} else {
 			System.out.println("Warning: no OST file found");
 			return null;
 		}
 	}
-	
+
 	@Test
 	void testBasicHarvestLiveOS() {
-		//This test is only enabled by user choice, as we don't want to test with actual user data if someone
-		//isn't reading the fine print and doesn't know what they're doing
-		if(TestConstants.OUTLOOKHARVEST_LIVE_ENABLE && System.getProperty("os.name").contains("Windows")) {
+		// This test is only enabled by user choice, as we don't want to test with
+		// actual user data if someone
+		// isn't reading the fine print and doesn't know what they're doing
+		if (TestConstants.OUTLOOKHARVEST_LIVE_ENABLE && System.getProperty("os.name").contains("Windows")) {
 			Path referencePST = determineReferencePSTFile();
 			Path referenceOST = determineReferenceOSTFile();
-			
+
 			initiateServer();
 			spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 
@@ -363,98 +369,107 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 					fail(ex.getMessage());
 				}
 
-				OutputStreamWriterHelper.writeAndSend(bw, OutlookHarvesterMacro.OUTLOOK_HARVEST_COMMAND + " " + OutlookHarvesterMacro.OUTLOOK_HARVEST_BASIC);
-				
+				OutputStreamWriterHelper.writeAndSend(bw, OutlookHarvesterMacro.OUTLOOK_HARVEST_COMMAND + " "
+						+ OutlookHarvesterMacro.OUTLOOK_HARVEST_BASIC);
+
 				Time.sleepWrapped(150000);
-				
-				//TODO: dynamically load from configuration this directory
+
+				// TODO: dynamically load from configuration this directory
 				File[] directories = new File(
-						Paths.get(TestCommons.HARVEST_LANDING_DIR.toString(), InetAddress.getLocalHost().getHostName()).toString())
-								.listFiles(File::isDirectory);
+						Paths.get(TestCommons.HARVEST_LANDING_DIR.toString(), InetAddress.getLocalHost().getHostName())
+								.toString()).listFiles(File::isDirectory);
 				assertEquals(2, directories.length);
-				
-				Path pstUpload = Paths.get( directories[0].toPath().toString(), "c", referencePST.subpath(0, referencePST.getNameCount()).toString());
+
+				Path pstUpload = Paths.get(directories[0].toPath().toString(), "c",
+						referencePST.subpath(0, referencePST.getNameCount()).toString());
 				System.out.println(pstUpload.toString());
 				assertTrue(Files.exists(pstUpload));
 				assertEquals(Files.size(referencePST), Files.size(pstUpload));
-				
-				Path ostUpload = Paths.get( directories[1].toPath().toString(), "c", referenceOST.subpath(0, referenceOST.getNameCount()).toString());
+
+				Path ostUpload = Paths.get(directories[1].toPath().toString(), "c",
+						referenceOST.subpath(0, referenceOST.getNameCount()).toString());
 				System.out.println(ostUpload.toString());
 				assertTrue(Files.exists(ostUpload));
 				assertEquals(Files.size(referenceOST), Files.size(ostUpload));
-				
+
 				OutputStreamWriterHelper.writeAndSend(bw, "die");
-				
+
 				awaitClient();
-			}catch(IOException ex) {
-				
+			} catch (IOException ex) {
+
 			}
 			teardown();
-		}else {
-			System.out.println("WARNING: Skipping Outlook harvester test with local Outlook instance. If you want this to be configured, enable: " + TestConstants.I_OUTLOOKHARVEST_LIVE_ENABLE);
+		} else {
+			System.out.println(
+					"WARNING: Skipping Outlook harvester test with local Outlook instance. If you want this to be configured, enable: "
+							+ TestConstants.I_OUTLOOKHARVEST_LIVE_ENABLE);
 		}
 	}
-	
-	
 
 	@Test
 	void testDeepSearchHarvestLiveOS() {
-		//This test is only enabled by user choice, as we don't want to test with actual user data if someone
-				//isn't reading the fine print and doesn't know what they're doing
-				if(TestConstants.OUTLOOKHARVEST_LIVE_ENABLE && System.getProperty("os.name").contains("Windows")) {
-					Path referencePST = determineReferencePSTFile();
-					
-					initiateServer();
-					spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
+		// This test is only enabled by user choice, as we don't want to test with
+		// actual user data if someone
+		// isn't reading the fine print and doesn't know what they're doing
+		if (TestConstants.OUTLOOKHARVEST_LIVE_ENABLE && System.getProperty("os.name").contains("Windows")) {
+			Path referencePST = determineReferencePSTFile();
 
-					try {
-						try {
-							Thread.sleep(5000);// allow both commander and daemon to start
-						} catch (InterruptedException e) {
-							// Ensure that python client has connected
-						}
-						System.out.println("Connecting test commander...");
-						Socket remote = new Socket("localhost", 8111);
-						System.out.println("Locking test commander streams...");
-						OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
-						BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
+			initiateServer();
+			spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 
-						Time.sleepWrapped(500);
-						System.out.println("Setting up test commander session...");
-						try {
-							RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
-						} catch (Exception ex) {
-							fail(ex.getMessage());
-						}
-
-						String command = OutlookHarvesterMacro.OUTLOOK_HARVEST_COMMAND + " " + OutlookHarvesterMacro.OUTLOOK_HARVEST_DEEP_SEARCH + " C:\\Users\\" + System.getProperty("user.name") + "\\OneDrive\\Documents";
-						System.out.println(command);
-						OutputStreamWriterHelper.writeAndSend(bw, command);
-						
-						Time.sleepWrapped(60000);
-						
-						//TODO: dynamically load from configuration this directory
-						File[] directories = new File(
-								Paths.get(TestCommons.HARVEST_LANDING_DIR.toString(), InetAddress.getLocalHost().getHostName()).toString())
-										.listFiles(File::isDirectory);
-						assertTrue(directories != null);
-						assertEquals(1, directories.length);
-						
-						Path pstUpload = Paths.get( directories[0].toPath().toString(), "c", referencePST.subpath(0, referencePST.getNameCount()).toString());
-						System.out.println(pstUpload.toString());
-						assertTrue(Files.exists(pstUpload));
-						assertEquals(Files.size(referencePST), Files.size(pstUpload));
-						
-						OutputStreamWriterHelper.writeAndSend(bw, "die");
-						
-						awaitClient();
-					}catch(IOException ex) {
-						
-					}
-					teardown();
-				}else {
-					System.out.println("WARNING: Skipping Outlook harvester test with local Outlook instance. If you want this to be configured, enable: " + TestConstants.I_OUTLOOKHARVEST_LIVE_ENABLE);
+			try {
+				try {
+					Thread.sleep(5000);// allow both commander and daemon to start
+				} catch (InterruptedException e) {
+					// Ensure that python client has connected
 				}
+				System.out.println("Connecting test commander...");
+				Socket remote = new Socket("localhost", 8111);
+				System.out.println("Locking test commander streams...");
+				OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
+				BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
+
+				Time.sleepWrapped(500);
+				System.out.println("Setting up test commander session...");
+				try {
+					RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
+				} catch (Exception ex) {
+					fail(ex.getMessage());
+				}
+
+				String command = OutlookHarvesterMacro.OUTLOOK_HARVEST_COMMAND + " "
+						+ OutlookHarvesterMacro.OUTLOOK_HARVEST_DEEP_SEARCH + " C:\\Users\\"
+						+ System.getProperty("user.name") + "\\OneDrive\\Documents";
+				System.out.println(command);
+				OutputStreamWriterHelper.writeAndSend(bw, command);
+
+				Time.sleepWrapped(60000);
+
+				// TODO: dynamically load from configuration this directory
+				File[] directories = new File(
+						Paths.get(TestCommons.HARVEST_LANDING_DIR.toString(), InetAddress.getLocalHost().getHostName())
+								.toString()).listFiles(File::isDirectory);
+				assertTrue(directories != null);
+				assertEquals(1, directories.length);
+
+				Path pstUpload = Paths.get(directories[0].toPath().toString(), "c",
+						referencePST.subpath(0, referencePST.getNameCount()).toString());
+				System.out.println(pstUpload.toString());
+				assertTrue(Files.exists(pstUpload));
+				assertEquals(Files.size(referencePST), Files.size(pstUpload));
+
+				OutputStreamWriterHelper.writeAndSend(bw, "die");
+
+				awaitClient();
+			} catch (IOException ex) {
+
+			}
+			teardown();
+		} else {
+			System.out.println(
+					"WARNING: Skipping Outlook harvester test with local Outlook instance. If you want this to be configured, enable: "
+							+ TestConstants.I_OUTLOOKHARVEST_LIVE_ENABLE);
+		}
 	}
 
 }

@@ -35,6 +35,7 @@ class HarvesterIntegrationTest  extends ClientServerTest {
 		TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "HTTPS");
 		HarvestTestHelper.testDataExfilBody(testConfig);
 		
+		awaitClient();
 		teardown();
 	}
 	
@@ -59,6 +60,7 @@ class HarvesterIntegrationTest  extends ClientServerTest {
 		TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "DNS");
 		HarvestTestHelper.testDataExfilBody(testConfig);
 		
+		awaitClient();
 		teardown();
 	}
 

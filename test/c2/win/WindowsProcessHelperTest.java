@@ -23,6 +23,7 @@ class WindowsProcessHelperTest {
 		if (System.getProperty("os.name").contains("Windows")) {
 			List<String> processes = WindowsCmdLineHelper.listRunningProcesses();
 			for (String process : processes) {
+				//TODO: Wow this is a shitty test. Need to write a better one
 				assertTrue(process.length() != 0);
 			}
 		}

@@ -29,6 +29,7 @@ class NcatIntegrationTest extends ClientServerTest {
 			spawnClient("ncat localhost 8003 -e /bin/bash");
 			RunnerTestGeneric.test(new TestConfiguration(OS.LINUX, "Native", "TCP"));
 		}
+		awaitClient();
 		teardown();
 	}
 

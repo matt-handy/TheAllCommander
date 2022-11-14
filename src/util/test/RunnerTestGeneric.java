@@ -457,12 +457,6 @@ public class RunnerTestGeneric {
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 
-			try {
-				//TODO: once all tests are refactored to use the client "wait for teardown" functionality, eliminate this wait
-				Thread.sleep(3500);
-			} catch (InterruptedException e) {
-			}
-
 			bw.close();
 			br.close();
 			remote.close();
@@ -494,7 +488,14 @@ public class RunnerTestGeneric {
 			String output = br.readLine();
 			assertEquals("Attempting search with 10 minute timeout", output);
 			output = br.readLine();
-			assertEquals("Cannot execute command Command 'where /d' returned non-zero exit status 2.", output);
+			//if(config.lang.equalsIgnoreCase("Python")) {
+				assertEquals("Cannot execute command Command 'where /d' returned non-zero exit status 2.", output);
+			//}else {
+			//	assertEquals("ERROR: Invalid argument or option - '/d'.", output);
+			//	output = br.readLine();
+			//	assertEquals("Type \"WHERE /?\" for usage help.", br.readLine());
+			//	output = br.readLine();
+			//}
 		
 			System.out.println("Testing where command syntax with no findings");
 			String blueTeamDataDir = Paths.get("blue_team").toAbsolutePath().toString();
@@ -512,6 +513,9 @@ public class RunnerTestGeneric {
 			assertEquals(blueTeamDataDir + File.separator + "IOC_Guide.md", output);
 			output = br.readLine();
 			assertEquals("", output);
+			if(config.lang.equalsIgnoreCase("C++")) {
+				assertEquals("", br.readLine());
+			}
 			output = br.readLine();
 			assertEquals("Search complete", output);
 		}

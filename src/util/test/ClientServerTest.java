@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,7 +19,8 @@ public class ClientServerTest {
 
 	protected static ExecutorService service;
 	protected static ServerRunner runner;
-	protected static ChildManager childManager;
+	protected static List<ChildManager> childManagers = new ArrayList<>();
+	//protected static ChildManager childManager;
 	
 	public static final String DEFAULT_SERVER_CONFIG = "test.properties";
 	
@@ -45,7 +48,11 @@ public class ClientServerTest {
 	}
 	
 	protected static void initiateServer() {
-		initiateServer("test.properties");
+		if (System.getProperty("os.name").contains("Windows")) {
+			initiateServer("test.properties");
+		} else {
+			initiateServer("test_linux.properties");
+		}
 	}
 	
 	protected static void initiateServer(String propName) {
@@ -88,15 +95,18 @@ public class ClientServerTest {
 	}
 	
 	protected static void spawnClient(String clientStartArgs) {
-		childManager = new ChildManager(clientStartArgs);
+		ChildManager childManager = new ChildManager(clientStartArgs);
 		
 		service.submit(childManager);
+		childManagers.add(childManager);
 		//Give time for the daemons to make contact, especially important for SMB
 		Time.sleepWrapped(3000);
 	}
 	
 	protected static void awaitClient() {
-		childManager.awaitProcess();
+		for(ChildManager childManager : childManagers) {
+			childManager.awaitProcess();
+		}
 	}
 	
 	protected static void teardown() {
@@ -107,13 +117,9 @@ public class ClientServerTest {
 	
 	protected static void executeStandardTest(String daemonLaunchArg, TestConfiguration config) {
 		initiateServer();
-		
 		spawnClient(daemonLaunchArg);
-		
-		System.out.println("Transmitting commands");
-		
 		RunnerTestGeneric.test(config);
-		
+		awaitClient();
 		teardown();
 	}
 }

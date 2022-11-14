@@ -19,7 +19,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "HTTPS");
 		TestProcessor.testProxy(testConfig);
-
+		awaitClient();
 		teardown();
 		}
 		*/
@@ -34,7 +34,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "DNS");
 		TestProcessor.testProxy(testConfig);
-
+		awaitClient();
 		teardown();
 		}
 	}
@@ -50,7 +50,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 
 		TestConfiguration testConfig = new TestConfiguration(TestConfiguration.OS.WINDOWS, "python", "SMTP");
 		testProxy(testConfig);
-
+		awaitClient();
 		teardown();
 		*/
 	}

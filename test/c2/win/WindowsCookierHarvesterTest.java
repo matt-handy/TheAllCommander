@@ -31,6 +31,7 @@ class WindowsCookierHarvesterTest extends ClientServerTest {
 				fail(ex.getMessage());
 			}
 			
+			awaitClient();
 			teardown();
 		}
 	}
@@ -47,6 +48,7 @@ class WindowsCookierHarvesterTest extends ClientServerTest {
 				fail(ex.getMessage());
 			}
 			
+			awaitClient();
 			teardown();
 		}
 	}
