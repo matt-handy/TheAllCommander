@@ -204,6 +204,56 @@ class StagerGeneratorTest {
 
 	}
 
+	@Test 
+	void testStagerProducesWorkingExeWithPermutations() {
+		if (System.getProperty("os.name").contains("Windows")) {
+			Path testPath = Paths.get("config", "test.properties");
+			
+			try (InputStream input = new FileInputStream(testPath.toFile())) {
+				Properties prop = new Properties();
+
+				// load a properties file
+				prop.load(input);
+
+				// Make properties encryption go away
+				IOManager io = new IOManager(new IOLogger(Paths.get("test")), null);
+
+				List<String> connectionArgs = new ArrayList<>();
+				connectionArgs.add("https://127.0.0.1:8000/csharpboot");
+				
+				String file = StagerGenerator.generateStagerExe(SessionInitiator.CSHARP_CONFIG_PATH, "http",
+						connectionArgs, true);
+				Path path = Paths.get("test_tmp.exe");
+				Files.write(path, Base64.getDecoder().decode(file));
+				
+				HTTPSManager manager = new HTTPSManager();
+				manager.initialize(io, prop, null, null);
+				ExecutorService services = Executors.newCachedThreadPool();
+				services.submit(manager);
+				manager.awaitStartup();
+
+				Process p = Runtime.getRuntime().exec(path.toAbsolutePath().toString());
+				BufferedReader pInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				String output = "";
+				String line;
+				while ((line = pInput.readLine()) != null) {
+					if (line.length() != 0) {
+						output += line + System.lineSeparator();
+					}
+				}
+				pInput.close();
+
+				assertEquals("Hello world" + System.lineSeparator(), output);
+
+				manager.stop();
+				Files.delete(path);
+			} catch (IOException ex) {
+				ex.printStackTrace();
+				fail(ex.getMessage());
+			}
+		}
+	}
+	
 	@Test
 	void testStagerProducesWorkingExe() {
 		if (System.getProperty("os.name").contains("Windows")) {
