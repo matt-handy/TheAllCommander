@@ -53,7 +53,7 @@ class SocksOverHTTPSTest {
 	void setupHTTPS() {
 		TrustManager[] trustAllCerts = new TrustManager[] { (TrustManager) new X509TrustManager() {
 			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-				return null;
+				return new java.security.cert.X509Certificate[0];
 			}
 
 			@Override
