@@ -324,4 +324,4 @@ Note: There is a default_commands file under "test" which contains the load scri
 NOTE: Automated testing of the outlook harvester macro is disabled by default, and can be activated by setting outlookharvest.live.enable=true in the the test_config.properties file. This is disabled by default since some users are building and testing on production laptops with actual Outlook data, and therefore we want users to opt in to that test. The test starts a local daemon and a local TheAllCommander instance, and ensures that Outlook data is correctly processed by the local instance.
 
 #Code Quality
-Code quality is checked by Codiga  
+Code quality is checked by Codiga : https://app.codiga.io/hub/project/35210/TheAllCommander

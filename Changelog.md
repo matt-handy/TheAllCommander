@@ -18,3 +18,6 @@ Commands as-run auditing
 
 #Release 0.9.4 - November 2022
 Add initial Blue Team Guide - provides Indicator of Compromise (IOC) Detection Recommendations for all client side attack emulation.
+
+#Release 1.0.0 - December 2022
+Clean up code quality, improve unit test coverage. Add Codira code quality badge.
