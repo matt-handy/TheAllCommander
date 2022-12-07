@@ -617,6 +617,8 @@ class DNSEmulatorSubdomainCommsTest {
 
 			try {
 				String processedMsg = io.pollIO(2);
+				//We add a line feed if there isn't one
+				message = message += System.lineSeparator();
 				for (int idx = 0; idx < processedMsg.length(); idx++) {
 					if (processedMsg.charAt(idx) != message.charAt(idx)) {
 						// System.out.println("Orig: " + message.charAt(idx));

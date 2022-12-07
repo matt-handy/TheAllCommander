@@ -404,11 +404,11 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 		return id;
 	}
 
-	public byte[] buildResponsePayload(String message, String originalDomain, byte[] dnsIs) {
+	public byte[] buildResponsePayload(String oMessage, String originalDomain, byte[] dnsIs) {
 		// Make sure to randomize the number of answers
 		List<Byte> packetBytes = new ArrayList<>();
 
-		String messageEnc = encryptor.encrypt(message);
+		String messageEnc = encryptor.encrypt(oMessage);
 
 		for (int idx = 0; idx < dnsIs.length; idx++) {
 			packetBytes.add(dnsIs[idx]);
