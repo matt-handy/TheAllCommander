@@ -19,7 +19,7 @@ import java.util.Set;
  * Server incoming port: integer //This is the open port to which the client will connect
  *
  */
-public class ChiselPortManager {
+public final class ChiselPortManager {
 
 	public static final String CLIENT_SESSION_ID = "Client Session ID: ";
 	public static final String SERVER_FORWARD_PORT = "Server forward port: ";

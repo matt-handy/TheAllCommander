@@ -408,7 +408,7 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 		// Make sure to randomize the number of answers
 		List<Byte> packetBytes = new ArrayList<>();
 
-		message = encryptor.encrypt(message);
+		String messageEnc = encryptor.encrypt(message);
 
 		for (int idx = 0; idx < dnsIs.length; idx++) {
 			packetBytes.add(dnsIs[idx]);
@@ -436,10 +436,10 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 		packetBytes.add((byte) 0x00);// Class (TXT)
 		packetBytes.add((byte) 0x10);
 		packetBytes.add((byte) 0x00);// Data length //TODO: This will show an error for larger (>255) strings.
-		packetBytes.add((byte) message.length());
-		packetBytes.add((byte) message.length());// Text length
+		packetBytes.add((byte) messageEnc.length());
+		packetBytes.add((byte) messageEnc.length());// Text length
 
-		byte[] messageBytes = message.getBytes();
+		byte[] messageBytes = messageEnc.getBytes();
 		for (int idx = 0; idx < messageBytes.length; idx++) {
 			packetBytes.add(messageBytes[idx]);
 		}

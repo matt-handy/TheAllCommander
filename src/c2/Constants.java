@@ -1,6 +1,6 @@
 package c2;
 
-public class Constants {
+public final class Constants {
 	public static final boolean DEBUG = false;
 	
 	public static final String HTTPS_KEYSTORE_PATH = "https.keystore";
