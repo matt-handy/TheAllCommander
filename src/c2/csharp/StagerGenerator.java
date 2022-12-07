@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class StagerGenerator {
 
@@ -33,9 +34,20 @@ public class StagerGenerator {
 						+ TEMPORARY_DISK_EXE_FILE.toString() + " -platform:x64 \""
 						+ TEMPORARY_DISK_SRC_FILE.toAbsolutePath() + "\""));
 		try {
-			process.waitFor();
+			if(!process.waitFor(30, TimeUnit.SECONDS)) {
+				int availErrors = process.getErrorStream().available();
+				if(availErrors > 0) {
+					System.out.print("stderr: " + new String(process.getErrorStream().readNBytes(availErrors)));
+				}
+				int availOp = process.getInputStream().available();
+				if(availOp > 0) {
+					System.out.print("stdout: " + new String(process.getInputStream().readNBytes(availOp)));
+				}
+				
+				throw new IOException("Unable to generate exe! This happens sometimes with the underlying system being not ready, try again and resubmit");	
+			}
 		} catch (InterruptedException e) {
-			// Ahead full
+			
 		}
 		String b64 = Base64.getEncoder().encodeToString(Files.readAllBytes(TEMPORARY_DISK_EXE_FILE));
 

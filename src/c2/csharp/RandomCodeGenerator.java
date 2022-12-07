@@ -103,8 +103,8 @@ public class RandomCodeGenerator {
 		}else if(nextOp == CODE_PERMUTATION.TRIVIAL_SLEEP) {
 			return "System.Threading.Thread.Sleep(" + rnd.nextInt(1) +");";
 		}else if(nextOp == CODE_PERMUTATION.WHILE_LOOP) {
-			return "System.Threading.Thread.Sleep(" + rnd.nextInt(1) +");";
 			//return buildWhileLoop(currentScope);
+			return "System.Threading.Thread.Sleep(" + rnd.nextInt(1) +");";
 		}else if(nextOp == CODE_PERMUTATION.FOR_LOOP) {
 			return "System.Threading.Thread.Sleep(" + rnd.nextInt(1) +");";
 			//return buildForLoop(currentScope);
@@ -193,7 +193,7 @@ public class RandomCodeGenerator {
 	private String buildForLoop(VariableScope currentScope) {
 		StringBuilder sb = new StringBuilder();
 		String counterName = generateRandomString();
-		sb.append("for( int " + counterName + " = 0; "+counterName + " < " + rnd.nextInt(2000) + "; " + counterName + "++){" + System.lineSeparator());
+		sb.append("for( int " + counterName + " = 0; "+counterName + " < " + rnd.nextInt(5) + "; " + counterName + "++){" + System.lineSeparator());
 		sb.append(generateNextLineStatement(new VariableScope(currentScope)) + System.lineSeparator());
 		sb.append("}");
 		return sb.toString();
@@ -203,7 +203,7 @@ public class RandomCodeGenerator {
 		StringBuilder sb = new StringBuilder();
 		String counterName = generateRandomString();
 		sb.append("int " + counterName + " = " + generateRandomMathPredicate(currentScope) + ";" + System.lineSeparator());
-		sb.append("while("+counterName + " < " + rnd.nextInt(2000) + "){" + System.lineSeparator());
+		sb.append("while("+counterName + " < " + rnd.nextInt(5) + "){" + System.lineSeparator());
 		sb.append(generateNextLineStatement(new VariableScope(currentScope)) + System.lineSeparator());
 		sb.append(counterName + "++;" + System.lineSeparator());
 		sb.append("}");

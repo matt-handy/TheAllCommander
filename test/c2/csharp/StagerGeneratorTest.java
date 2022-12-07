@@ -331,7 +331,7 @@ class StagerGeneratorTest {
 			bw.flush();
 
 			// Flush banner
-			for (int idx = 0; idx < 10; idx++) {
+			for (int idx = 0; idx < 11; idx++) {
 				br.readLine();
 			}
 
@@ -392,6 +392,7 @@ class StagerGeneratorTest {
 			assertEquals("Enter 'WIZARD' to begin other server commands", line);
 			line = br.readLine();
 			assertEquals("Available commands: ", line);
+			br.readLine();// Permutation disable line
 			br.readLine();// Command line
 			br.readLine();// Example line
 			br.readLine();// Command line

