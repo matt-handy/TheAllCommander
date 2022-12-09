@@ -114,7 +114,7 @@ public class StagerGenerator {
 		return file;
 	}
 
-	private static String generateRandomLetterString() {
+	public static String generateRandomLetterString() {
 		int leftLimit = 65;
 		int rightLimit = 122;
 		Random random = new Random();

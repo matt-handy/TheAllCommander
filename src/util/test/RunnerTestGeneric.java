@@ -613,7 +613,7 @@ public class RunnerTestGeneric {
 		}
 		try {
 			if (config.lang.equals("python")) {
-				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.write(Commands.CLIENT_GET_EXE_CMD + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
 				String[] respElements = output.split(" ");
@@ -635,7 +635,7 @@ public class RunnerTestGeneric {
 							respElements[1]);
 				}
 			} else if (config.lang.equals("C#")) {
-				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.write(Commands.CLIENT_GET_EXE_CMD + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
 				assertTrue(output.startsWith("C:\\"));
@@ -654,7 +654,7 @@ public class RunnerTestGeneric {
 					fail("Implement me");
 				}
 			} else if (config.lang.equals("C++")) {
-				bw.write(SpawnFodhelperElevatedSessionMacro.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.write(Commands.CLIENT_GET_EXE_CMD + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
 				if (config.os == OS.LINUX) {

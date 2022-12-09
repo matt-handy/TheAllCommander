@@ -175,6 +175,9 @@ harvest_outlook (basic | deep)
 enumerate_users
 	This command will enumerate the users present on the system and the domain. If domain access is present, groups are enumerated as well. Current, this command will only work on Windows daemons
 
+regkey_persist (lm | cu) (calc - optional)
+	This command will use either the local machine (lm) or current user (cu) startup registry key to start the daemon process on next startup. To simulate an attempt to write to these keys without invoking the daemon on startup, the optional third argument "calc" can be used to configure the system to launch calc.exe on startup. This provides more flexibility in environments where the actual test daemon cannot be given actual persistence to stay within the test boundaries.
+
 # Near Term Project Goals
 DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  
 

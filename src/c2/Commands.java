@@ -10,4 +10,6 @@ public class Commands {
 	public static String OS_HERITAGE_RESPONSE_WINDOWS = "Windows";
 	public static String OS_HERITAGE_RESPONSE_LINUX = "Linux";
 	public static String OS_HERITAGE_RESPONSE_MAC = "Mac";
+	
+	public static final String CLIENT_GET_EXE_CMD = "get_daemon_start_cmd";
 }

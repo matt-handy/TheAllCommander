@@ -105,6 +105,24 @@ To augment this technique, it is wise to create a honeypot user account that no 
 	Account Name = <your honeypot>
 	
 Any time anyone performs domain or system wide enumeration, such as with "net user /domain", the user will be accessed and 4662 will be generated. This can, of course, still happen with nominal housekeeping, but it is much more granular than trying to track all accesses of "net". It is also more comprehensive, as techniques which bypass net to enumerate users will still be captured.
+
+## Windows Startup Key - "regkey_persist" macro
+The Windows registry contains keys which will start programs automatically on startup. Attackers will sometimes add programs to these registry keys to allow malware to start. Malicious entries can often be detected trivially with visual inspection. On a regular system baseline, these registry values should not be modified frequently and can be monitored for modification. These key are:
+
+HKCU:\Software\Microsoft\Windows\CurrentVersion\Run
+
+HKLM:\Software\Microsoft\Windows\CurrentVersion\Run
+
+1) Enable Audit object access "Success and Failure" for the system under the group policy
+
+2) Enable Auditing of "Set Value" on the key directly or one of its parent keys
+
+3) Filter for
+
+	Windows Event ID == 4657 AND
+	
+	Object Name LIKE <each of the registry keys shown above>
+
 ## LSASS Dump
 ### rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump <LSASS PID> lsass.dmp full
 This technique is blocked by default by Windows Defender easily, so we're not going to look at detection here
