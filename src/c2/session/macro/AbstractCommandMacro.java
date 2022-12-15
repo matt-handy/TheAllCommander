@@ -8,6 +8,9 @@ import c2.session.IOManager;
 
 public abstract class AbstractCommandMacro {
 
+	protected IOManager io;
+	protected HarvestProcessor harvestProcessor;
+	
 	/**
 	* This method allows the AbstractCommandMacro instance to test if the specified command applies to it. The entire
 	* command is passed to the class, allowing for arbitrary filtering, based on the root command and any potential 
@@ -28,7 +31,10 @@ public abstract class AbstractCommandMacro {
 	* @param  io  {@link c2.session.IOManager}
 	* @param  harvestProcessor {@link c2.HarvestProcessor}
 	*/
-	public abstract void initialize(IOManager io, HarvestProcessor harvestProcessor);
+	public final void initialize(IOManager io, HarvestProcessor harvestProcessor) {
+		this.io = io;
+		this.harvestProcessor = harvestProcessor;
+	}
 	/**
 	* TheAllCommander will call processCmd if the instance has responded in the affirmative to "isCommandMatch".
 	* At this point, the AbstractCommandMacro will translate the command into any discrete commands which are to be
@@ -49,4 +55,46 @@ public abstract class AbstractCommandMacro {
 	*/
 	public abstract MacroOutcome processCmd(String cmd, int sessionId, String sessionStr);
 
+	/**
+	* Implementations of AbstractCommandMacro should log all commands and responses in the MacroOutcome object. 
+	* This method wraps sending commands to the IOManager and logs all commands 
+	*
+	* @param  cmd  The command to be sent to the daemon
+	* @param  sessionId  The ID which can be used to send IO to and from the IOManager
+	* @param  sessionStr The MacroOutcome object for logging 
+	* @return returns a MacroOutcome object which contains all the commands and responses, as well as any errors
+	*/
+	protected void sendCommand(String cmd, int sessionId, MacroOutcome outcome) {
+		io.sendCommand(sessionId, cmd);
+		outcome.addSentCommand(cmd);
+	}
+	
+	/**
+	* Implementations of AbstractCommandMacro should log all commands and responses in the MacroOutcome object. 
+	* This method wraps reception of output from the IOManager via the awaitMultilineCommands method. 
+	*
+	* @param  sessionId  The ID which can be used to send IO to and from the IOManager
+	* @param  sessionStr The MacroOutcome object for logging 
+	* @return returns a String object containing any output received
+	*/
+	protected String awaitResponse(int sessionId, MacroOutcome outcome) {
+		String response = io.awaitMultilineCommands(sessionId);
+		outcome.addResponseIo(response);
+		return response;
+	}
+	
+	/**
+	* Implementations of AbstractCommandMacro should log all commands and responses in the MacroOutcome object. 
+	* This method wraps reception of output from the IOManager via the awaitMultilineCommands method. 
+	*
+	* @param  sessionId  The ID which can be used to send IO to and from the IOManager
+	* @param  sessionStr The MacroOutcome object for logging 
+	* @param  timeout The number of milliseconds which should be waited by awaitMultilineCommands
+	* @return returns a String object containing any output received
+	*/
+	protected String awaitResponse(int sessionId, MacroOutcome outcome, int timeout) {
+		String response = io.awaitMultilineCommands(sessionId, timeout);
+		outcome.addResponseIo(response);
+		return response;
+	}
 }

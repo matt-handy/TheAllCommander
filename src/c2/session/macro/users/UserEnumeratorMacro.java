@@ -10,28 +10,17 @@ public class UserEnumeratorMacro extends AbstractCommandMacro {
 
 	public static String COMMAND_STR = "enumerate_users";
 	
-	private WindowsUserEnumeratorMacro windowsMacro;
-	private IOManager io;
-	
 	@Override
 	public boolean isCommandMatch(String cmd) {
 		return cmd.equalsIgnoreCase("enumerate_users");
 	}
 
 	@Override
-	public void initialize(IOManager io, HarvestProcessor harvestProcessor) {
-		windowsMacro = new WindowsUserEnumeratorMacro(io);
-		this.io = io;
-	}
-
-	@Override
 	public MacroOutcome processCmd(String cmd, int sessionId, String sessionStr) {
 		MacroOutcome outcome = new MacroOutcome();
-		
-		io.sendCommand(sessionId, Commands.OS_HERITAGE);
-		outcome.addSentCommand(Commands.OS_HERITAGE);
-		String response = io.awaitMultilineCommands(sessionId);
-		outcome.addResponseIo(response);
+		WindowsUserEnumeratorMacro windowsMacro = new WindowsUserEnumeratorMacro(io);
+		sendCommand(Commands.OS_HERITAGE, sessionId, outcome);
+		String response = awaitResponse(sessionId, outcome);
 		SystemAccountProfile profile = null;
 		if(response.startsWith(Commands.OS_HERITAGE_RESPONSE_WINDOWS)) {
 			outcome.addMacroMessage("Proceeding with Windows enumeration");

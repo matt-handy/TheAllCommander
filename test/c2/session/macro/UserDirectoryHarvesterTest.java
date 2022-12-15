@@ -239,7 +239,8 @@ class UserDirectoryHarvesterTest {
 		assertEquals(outcome.getOutput().get(22), "Received response: 'Started Harvest: C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(23), "Sent Command: 'cd C:\\test'");
-		assertEquals(outcome.getOutput().get(24), "Received response: 'C:\\test'");
+		assertEquals(outcome.getOutput().get(24), "Received response: 'C:\\test" + System.lineSeparator()
+		+ "'");
 		assertEquals(outcome.getOutput().get(25), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
 		
 		
@@ -290,7 +291,8 @@ class UserDirectoryHarvesterTest {
 		assertEquals(outcome.getOutput().get(14), "Received response: 'Started Harvest: C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(15), "Sent Command: 'cd C:\\test'");
-		assertEquals(outcome.getOutput().get(16), "Received response: 'C:\\test'");
+		assertEquals(outcome.getOutput().get(16), "Received response: 'C:\\test" + System.lineSeparator()
+				+ "'");
 		assertEquals(outcome.getOutput().get(17), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
 		
 		assertFalse(outcome.hasErrors());
@@ -360,7 +362,8 @@ class UserDirectoryHarvesterTest {
 		assertEquals(outcome.getOutput().get(8), "Received response: 'Started Harvest: /home/kali" + System.lineSeparator()
 				+ "'");
 		assertEquals(outcome.getOutput().get(9), "Sent Command: 'cd /home/kali/working'");
-		assertEquals(outcome.getOutput().get(10), "Received response: '/home/kali/working'");
+		assertEquals(outcome.getOutput().get(10), "Received response: '/home/kali/working" + System.lineSeparator()
+			+ "'");
 		assertEquals(outcome.getOutput().get(11), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
 		
 		assertFalse(outcome.hasErrors());
@@ -409,7 +412,8 @@ class UserDirectoryHarvesterTest {
 				+ "'");
 		assertEquals(outcome.getOutput().get(14), "Macro Executor: 'Could not find user profile folder, proceedind.'");
 		assertEquals(outcome.getOutput().get(15), "Sent Command: 'cd C:\\test'");
-		assertEquals(outcome.getOutput().get(16), "Received response: 'C:\\test'");
+		assertEquals(outcome.getOutput().get(16), "Received response: 'C:\\test" + System.lineSeparator()
+		+ "'");
 		assertEquals(outcome.getOutput().get(17), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
 		
 		assertFalse(outcome.hasErrors());

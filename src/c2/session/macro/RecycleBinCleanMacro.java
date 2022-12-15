@@ -8,16 +8,9 @@ public class RecycleBinCleanMacro extends AbstractCommandMacro{
 
 	public static final String COMMAND = "empty_recycle_bin";
 	
-	private IOManager io;
-	
 	@Override
 	public boolean isCommandMatch(String cmd) {
 		return cmd.equalsIgnoreCase(COMMAND);
-	}
-
-	@Override
-	public void initialize(IOManager io, HarvestProcessor harvestProcessor) {
-		this.io = io;
 	}
 
 	@Override
@@ -26,10 +19,8 @@ public class RecycleBinCleanMacro extends AbstractCommandMacro{
 		try {
 			String directory = WindowsCmdLineHelper.resolveVariableDirectory(io, sessionId, "%systemdrive%");
 			String command = "del /s /q " + directory + "\\$Recycle.Bin";
-			outcome.addSentCommand(command);
-			io.sendCommand(sessionId, command);
-			String response = io.awaitMultilineCommands(sessionId);
-			outcome.addResponseIo(response);
+			sendCommand(command, sessionId, outcome);
+			String response = awaitResponse(sessionId, outcome);
 			outcome.addMacroMessage("Recycle bin emptied");
 		}catch(Exception ex) {
 			outcome.addError("Unable to resolve system drive");
