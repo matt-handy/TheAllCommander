@@ -18,7 +18,7 @@ import util.Time;
 import util.test.ClientServerTest;
 import util.test.RunnerTestGeneric;
 
-class WindowsDirectoryHarvesterTest {
+class UserDirectoryHarvesterTest {
 
 	private Properties properties = ClientServerTest.getDefaultSystemTestProperties();
 	
@@ -54,6 +54,7 @@ class WindowsDirectoryHarvesterTest {
 		private boolean hasOnedrive;
 
 		private boolean windows = true;
+		private boolean invalidOS = false;
 		
 		public ClientResponseEmulator(IOManager io, int id, boolean hasUserProfile, boolean hasOnedrive) {
 			this.io = io;
@@ -64,6 +65,10 @@ class WindowsDirectoryHarvesterTest {
 		
 		public void makeLinuxEmulator() {
 			windows = false;
+		}
+		
+		public void makeInvalidOs() {
+			invalidOS = true;
 		}
 
 		@Override
@@ -78,13 +83,26 @@ class WindowsDirectoryHarvesterTest {
 					// continue
 					Time.sleepWrapped(10);
 				} else if (command.equals(Commands.OS_HERITAGE)) {
+					if(invalidOS) {
+						io.sendIO(id, Commands.OS_HERITAGE_RESPONSE_MAC);
+					}else {
 					if(windows) {
 						io.sendIO(id, Commands.OS_HERITAGE_RESPONSE_WINDOWS);
 					}else {
 						io.sendIO(id, Commands.OS_HERITAGE_RESPONSE_LINUX);
 					}
+					}
 				} else if (command.equals(Commands.PWD)) {
-					io.sendIO(id, "C:\\test");
+					if(windows) {
+						io.sendIO(id, "C:\\test");
+					}else {
+						io.sendIO(id, "/home/kali/working");
+					}
+				}else if(command.equals(Commands.CD + " /home/kali/working")) { 
+					io.sendIO(id, "/home/kali/working");
+					alive = false;
+				}else if(command.equals(Commands.CD + " ~")) {
+					io.sendIO(id, "/home/kali");
 				} else if (command.equals(Commands.CD + " " + expectedUserProfileDir + "\\Desktop")) {
 					io.sendIO(id, expectedUserProfileDir + "\\Desktop");
 				} else if (command.equals(Commands.CD + " " + expectedUserProfileDir + "\\Documents")) {
@@ -109,6 +127,9 @@ class WindowsDirectoryHarvesterTest {
 						io.sendIO(id, BARF);
 					}
 				} else if (command.equals(Commands.HARVEST_CURRENT_DIRECTORY)) {
+					if(!windows) {
+						io.sendIO(id, "Started Harvest: /home/kali");
+					}else {
 					if(hasUserProfile && hasOnedrive) {
 						if (harvestCount == 1) {
 						io.sendIO(id, "Started Harvest: " + expectedOnedriveDir + "\\Documents");
@@ -138,7 +159,7 @@ class WindowsDirectoryHarvesterTest {
 							io.sendIO(id, "You told me to harvest too many times!!!");
 						}
 					}
-					
+					}
 					harvestCount++;
 				} else {
 					System.out.println("Unknown command: " + command);
@@ -157,9 +178,9 @@ class WindowsDirectoryHarvesterTest {
 	void testRecognizesCommand() {
 		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
 		IOManager io = new IOManager(logger, null);
-		WindowsDirectoryHarvester macro = new WindowsDirectoryHarvester();
+		UserDirectoryHarvester macro = new UserDirectoryHarvester();
 		macro.initialize(io, null);
-		assertTrue(macro.isCommandMatch(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD));
+		assertTrue(macro.isCommandMatch(UserDirectoryHarvester.HARVEST_USER_DIRS_CMD));
 		assertFalse(macro.isCommandMatch("barf"));
 	}
 	
@@ -167,7 +188,7 @@ class WindowsDirectoryHarvesterTest {
 	void testHarvestBothDirSets() {
 		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
 		IOManager io = new IOManager(logger, null);
-		WindowsDirectoryHarvester macro = new WindowsDirectoryHarvester();
+		UserDirectoryHarvester macro = new UserDirectoryHarvester();
 		macro.initialize(io, null);
 		
 		int id = io.addSession("user", "host", "protocol");
@@ -182,7 +203,7 @@ class WindowsDirectoryHarvesterTest {
 		ClientResponseEmulator em = new ClientResponseEmulator(io, id, true, true);
 		exec.submit(em);
 		
-		MacroOutcome outcome = macro.processCmd(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD, id, "Not used");
+		MacroOutcome outcome = macro.processCmd(UserDirectoryHarvester.HARVEST_USER_DIRS_CMD, id, "Not used");
 		
 		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
 		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows" + System.lineSeparator()
@@ -195,27 +216,31 @@ class WindowsDirectoryHarvesterTest {
 		assertEquals(outcome.getOutput().get(6), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Desktop'");
 		assertEquals(outcome.getOutput().get(7), "Received response: 'C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(8), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(8), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(9), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(9), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Documents'");
-		assertEquals(outcome.getOutput().get(10), "Received response: 'C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(10), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Documents'");
+		assertEquals(outcome.getOutput().get(11), "Received response: 'C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(11), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(12), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(13), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(12), "Macro Executor: 'Found user profile folder: C:\\Users\\test'");
-		assertEquals(outcome.getOutput().get(13), "Sent Command: 'cd C:\\Users\\test\\Desktop'");
-		assertEquals(outcome.getOutput().get(14), "Received response: 'C:\\Users\\test\\Desktop" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(14), "Macro Executor: 'Found user profile folder: C:\\Users\\test'");
+		assertEquals(outcome.getOutput().get(15), "Sent Command: 'cd C:\\Users\\test\\Desktop'");
+		assertEquals(outcome.getOutput().get(16), "Received response: 'C:\\Users\\test\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(15), "Received response: 'Started Harvest: C:\\Users\\test\\Desktop" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(17), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(18), "Received response: 'Started Harvest: C:\\Users\\test\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(16), "Sent Command: 'cd C:\\Users\\test\\Documents'");
-		assertEquals(outcome.getOutput().get(17), "Received response: 'C:\\Users\\test\\Documents" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(19), "Sent Command: 'cd C:\\Users\\test\\Documents'");
+		assertEquals(outcome.getOutput().get(20), "Received response: 'C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(18), "Received response: 'Started Harvest: C:\\Users\\test\\Documents" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(21), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(22), "Received response: 'Started Harvest: C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(19), "Sent Command: 'cd C:\\test'");
-		assertEquals(outcome.getOutput().get(20), "Received response: 'C:\\test'");
-		assertEquals(outcome.getOutput().get(21), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
+		assertEquals(outcome.getOutput().get(23), "Sent Command: 'cd C:\\test'");
+		assertEquals(outcome.getOutput().get(24), "Received response: 'C:\\test'");
+		assertEquals(outcome.getOutput().get(25), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
 		
 		
 		assertFalse(outcome.hasErrors());
@@ -225,7 +250,7 @@ class WindowsDirectoryHarvesterTest {
 	void testHarvestUserProfile() {
 		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
 		IOManager io = new IOManager(logger, null);
-		WindowsDirectoryHarvester macro = new WindowsDirectoryHarvester();
+		UserDirectoryHarvester macro = new UserDirectoryHarvester();
 		macro.initialize(io, null);
 	
 		int id = io.addSession("user", "host", "protocol");
@@ -240,7 +265,7 @@ class WindowsDirectoryHarvesterTest {
 		ClientResponseEmulator em = new ClientResponseEmulator(io, id, true, false);
 		exec.submit(em);
 		
-		MacroOutcome outcome = macro.processCmd(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD, id, "Not used");
+		MacroOutcome outcome = macro.processCmd(UserDirectoryHarvester.HARVEST_USER_DIRS_CMD, id, "Not used");
 		
 		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
 		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows" + System.lineSeparator()
@@ -255,16 +280,18 @@ class WindowsDirectoryHarvesterTest {
 		assertEquals(outcome.getOutput().get(7), "Sent Command: 'cd C:\\Users\\test\\Desktop'");
 		assertEquals(outcome.getOutput().get(8), "Received response: 'C:\\Users\\test\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(9), "Received response: 'Started Harvest: C:\\Users\\test\\Desktop" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(9), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(10), "Received response: 'Started Harvest: C:\\Users\\test\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(10), "Sent Command: 'cd C:\\Users\\test\\Documents'");
-		assertEquals(outcome.getOutput().get(11), "Received response: 'C:\\Users\\test\\Documents" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(11), "Sent Command: 'cd C:\\Users\\test\\Documents'");
+		assertEquals(outcome.getOutput().get(12), "Received response: 'C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(12), "Received response: 'Started Harvest: C:\\Users\\test\\Documents" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(13), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(14), "Received response: 'Started Harvest: C:\\Users\\test\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(13), "Sent Command: 'cd C:\\test'");
-		assertEquals(outcome.getOutput().get(14), "Received response: 'C:\\test'");
-		assertEquals(outcome.getOutput().get(15), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
+		assertEquals(outcome.getOutput().get(15), "Sent Command: 'cd C:\\test'");
+		assertEquals(outcome.getOutput().get(16), "Received response: 'C:\\test'");
+		assertEquals(outcome.getOutput().get(17), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
 		
 		assertFalse(outcome.hasErrors());
 	}
@@ -273,7 +300,7 @@ class WindowsDirectoryHarvesterTest {
 	void testErrorsIfNotWindows() {
 		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
 		IOManager io = new IOManager(logger, null);
-		WindowsDirectoryHarvester macro = new WindowsDirectoryHarvester();
+		UserDirectoryHarvester macro = new UserDirectoryHarvester();
 		macro.initialize(io, null);
 		
 		int id = io.addSession("user", "host", "protocol");
@@ -286,22 +313,64 @@ class WindowsDirectoryHarvesterTest {
 		
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		ClientResponseEmulator em = new ClientResponseEmulator(io, id, false, true);
+		em.makeInvalidOs();
+		exec.submit(em);
+		
+		MacroOutcome outcome = macro.processCmd(UserDirectoryHarvester.HARVEST_USER_DIRS_CMD, id, "Not used");
+		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
+		assertEquals(outcome.getOutput().get(1), "Received response: 'Mac" + System.lineSeparator()
+				+ "'");
+		assertEquals(outcome.getOutput().get(2), "Error: Unsupported operating system: Mac");
+		assertTrue(outcome.hasErrors());
+	}
+	
+	@Test
+	void testLinuxHomeDir() {
+		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
+		IOManager io = new IOManager(logger, null);
+		UserDirectoryHarvester macro = new UserDirectoryHarvester();
+		macro.initialize(io, null);
+		
+		int id = io.addSession("user", "host", "protocol");
+
+		// Flush the command buffer
+		String cmd = io.pollCommand(id);
+		while (cmd != null) {
+			cmd = io.pollCommand(id);
+		}
+		
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		ClientResponseEmulator em = new ClientResponseEmulator(io, id, false, false);
 		em.makeLinuxEmulator();
 		exec.submit(em);
 		
-		MacroOutcome outcome = macro.processCmd(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD, id, "Not used");
+		MacroOutcome outcome = macro.processCmd(UserDirectoryHarvester.HARVEST_USER_DIRS_CMD, id, "Not used");
+		
 		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
 		assertEquals(outcome.getOutput().get(1), "Received response: 'Linux" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(2), "Error: Unsupported operating system: Linux");
-		assertTrue(outcome.hasErrors());
+		assertEquals(outcome.getOutput().get(2), "Sent Command: 'pwd'");
+		assertEquals(outcome.getOutput().get(3), "Received response: '/home/kali/working" + System.lineSeparator()
+				+ "'");
+		assertEquals(outcome.getOutput().get(4), "Macro Executor: 'Saving original working directory, proceeding with macro'");
+		assertEquals(outcome.getOutput().get(5), "Sent Command: 'cd ~'");
+		assertEquals(outcome.getOutput().get(6), "Received response: '/home/kali" + System.lineSeparator()
+				+ "'");
+		assertEquals(outcome.getOutput().get(7), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(8), "Received response: 'Started Harvest: /home/kali" + System.lineSeparator()
+				+ "'");
+		assertEquals(outcome.getOutput().get(9), "Sent Command: 'cd /home/kali/working'");
+		assertEquals(outcome.getOutput().get(10), "Received response: '/home/kali/working'");
+		assertEquals(outcome.getOutput().get(11), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
+		
+		assertFalse(outcome.hasErrors());
 	}
 	
 	@Test
 	void testHarvestOneDrive() {
 		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
 		IOManager io = new IOManager(logger, null);
-		WindowsDirectoryHarvester macro = new WindowsDirectoryHarvester();
+		UserDirectoryHarvester macro = new UserDirectoryHarvester();
 		macro.initialize(io, null);
 		
 		int id = io.addSession("user", "host", "protocol");
@@ -316,7 +385,7 @@ class WindowsDirectoryHarvesterTest {
 		ClientResponseEmulator em = new ClientResponseEmulator(io, id, false, true);
 		exec.submit(em);
 		
-		MacroOutcome outcome = macro.processCmd(WindowsDirectoryHarvester.HARVEST_WINDOWS_USER_DIRS_CMD, id, "Not used");
+		MacroOutcome outcome = macro.processCmd(UserDirectoryHarvester.HARVEST_USER_DIRS_CMD, id, "Not used");
 		
 		assertEquals(outcome.getOutput().get(0), "Sent Command: 'os_heritage'");
 		assertEquals(outcome.getOutput().get(1), "Received response: 'Windows" + System.lineSeparator()
@@ -329,17 +398,19 @@ class WindowsDirectoryHarvesterTest {
 		assertEquals(outcome.getOutput().get(6), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Desktop'");
 		assertEquals(outcome.getOutput().get(7), "Received response: 'C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(8), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(8), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(9), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Desktop" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(9), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Documents'");
-		assertEquals(outcome.getOutput().get(10), "Received response: 'C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(10), "Sent Command: 'cd C:\\Users\\test\\OneDrive\\Documents'");
+		assertEquals(outcome.getOutput().get(11), "Received response: 'C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(11), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
+		assertEquals(outcome.getOutput().get(12), "Sent Command: 'harvest_pwd'");
+		assertEquals(outcome.getOutput().get(13), "Received response: 'Started Harvest: C:\\Users\\test\\OneDrive\\Documents" + System.lineSeparator()
 				+ "'");
-		assertEquals(outcome.getOutput().get(12), "Macro Executor: 'Could not find user profile folder, proceedind.'");
-		assertEquals(outcome.getOutput().get(13), "Sent Command: 'cd C:\\test'");
-		assertEquals(outcome.getOutput().get(14), "Received response: 'C:\\test'");
-		assertEquals(outcome.getOutput().get(15), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
+		assertEquals(outcome.getOutput().get(14), "Macro Executor: 'Could not find user profile folder, proceedind.'");
+		assertEquals(outcome.getOutput().get(15), "Sent Command: 'cd C:\\test'");
+		assertEquals(outcome.getOutput().get(16), "Received response: 'C:\\test'");
+		assertEquals(outcome.getOutput().get(17), "Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'");
 		
 		assertFalse(outcome.hasErrors());
 	

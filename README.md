@@ -166,8 +166,8 @@ startSocks5 <port>
 empty_recycle_bin
 	This command deletes the recycle bin contents for the user with the current session to generate a client side indicator of compromise.
 
-harvest_win_user_dir
-	This command initiates an automatic harvest of Windows Desktop and Documents directories.
+harvest_user_dir
+	This command initiates an automatic harvest of Windows Desktop and Documents directories and Linux home directories, depending on the host
 	
 harvest_outlook (basic | deep)
 	This command with the "basic" argument will harvest the default .pst and .ost files used by Outlook. In "deep" mode, the tool will search for a non-standard .pst location and harvest it.

