@@ -279,12 +279,12 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 				+ "C:\\user\\fakedir\\mystuff.pst" + System.lineSeparator() + "Search complete" + System.lineSeparator()
 				+ "'", outcome.getOutput().get(4));
 		assertEquals("Sent Command: 'cd C:\\user\\fakedir'", outcome.getOutput().get(5));
-		assertEquals("Received response: 'C:\\user\\fakedir" + System.lineSeparator() + "'", outcome.getOutput().get(6));
+		assertEquals("Received response: 'C:\\user\\fakedir" + System.lineSeparator() + System.lineSeparator() + "'", outcome.getOutput().get(6));
 		assertEquals("Sent Command: 'harvest_pwd'", outcome.getOutput().get(7));
 		assertEquals("Received response: 'Started Harvest: C:\\user\\fakedir" + System.lineSeparator() + "'",
 				outcome.getOutput().get(8));
 		assertEquals("Sent Command: 'cd C:\\test'", outcome.getOutput().get(9));
-		assertEquals("Received response: 'C:\\test'", outcome.getOutput().get(10));
+		assertEquals("Received response: 'C:\\test"+ System.lineSeparator()+"'", outcome.getOutput().get(10));
 		assertEquals(
 				"Macro Executor: 'Original working directory resumed, harvest underway in the background if directories found'",
 				outcome.getOutput().get(11));
