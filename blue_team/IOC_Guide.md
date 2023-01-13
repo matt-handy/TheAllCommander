@@ -123,8 +123,44 @@ HKLM:\Software\Microsoft\Windows\CurrentVersion\Run
 	
 	Object Name LIKE <each of the registry keys shown above>
 
+## Windows Debug Key - "reg_debugger" macro
+HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\<process name> can be given a "Debugger" key, which will launch the evil process instead of the desired one. The Image File Execution Options keys should not be modified regularly, so watching them for access changes is a reasonable IOC.
+
+1) Enable Audit object access "Success and Failure" for the system under the group policy
+
+2) Enable Auditing of "Set Value" on the key directly or one of its parent keys
+
+3) Filter for
+
+	Windows Event ID == 4657 AND
+	
+	Object Name LIKE HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*
+
+## Windows Silent Exit Key - "reg_silent_exit" macro
+Registry keys can be set to have a process silently launch when another process exits. This requires several keys to be written. In the provided example, calc.exe stands in for the evil process.
+
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" /v GlobalFlag /t REG_DWORD /d 512
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\notepad.exe" /v ReportingMode /t REG_DWORD /d 1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\notepad.exe" /v MonitorProcess /d "calc.exe"
+
+For detection logic, the same filtering for "reg_debugger" can be applied to catch the first registry key write. The following logic can be applied to catch the latter two calls.
+
+1) Enable Audit object access "Success and Failure" for the system under the group policy
+
+2) Enable Auditing of "Set Value" on the key directly or one of its parent keys
+
+3) Filter for
+
+	Windows Event ID == 4657 AND
+	
+	Object Name LIKE HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\*
+
+
 ## LSASS Dump
 ### rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump <LSASS PID> lsass.dmp full
 This technique is blocked by default by Windows Defender easily, so we're not going to look at detection here
 ### ProcDump
 This technique is blocked by default by Windows Defender easily, so we're not going to look at detection here
+
+#SIEM Translation
+Transitioning between SIEM systems? I've experimented a bit with this translator: https://uncoder.io/

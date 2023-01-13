@@ -178,6 +178,13 @@ enumerate_users
 regkey_persist (lm | cu) (calc - optional)
 	This command will use either the local machine (lm) or current user (cu) startup registry key to start the daemon process on next startup. To simulate an attempt to write to these keys without invoking the daemon on startup, the optional third argument "calc" can be used to configure the system to launch calc.exe on startup. This provides more flexibility in environments where the actual test daemon cannot be given actual persistence to stay within the test boundaries.
 
+reg_debugger <process name>
+	This command will use the Windows Local Machine registry key for process debugging to launch the daemon process instead whenever the target process is executed. This is not a stealthy technique, but attackers sometimes use it and it deserves robust detection. Requires and elevated session.
+
+reg_silent_exit <process name>
+	This command will use the Windows SilentProcessExit registry key to launch the daemon process when the target process is closed. This is a reasonably stealthy technique if the attacker uses it skillfully in terms of user awareness. Requires an elevated session.
+	
+	
 # Near Term Project Goals
 DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  
 
