@@ -155,6 +155,19 @@ For detection logic, the same filtering for "reg_debugger" can be applied to cat
 	
 	Object Name LIKE HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\*
 
+## Enumeration
+
+### Network Share Enumeration
+
+Detection Logic: TBD
+
+### AntiVirus Enumeration
+
+Detection Logic: TBD
+
+### Windows Patch Enumeration
+
+Detection Logic: TBD
 
 ## LSASS Dump
 ### rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump <LSASS PID> lsass.dmp full
