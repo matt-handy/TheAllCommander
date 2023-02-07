@@ -37,7 +37,9 @@ class PythonIntegrationTest {
 	
 	@Test
 	void testDNSBrokenConnections() {
+		if (System.getProperty("os.name").contains("Windows")) {
 		//TestProcessor.testDaemonConnection(TestConstants.PYTHON_DNSDAEMON_TEST_EXE, true, false);
+		}
 	}
 	
 	@Test

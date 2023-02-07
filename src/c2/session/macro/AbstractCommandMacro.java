@@ -12,6 +12,28 @@ public abstract class AbstractCommandMacro {
 	protected HarvestProcessor harvestProcessor;
 	
 	/**
+	* Returns the human readable name of this macro 
+	*
+	* @return String containing desired information
+	*/
+	public abstract String getReadableName();
+	
+	/**
+	* Returns the templated format of the macro command's invocation, such that invocation according to this format
+	* will be recognized by isCommandMatch.
+	*
+	* @return String containing desired information
+	*/
+	public abstract String getInvocationCommandDescription();
+	
+	/**
+	* Returns a brief human readable description of what the macro function does.
+	*
+	* @return String containing desired information
+	*/
+	public abstract String getBehaviorDescription();
+	
+	/**
 	* This method allows the AbstractCommandMacro instance to test if the specified command applies to it. The entire
 	* command is passed to the class, allowing for arbitrary filtering, based on the root command and any potential 
 	* arguments that might be included in the command. 

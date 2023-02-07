@@ -53,4 +53,19 @@ public class RegistrySilentExit extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Registry Silent Exit Persistence Macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return HELP;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro will use the Windows feature to launch a process after another process exits to enable persistence. Requires an elevated session.";
+	}
+
 }

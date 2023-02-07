@@ -21,8 +21,6 @@ import c2.session.macro.MacroOutcome;
 
 public class CommandMacroManager {
 	
-	public static final String DELETE_COOKIES_CMD = "delete_cookies";
-	public static final String HARVEST_COOKIES_CMD = "harvest_cookies";
 	public static final String ACTIVATE_RDP_CMD = "activate_rdp";
 	
 	private WindowsRDPManager manager;
@@ -55,6 +53,19 @@ public class CommandMacroManager {
 			}
 		}
 		
+	}
+	
+	public String getListOfMacros() {
+		StringBuilder sb = new StringBuilder();
+		for(AbstractCommandMacro macro : macros) {
+			sb.append(macro.getReadableName());
+			sb.append(System.lineSeparator());
+			sb.append(macro.getInvocationCommandDescription());
+			sb.append(System.lineSeparator());
+			sb.append(macro.getBehaviorDescription());
+			sb.append(System.lineSeparator());
+		}
+		return sb.toString();
 	}
 	
 	public boolean processCmd(String commandString, int sessionId, String sessionStr) {

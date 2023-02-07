@@ -139,6 +139,8 @@ shell_kill <integer ID>
 The following commands are implemented serverside, where the server translates the instructions into
 commands for the daemon. Most of these commands are intended to trigger client side indicators of compromise to assist with threat mimicry and modeling. 
 
+The command "list_macros" will list all macros loaded to the server.
+
 spawn_fodhelper_elevated_session
 	This macro is designed to enable testing of client-side defenses around the fodhelper user access control defenses. This macro functions by asking the connected daemon for information on how it can be started (IE - an executable name, script path, etc), and will then set the required registry keys for fodhelper to launch a new copy of the daemon. Fodhelper will then be engaged, returning a second session with elevated privileges. At this time, TheAllCommander doesn't support seamless session integration with the elevated session, as this is a red team feature and not needed for indicator of compromise modeling. 
 	Note: Windows defender automatically intercepts the following daemon launch mechanisms: any python script, any command beginning with cmd.exe and any command beginning with powershell.exe. Stand-alone binaries which do not register as malware may be launched, and there is value in doing additional indicator of compromise modeling and heuristic analysis on behavior of these daemons after launch.
@@ -184,6 +186,16 @@ reg_debugger <process name>
 reg_silent_exit <process name>
 	This command will use the Windows SilentProcessExit registry key to launch the daemon process when the target process is closed. This is a reasonably stealthy technique if the attacker uses it skillfully in terms of user awareness. Requires an elevated session.
 	
+### Enumeration
+
+enum_av
+	This command uses WMIC to enumerate AV products on Windows
+	
+enum_network_share
+	This command uses WMIC to enumerate network shares on Windows
+	
+enum_patches <wmic | ps>
+	This command uses WMIC or Powershell to enumerate patch level on Windows	
 	
 # Near Term Project Goals
 DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  

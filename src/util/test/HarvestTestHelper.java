@@ -19,6 +19,7 @@ import java.util.Comparator;
 
 import c2.Constants;
 import c2.session.CommandMacroManager;
+import c2.session.macro.CookieHarvesterMacro;
 import c2.win.CookiesCommandHelper;
 import util.Time;
 import util.test.TestConfiguration.OS;
@@ -206,7 +207,7 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		}
 
 		// Test harvest all
-		bw.write(CommandMacroManager.HARVEST_COOKIES_CMD + System.lineSeparator());
+		bw.write(CookieHarvesterMacro.HARVEST_COOKIES_CMD + System.lineSeparator());
 		bw.flush();
 		String hostname = InetAddress.getLocalHost().getHostName();
 		String username = System.getProperty("user.name");

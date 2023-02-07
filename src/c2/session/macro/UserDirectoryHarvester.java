@@ -118,4 +118,19 @@ public class UserDirectoryHarvester extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "User Directory Harvester Macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return HARVEST_USER_DIRS_CMD;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro harvests the contents of the user documents and desktop directory";
+	}
+
 }

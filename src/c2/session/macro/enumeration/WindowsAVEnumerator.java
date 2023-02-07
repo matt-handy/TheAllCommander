@@ -21,4 +21,19 @@ public class WindowsAVEnumerator extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Windows Antivirus Enumerator";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return COMMAND;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro will use WMIC to identify installed antivirus products";
+	}
+
 }

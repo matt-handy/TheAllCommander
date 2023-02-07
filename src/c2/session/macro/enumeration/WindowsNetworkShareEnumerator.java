@@ -21,4 +21,19 @@ public class WindowsNetworkShareEnumerator extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Windows Network Share Enumerator";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return COMMAND;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro will use WMIC to enumerate all network shares";
+	}
+
 }

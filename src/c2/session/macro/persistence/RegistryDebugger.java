@@ -48,4 +48,19 @@ public class RegistryDebugger extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Registry Debugger Persistence Macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return HELP;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro utilizes the Windows feature to allow a process to be launched instead of another to serve as a debugger. This is not a particularly stealth persistence method, but some attackers will use it. Requires an elevated session.";
+	}
+
 }

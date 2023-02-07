@@ -37,4 +37,19 @@ public class WindowsPatchEnumerator extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Windows Patch Enumerator";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return COMMAND + " (wmic or ps)";
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro uses either WMIC (wmic) or PowerShell (ps) to list installed Windows patches";
+	}
+
 }

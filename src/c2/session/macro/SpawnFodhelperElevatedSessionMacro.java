@@ -35,4 +35,19 @@ public class SpawnFodhelperElevatedSessionMacro extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Spawn FOD Helper elevated session macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return COMMAND;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro uses the FOD Helper UAC bypass to spawn an elevated session.";
+	}
+
 }

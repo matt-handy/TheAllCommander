@@ -18,4 +18,19 @@ public class CookieDeletionMacro extends AbstractCommandMacro {
 		return CookiesCommandHelper.clearAllCookies(io, sessionId);
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Delete Browser Cookies";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return DELETE_COOKIES_CMD;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro deletes cookies for Edge, Firefox, and Chrome";
+	}
+
 }

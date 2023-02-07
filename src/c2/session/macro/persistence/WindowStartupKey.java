@@ -68,4 +68,19 @@ public class WindowStartupKey extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Windows Startup Key Persistence Macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return HELP;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro will use either the current user or local machine startup key to enable persistence for the daemon.";
+	}
+
 }

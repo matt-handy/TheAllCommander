@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 
 import c2.session.CommandMacroManager;
+import c2.session.macro.CookieHarvesterMacro;
 import util.Time;
 import util.test.RunnerTestGeneric;
 import util.test.ServerRunner;
@@ -104,7 +105,7 @@ public class RunnerTestDaemonHarvestCookiesNative {
 			}
 
 			// Test harvest all
-			bw.write(CommandMacroManager.HARVEST_COOKIES_CMD + System.lineSeparator());
+			bw.write(CookieHarvesterMacro.HARVEST_COOKIES_CMD + System.lineSeparator());
 			bw.flush();
 			String hostname = InetAddress.getLocalHost().getHostName();
 			String username = System.getProperty("user.name");
@@ -188,7 +189,7 @@ public class RunnerTestDaemonHarvestCookiesNative {
 			System.out.println("Testing no Chrome cookies");
 			// Test harvest when one or more are missing (delete Chrome)
 			Files.deleteIfExists(Paths.get(realChromeCookies));
-			bw.write(CommandMacroManager.HARVEST_COOKIES_CMD + System.lineSeparator());
+			bw.write(CookieHarvesterMacro.HARVEST_COOKIES_CMD + System.lineSeparator());
 			bw.flush();
 			Time.sleepWrapped(75000);
 			// Check that the cookies are in local storage

@@ -129,6 +129,7 @@ public class ClientServerTest {
 				System.out.println("Warning: Had to kill: " + manager.clientStartArgs);
 			}
 		}
+		Time.sleepWrapped(5000);//This is a hack b/c for some reason the server won't release resources here.
 	}
 	
 	protected static void cleanupClients() {

@@ -79,4 +79,19 @@ public class WindowsLogDeleterMacro extends AbstractCommandMacro {
 		sendCommand(cmd, sessionId, outcome);
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Windows log deletion macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return "delete_windows_logs (optional - application, security, system, or setup)";
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "When invoked with no arguments, this macro will delete all Windows Event logs. When the argument application, security, system, or setup is provided, the corresponding logset is deleted";
+	}
+
 }

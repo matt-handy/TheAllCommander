@@ -29,4 +29,19 @@ public class RecycleBinCleanMacro extends AbstractCommandMacro{
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Recycle Bin Cleaner Macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return COMMAND;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro deletes the contents of the recycle bin";
+	}
+
 }

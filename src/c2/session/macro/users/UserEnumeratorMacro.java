@@ -50,4 +50,19 @@ public class UserEnumeratorMacro extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "User Enumerator Macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return COMMAND_STR;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro will enumerate all users and groups for the host system. Not currently implemented on Linux or Mac";
+	}
+
 }

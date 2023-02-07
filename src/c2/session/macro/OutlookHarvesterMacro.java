@@ -180,4 +180,20 @@ public class OutlookHarvesterMacro extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Outlook Harvester Macro";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return OUTLOOK_HARVEST_COMMAND + " basic" + System.lineSeparator() + 
+				OUTLOOK_HARVEST_COMMAND + " deep <optional directory to search>";
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro searches either the default Outlook folders (basic option) or deep searches the file system (deep option) to find Outlook .pst and .ost files";
+	}
+
 }

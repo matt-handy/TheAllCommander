@@ -18,4 +18,19 @@ public class CleanFodhelperMacro extends AbstractCommandMacro {
 		return outcome;
 	}
 
+	@Override
+	public String getReadableName() {
+		return "Clean Fodhelper";
+	}
+
+	@Override
+	public String getInvocationCommandDescription() {
+		return COMMAND;
+	}
+
+	@Override
+	public String getBehaviorDescription() {
+		return "This macro cleares the registry key used by the FOD Helper UAC bypass macro";
+	}
+
 }
