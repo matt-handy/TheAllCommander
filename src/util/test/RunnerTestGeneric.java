@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -844,6 +847,12 @@ public class RunnerTestGeneric {
 	static void testClipboard(BufferedReader br, OutputStreamWriter bw, String lang, boolean isRemote)
 			throws IOException {
 		System.out.println("Testing clipboard");
+		
+		String clipboardContents = "This is the value of my clipboard";
+		Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();
+		StringSelection sString = new StringSelection(clipboardContents);
+		clip.setContents(sString, sString);
+		
 		bw.write("clipboard" + System.lineSeparator());
 		bw.flush();
 		String output = br.readLine();
@@ -878,6 +887,8 @@ public class RunnerTestGeneric {
 				}
 			});
 			assertEquals(clipboard.length, 1);
+			String data = Files.readString(clipboard[0].toPath());
+			assertEquals(clipboardContents + System.lineSeparator(), data);
 
 			try {
 				Files.walk(matches[0].toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile)
