@@ -120,10 +120,12 @@ class CommanderInterfaceTest extends ClientServerTest {
 	
 	@Test
 	void test() {
+		boolean isLinux = false;
 		if (System.getProperty("os.name").contains("Windows")) {
 			initiateServer();
 		} else {
 			initiateServer("test_linux.properties");
+			isLinux = true;
 		}
 		spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 		System.out.println("Transmitting commands");
@@ -137,16 +139,16 @@ class CommanderInterfaceTest extends ClientServerTest {
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
 
-			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
+			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, isLinux, false);
 
 			bw.write("quit_session" + System.lineSeparator());
 			bw.flush();
 
-			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, false);
+			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, isLinux, false);
 
 			bw.write("list_sessions" + System.lineSeparator());
 			bw.flush();
-			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, false, 2, false);
+			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, isLinux, 2, false);
 
 			// Test killing a session. First the session will disconnect, see that it isn't
 			// there, then
@@ -176,10 +178,10 @@ class CommanderInterfaceTest extends ClientServerTest {
 			bw = new OutputStreamWriter(remote.getOutputStream());
 			br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
 
-			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, false, 3, false);
+			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, isLinux, 3, false);
 			bw.write("list_sessions" + System.lineSeparator());
 			bw.flush();
-			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, false, 3, false);
+			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, isLinux, 3, false);
 
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
