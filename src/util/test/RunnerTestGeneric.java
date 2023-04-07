@@ -844,8 +844,10 @@ public class RunnerTestGeneric {
 		}
 	}
 
+	
 	static void testClipboard(BufferedReader br, OutputStreamWriter bw, String lang, boolean isRemote)
 			throws IOException {
+		
 		System.out.println("Testing clipboard");
 		
 		String clipboardContents = "This is the value of my clipboard";

@@ -18,18 +18,26 @@ public class UserEnumeratorMacro extends AbstractCommandMacro {
 	@Override
 	public MacroOutcome processCmd(String cmd, int sessionId, String sessionStr) {
 		MacroOutcome outcome = new MacroOutcome();
-		WindowsUserEnumeratorMacro windowsMacro = new WindowsUserEnumeratorMacro(io);
 		sendCommand(Commands.OS_HERITAGE, sessionId, outcome);
 		String response = awaitResponse(sessionId, outcome);
 		SystemAccountProfile profile = null;
 		if(response.startsWith(Commands.OS_HERITAGE_RESPONSE_WINDOWS)) {
+			
 			outcome.addMacroMessage("Proceeding with Windows enumeration");
 			try {
+				WindowsUserEnumeratorMacro windowsMacro = new WindowsUserEnumeratorMacro(io);
 				profile = windowsMacro.getSystemAccountProfile(sessionId, outcome);
 			}catch(Exception ex) {
 				outcome.addError("Error developing profile: " + ex.getMessage());
 			}
 		}else if(response.startsWith(Commands.OS_HERITAGE_RESPONSE_LINUX)) {
+			outcome.addMacroMessage("Proceeding with Linux enumeration");
+			try {
+				LinuxUserEnumeratorMacro linuxMacro = new LinuxUserEnumeratorMacro(io);
+				profile = linuxMacro.getSystemAccountProfile(sessionId, outcome);
+			}catch(Exception ex) {
+				outcome.addError("Error developing profile: " + ex.getMessage());
+			}
 			outcome.addMacroMessage("User enumeration not supported for Linux at this time");
 		}else if(response.startsWith(Commands.OS_HERITAGE_RESPONSE_MAC)) {
 			outcome.addMacroMessage("User enumeration not supported for Mac at this time");
