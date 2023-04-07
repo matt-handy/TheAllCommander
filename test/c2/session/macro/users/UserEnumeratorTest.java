@@ -507,9 +507,9 @@ class UserEnumeratorTest {
 				+ "'", outcome.getOutput().get(1));
 		assertEquals("Macro Executor: 'Proceeding with Linux enumeration'", outcome.getOutput().get(2));
 		assertEquals("Sent Command: 'cat /etc/group'", outcome.getOutput().get(3));
-		assertEquals("Received response: '" + ETC_GROUP + System.lineSeparator() + "'", outcome.getOutput().get(4));
+		assertEquals("Received response: '" + ETC_GROUP.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(4));
 		assertEquals("Sent Command: 'cat /etc/passwd'", outcome.getOutput().get(5));
-		assertEquals("Received response: '" + ETC_PASSWD + System.lineSeparator() + "'", outcome.getOutput().get(6));
+		assertEquals("Received response: '" + ETC_PASSWD.replace("\r\n", System.lineSeparator()) + System.lineSeparator() + "'", outcome.getOutput().get(6));
 		assertEquals("Sent Command: 'groups root'", outcome.getOutput().get(7));
 		assertEquals("Received response: 'root : root kaboxer" + System.lineSeparator() + "'", outcome.getOutput().get(8));
 		assertEquals("Sent Command: 'groups kali'", outcome.getOutput().get(9));
