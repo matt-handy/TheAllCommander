@@ -5,6 +5,8 @@ Framework for modeling and researching C2 communications for developing efficien
 
 Featured in DEFCON Demolabs 2022!!!!
 
+Planning is currently underway for TheAllCommander 2.0 - please check out the development blog for more information and feel free to open an issue on this site to contribute ideas!
+
 Development blog: http://matthandy.net/TAC-development.html
 
 # Why TheAllCommander?
