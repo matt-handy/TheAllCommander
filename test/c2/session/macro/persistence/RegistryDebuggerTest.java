@@ -100,10 +100,10 @@ class RegistryDebuggerTest {
 		assertFalse(outcome.hasErrors());
 		assertEquals("Sent Command: 'get_daemon_start_cmd'", outcome.getOutput().get(0));
 		assertEquals("Received response: 'fakestart.exe"
-				+ "\r\n'", outcome.getOutput().get(1));
+				+ System.lineSeparator() + "'", outcome.getOutput().get(1));
 		assertEquals("Sent Command: 'REG ADD \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\calc.exe\" /v Debugger /d \"fakestart.exe\"'", outcome.getOutput().get(2));
 		assertEquals("Received response: 'The operation completed successfully."
-				+ "\r\n'", outcome.getOutput().get(3));
+				+ System.lineSeparator() + "'", outcome.getOutput().get(3));
 		assertEquals("Macro Executor: 'Success!'", outcome.getOutput().get(4));
 		
 		em.kill();

@@ -114,16 +114,16 @@ class RegistrySilentExitTest {
 		
 		assertEquals("Sent Command: 'get_daemon_start_cmd'", outcome.getOutput().get(0));
 		assertEquals("Received response: 'fakestart.exe"
-				+ "\r\n'", outcome.getOutput().get(1));
+				+ System.lineSeparator()+ "'", outcome.getOutput().get(1));
 		assertEquals("Sent Command: 'reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\calc.exe\" /v GlobalFlag /t REG_DWORD /d 512'", outcome.getOutput().get(2));
 		assertEquals("Received response: 'The operation completed successfully."
-				+ "\r\n'", outcome.getOutput().get(3));
+				+ System.lineSeparator()+ "'", outcome.getOutput().get(3));
 		assertEquals("Sent Command: 'reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SilentProcessExit\\calc.exe\" /v ReportingMode /t REG_DWORD /d 1'", outcome.getOutput().get(4));
 		assertEquals("Received response: 'The operation completed successfully."
-				+ "\r\n'", outcome.getOutput().get(5));
+				+ System.lineSeparator()+ "'", outcome.getOutput().get(5));
 		assertEquals("Sent Command: 'reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SilentProcessExit\\calc.exe\" /v MonitorProcess /d \"fakestart.exe\"'", outcome.getOutput().get(6));
 		assertEquals("Received response: 'The operation completed successfully."
-				+ "\r\n'", outcome.getOutput().get(7));
+				+ System.lineSeparator() + "'", outcome.getOutput().get(7));
 		assertEquals("Macro Executor: 'Success!'", outcome.getOutput().get(8));
 		
 		em.kill();
