@@ -13,12 +13,17 @@ public class SessionHandler implements Runnable {
 
 	public static final String NEW_SESSION_BANNER = "New session: ";
 	
+	public static final String START_OBFUSCATE_WINDOWS_COMMAND = "<start esc>";
+	public static final String END_OBFUSCATE_WINDOWS_COMMAND = "<end esc>";
+	public static final String OBFUSCATE_WINDOWS_COMMAND_PREFIX = "<esc> ";
+	
 	private IOManager ioManager;
 	private Socket socket;
 	private int sessionId;
 	private String sessionName;
 	private boolean stayAlive = true;
 	private CommandMacroManager cmm;
+	private boolean obfuscateWindowsCommandMode = false;
 	
 	public SessionHandler(IOManager ioManager, Socket socket, int sessionId, String sessionName, CommandMacroManager cmm) {
 		this.ioManager = ioManager;
@@ -71,8 +76,20 @@ public class SessionHandler implements Runnable {
 					}else if(command.equalsIgnoreCase(Commands.SERVER_CMD_LIST_ALL_MACROS)) {
 						bw.write(cmm.getListOfMacros() + System.lineSeparator());
 						bw.flush();
+					}else if(command.equals(START_OBFUSCATE_WINDOWS_COMMAND)) {
+						obfuscateWindowsCommandMode = true;
+					}else if(command.equals(END_OBFUSCATE_WINDOWS_COMMAND)) {
+						obfuscateWindowsCommandMode = false;
 					}else if(!cmm.processCmd(command, sessionId, sessionName)) {
+						if(obfuscateWindowsCommandMode) {
+							command = WindowsCarrotObfuscation.obfuscate(command);
+						}else if(command.startsWith(OBFUSCATE_WINDOWS_COMMAND_PREFIX)) {
+							command = WindowsCarrotObfuscation.obfuscate(command.substring(OBFUSCATE_WINDOWS_COMMAND_PREFIX.length()));
+						}
 						ioManager.sendCommand(sessionId, command);
+					}else if(command.equals("qSession")) {
+						stayAlive = false;
+						break;
 					}
 					
 				}
