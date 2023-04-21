@@ -405,6 +405,8 @@ public class RunnerTestGeneric {
 			output = br.readLine();
 			assertEquals(output, "");
 
+			testWindowsCmdPromptObfuscation(br, bw, config);
+			
 			testPwd(br, bw, config);
 
 			testDownloadAndUplinkNominal(br, bw, config);
@@ -475,6 +477,24 @@ public class RunnerTestGeneric {
 		cleanup();
 	}
 
+	private static void testWindowsCmdPromptObfuscation(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException
+	{
+		if(config.os == OS.WINDOWS) {
+			System.out.println("Testing obfuscated 'dir' command");
+			OutputStreamWriterHelper.writeAndSend(bw, "<esc> dir");
+			String output = br.readLine();
+			assertTrue(output.startsWith(" Volume in drive"));
+			//Flush the opening for dir
+			for(int idx = 0; idx < 5; idx++) {
+				output = br.readLine();
+			}
+			//iterate until we find the end
+			while (!output.equals("")) {
+				output = br.readLine();
+			}
+		}
+	}
+	
 	private static void testOSEnumeration(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
 			throws IOException {
 		System.out.println("Testing client identifies OS heritage");

@@ -82,6 +82,7 @@ class WindowsCarrotObfuscationTest {
 		for(int i = 0; i < 1000; i++) {
 			String product = WindowsCarrotObfuscation.obfuscate("This is command");
 			assertTrue(product.contains("^"));
+			assertFalse(product.contains("^^"));
 			assertEquals("This is command", product.replace("^", ""));
 		}
 	}
@@ -108,6 +109,7 @@ class WindowsCarrotObfuscationTest {
 			command = io.pollCommand(id);
 		}
 		assertTrue(command.contains("^"));
+		assertFalse(command.contains("^^"));
 		assertEquals("net user", command.replace("^", ""));
 		
 		ss.close();
@@ -140,6 +142,7 @@ class WindowsCarrotObfuscationTest {
 			command = io.pollCommand(id);
 		}
 		assertFalse(command.contains("^"));
+		assertFalse(command.contains("^^"));
 		assertEquals("net user", command.replace("^", ""));
 		
 		command = io.pollCommand(id);
@@ -147,6 +150,7 @@ class WindowsCarrotObfuscationTest {
 			command = io.pollCommand(id);
 		}
 		assertTrue(command.contains("^"));
+		assertFalse(command.contains("^^"));
 		assertEquals("net user", command.replace("^", ""));
 		
 		command = io.pollCommand(id);
@@ -154,6 +158,7 @@ class WindowsCarrotObfuscationTest {
 			command = io.pollCommand(id);
 		}
 		assertTrue(command.contains("^"));
+		assertFalse(command.contains("^^"));
 		assertEquals("net user", command.replace("^", ""));
 		
 		command = io.pollCommand(id);
@@ -161,6 +166,7 @@ class WindowsCarrotObfuscationTest {
 			command = io.pollCommand(id);
 		}
 		assertFalse(command.contains("^"));
+		assertFalse(command.contains("^^"));
 		assertEquals("net user", command.replace("^", ""));
 		
 		ss.close();

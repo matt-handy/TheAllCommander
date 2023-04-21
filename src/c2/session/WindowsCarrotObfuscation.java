@@ -10,7 +10,11 @@ public class WindowsCarrotObfuscation {
 		int numberOfRounds = 1 + rnd.nextInt(10);
 		for(int idx = 0; idx < numberOfRounds; idx++) {
 			int targetIdx = rnd.nextInt(command.length() - 1);
-			command = command.substring(0, targetIdx) + "^" + command.substring(targetIdx);
+			
+			String tmpCommand = command.substring(0, targetIdx) + "^" + command.substring(targetIdx);
+			if(!tmpCommand.contains("^^")) {
+				command = tmpCommand;
+			}
 		}
 		return command;
 	}
