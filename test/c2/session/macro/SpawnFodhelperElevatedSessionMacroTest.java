@@ -71,7 +71,7 @@ class SpawnFodhelperElevatedSessionMacroTest {
 					// continue
 					Time.sleepWrapped(10);
 				} else {
-					if (command.equalsIgnoreCase(Commands.CLIENT_GET_EXE_CMD)) {
+					if (command.equalsIgnoreCase(Commands.CLIENT_CMD_GET_EXE)) {
 						session.sendIO(sessionId, "fakestart.exe");
 						alive = false;
 					}
@@ -100,7 +100,7 @@ class SpawnFodhelperElevatedSessionMacroTest {
 		MacroOutcome outcome = macro.processCmd(SpawnFodhelperElevatedSessionMacro.COMMAND, sessionId, null);
 		assertEquals(0, outcome.getErrors().size());
 		assertEquals(7, outcome.getOutput().size());
-		assertEquals("Sent Command: '" + Commands.CLIENT_GET_EXE_CMD + "'", outcome.getOutput().get(0));
+		assertEquals("Sent Command: '" + Commands.CLIENT_CMD_GET_EXE + "'", outcome.getOutput().get(0));
 		assertEquals("Received response: 'fakestart.exe" + System.lineSeparator() + "'", outcome.getOutput().get(1));
 		assertEquals("Sent Command: '" + SpawnFodhelperElevatedSessionMacro.NEW_ITEM_CMD + "'", outcome.getOutput().get(2));
 		assertEquals("Sent Command: '" + SpawnFodhelperElevatedSessionMacro.NEW_ITEM_PROP_CMD + "'", outcome.getOutput().get(3));

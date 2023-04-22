@@ -82,7 +82,7 @@ class UserDirectoryHarvesterTest {
 				if (command == null) {
 					// continue
 					Time.sleepWrapped(10);
-				} else if (command.equals(Commands.OS_HERITAGE)) {
+				} else if (command.equals(Commands.CLIENT_CMD_OS_HERITAGE)) {
 					if(invalidOS) {
 						io.sendIO(id, Commands.OS_HERITAGE_RESPONSE_MAC);
 					}else {
@@ -92,26 +92,26 @@ class UserDirectoryHarvesterTest {
 						io.sendIO(id, Commands.OS_HERITAGE_RESPONSE_LINUX);
 					}
 					}
-				} else if (command.equals(Commands.PWD)) {
+				} else if (command.equals(Commands.CLIENT_CMD_PWD)) {
 					if(windows) {
 						io.sendIO(id, "C:\\test");
 					}else {
 						io.sendIO(id, "/home/kali/working");
 					}
-				}else if(command.equals(Commands.CD + " /home/kali/working")) { 
+				}else if(command.equals(Commands.CLIENT_CMD_CD + " /home/kali/working")) { 
 					io.sendIO(id, "/home/kali/working");
 					alive = false;
-				}else if(command.equals(Commands.CD + " ~")) {
+				}else if(command.equals(Commands.CLIENT_CMD_CD + " ~")) {
 					io.sendIO(id, "/home/kali");
-				} else if (command.equals(Commands.CD + " " + expectedUserProfileDir + "\\Desktop")) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " " + expectedUserProfileDir + "\\Desktop")) {
 					io.sendIO(id, expectedUserProfileDir + "\\Desktop");
-				} else if (command.equals(Commands.CD + " " + expectedUserProfileDir + "\\Documents")) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " " + expectedUserProfileDir + "\\Documents")) {
 					io.sendIO(id, expectedUserProfileDir + "\\Documents");
-				} else if (command.equals(Commands.CD + " " + expectedOnedriveDir + "\\Desktop")) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " " + expectedOnedriveDir + "\\Desktop")) {
 					io.sendIO(id, expectedOnedriveDir + "\\Desktop");
-				} else if (command.equals(Commands.CD + " " + expectedOnedriveDir + "\\Documents")) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " " + expectedOnedriveDir + "\\Documents")) {
 					io.sendIO(id, expectedOnedriveDir + "\\Documents");
-				} else if (command.equals(Commands.CD + " " + "C:\\test")) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " " + "C:\\test")) {
 					io.sendIO(id, "C:\\test");
 					alive = false;
 				} else if (command.equals("dir %USERPROFILE%")) {
@@ -126,7 +126,7 @@ class UserDirectoryHarvesterTest {
 					}else {
 						io.sendIO(id, BARF);
 					}
-				} else if (command.equals(Commands.HARVEST_CURRENT_DIRECTORY)) {
+				} else if (command.equals(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY)) {
 					if(!windows) {
 						io.sendIO(id, "Started Harvest: /home/kali");
 					}else {

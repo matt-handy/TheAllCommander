@@ -29,7 +29,7 @@ public class RegistryDebugger extends AbstractCommandMacro {
 			if(WindowsCmdLineHelper.isClientElevated(sessionId, io)) {
 				String targetCmd = elements[1];
 				String thisCommand = REG_COMMAND.replace("$TARGET_EXE$", targetCmd);
-				sendCommand(Commands.CLIENT_GET_EXE_CMD, sessionId, outcome);
+				sendCommand(Commands.CLIENT_CMD_GET_EXE, sessionId, outcome);
 				String clientCmd = awaitResponse(sessionId, outcome);
 				clientCmd = clientCmd.replace("\r", "");
 				clientCmd = clientCmd.replace("\n", "");

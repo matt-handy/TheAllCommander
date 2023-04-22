@@ -34,6 +34,7 @@ class WindowsCarrotObfuscationTest {
 				pw.println("net user");
 				pw.println("<start esc>");
 				pw.println("net user");
+				pw.println("pwd");
 				pw.println("net user");
 				pw.println("<end esc>");
 				pw.println("net user");
@@ -157,6 +158,13 @@ class WindowsCarrotObfuscationTest {
 			assertFalse(command.contains("^^"));
 			assertEquals("net user", command.replace("^", ""));
 
+			command = io.pollCommand(id);
+			while (command == null) {
+				command = io.pollCommand(id);
+			}
+			assertFalse(command.contains("^"));
+			assertEquals("pwd", command);
+			
 			command = io.pollCommand(id);
 			while (command == null) {
 				command = io.pollCommand(id);

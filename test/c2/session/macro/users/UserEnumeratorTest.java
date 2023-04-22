@@ -392,7 +392,7 @@ class UserEnumeratorTest {
 					io.sendIO(id, EXAMPLE_BOB_STR);
 				}else if(command.equals("net user DefaultAccount")) {
 					io.sendIO(id, EXAMPLE_DEFAULT_ACCOUNT_STR);
-				}else if(command.equals(Commands.OS_HERITAGE)) {
+				}else if(command.equals(Commands.CLIENT_CMD_OS_HERITAGE)) {
 					if(pretendOS.equals("Windows")) {
 						io.sendIO(id, Commands.OS_HERITAGE_RESPONSE_WINDOWS);
 					}else if(pretendOS.equals("Linux")) {

@@ -72,7 +72,7 @@ class RegistrySilentExitTest {
 						session.sendIO(sessionId, "Access is denied.");
 					}
 				} else {
-					if (command.equalsIgnoreCase(Commands.CLIENT_GET_EXE_CMD)) {
+					if (command.equalsIgnoreCase(Commands.CLIENT_CMD_GET_EXE)) {
 						session.sendIO(sessionId, "fakestart.exe");
 					}
 				}

@@ -34,6 +34,8 @@ class WindowsPowerShellObfuscationModeTest {
 				PrintWriter pw = new PrintWriter(sock.getOutputStream());
 				pw.println(Commands.SESSION_START_OBFUSCATED_POWERSHELL_MODE);
 				pw.println("Get-Date");
+				pw.println("pwd");
+				pw.println("Get-Date");
 				pw.println(Commands.SESSION_END_OBFUSCATED_POWERSHELL_MODE);
 				pw.println("Get-Date");
 				pw.println("qSession");
@@ -69,6 +71,18 @@ class WindowsPowerShellObfuscationModeTest {
 			executor.submit(handler);
 
 			String command = io.pollCommand(id);
+			while (command == null) {
+				command = io.pollCommand(id);
+			}
+			assertEquals("echo Get-Date | powershell", command);
+			
+			command = io.pollCommand(id);
+			while (command == null) {
+				command = io.pollCommand(id);
+			}
+			assertEquals("pwd", command);
+			
+			command = io.pollCommand(id);
 			while (command == null) {
 				command = io.pollCommand(id);
 			}

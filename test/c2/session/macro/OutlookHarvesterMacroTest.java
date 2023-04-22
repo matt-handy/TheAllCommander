@@ -110,20 +110,20 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 				if (command == null) {
 					// continue
 					Time.sleepWrapped(10);
-				} else if (command.equals(Commands.PWD)) {
+				} else if (command.equals(Commands.CLIENT_CMD_PWD)) {
 					io.sendIO(id, "C:\\test");
-				} else if (command.equals(Commands.CD + " " + expectedPSTDir)) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " " + expectedPSTDir)) {
 					io.sendIO(id, expectedPSTDir);
-				} else if (command.equals(Commands.CD + " " + expectedOSTDir)) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " " + expectedOSTDir)) {
 					io.sendIO(id, expectedOSTDir);
-				} else if (command.equals(Commands.CD + " " + "C:\\test")) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " " + "C:\\test")) {
 					io.sendIO(id, "C:\\test");
 					alive = false;
 				} else if (command.equals("dir %APPDATA%")) {
 					io.sendIO(id, APPDATA_EXAMPLE);
 				} else if (command.equals("dir %USERPROFILE%")) {
 					io.sendIO(id, USERPROFILE_EXAMPLE);
-				} else if (command.equals(Commands.HARVEST_CURRENT_DIRECTORY)) {
+				} else if (command.equals(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY)) {
 					if (basicHarvest) {
 						if (harvestCount == 0) {
 							io.sendIO(id, "Started Harvest: " + expectedPSTDir);
@@ -144,7 +144,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 					io.sendIO(id, "Attempting search with 10 minute timeout");
 					io.sendIO(id, "C:\\user\\fakedir\\mystuff.pst");
 					io.sendIO(id, "Search complete");
-				} else if (command.equals(Commands.CD + " C:\\user\\fakedir")) {
+				} else if (command.equals(Commands.CLIENT_CMD_CD + " C:\\user\\fakedir")) {
 					io.sendIO(id, "C:\\user\\fakedir" + System.lineSeparator());
 				} else {
 					System.out.println("Unknown command: " + command);

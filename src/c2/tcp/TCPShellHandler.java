@@ -140,7 +140,7 @@ public class TCPShellHandler implements Runnable {
 			sb.append(System.lineSeparator());
 			sb.append(System.lineSeparator());
 			ioManager.sendIO(sessionId, sb.toString());
-		}else if(nextCommand.equalsIgnoreCase(Commands.OS_HERITAGE)) {
+		}else if(nextCommand.equalsIgnoreCase(Commands.CLIENT_CMD_OS_HERITAGE)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Commands.OS_HERITAGE_RESPONSE_LINUX);
 			sb.append(System.lineSeparator());
@@ -260,7 +260,7 @@ public class TCPShellHandler implements Runnable {
 	private void operateWindowsCommand(OutputStreamWriter bw, String nextCommand) throws IOException {
 		if(nextCommand.equalsIgnoreCase("die")) {
 			OutputStreamWriterHelper.writeAndSend(bw, "exit");
-		}else if(nextCommand.equalsIgnoreCase(Commands.OS_HERITAGE)) {
+		}else if(nextCommand.equalsIgnoreCase(Commands.CLIENT_CMD_OS_HERITAGE)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Commands.OS_HERITAGE_RESPONSE_WINDOWS);
 			sb.append(System.lineSeparator());

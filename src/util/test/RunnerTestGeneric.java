@@ -532,7 +532,7 @@ public class RunnerTestGeneric {
 	private static void testOSEnumeration(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
 			throws IOException {
 		System.out.println("Testing client identifies OS heritage");
-		OutputStreamWriterHelper.writeAndSend(bw, Commands.OS_HERITAGE);
+		OutputStreamWriterHelper.writeAndSend(bw, Commands.CLIENT_CMD_OS_HERITAGE);
 		if (config.os == OS.WINDOWS) {
 			assertEquals(Commands.OS_HERITAGE_RESPONSE_WINDOWS, br.readLine());
 		} else {// Have not implemented Mac, so Linux is "else" for now
@@ -670,7 +670,7 @@ public class RunnerTestGeneric {
 		}
 		try {
 			if (config.lang.equals("python")) {
-				bw.write(Commands.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.write(Commands.CLIENT_CMD_GET_EXE + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
 				String[] respElements = output.split(" ");
@@ -692,7 +692,7 @@ public class RunnerTestGeneric {
 							respElements[1]);
 				}
 			} else if (config.lang.equals("C#")) {
-				bw.write(Commands.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.write(Commands.CLIENT_CMD_GET_EXE + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
 				assertTrue(output.startsWith("C:\\"));
@@ -711,7 +711,7 @@ public class RunnerTestGeneric {
 					fail("Implement me");
 				}
 			} else if (config.lang.equals("C++")) {
-				bw.write(Commands.CLIENT_GET_EXE_CMD + System.lineSeparator());
+				bw.write(Commands.CLIENT_CMD_GET_EXE + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
 				if (config.os == OS.LINUX) {

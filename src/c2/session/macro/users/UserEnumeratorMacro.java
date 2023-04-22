@@ -18,7 +18,7 @@ public class UserEnumeratorMacro extends AbstractCommandMacro {
 	@Override
 	public MacroOutcome processCmd(String cmd, int sessionId, String sessionStr) {
 		MacroOutcome outcome = new MacroOutcome();
-		sendCommand(Commands.OS_HERITAGE, sessionId, outcome);
+		sendCommand(Commands.CLIENT_CMD_OS_HERITAGE, sessionId, outcome);
 		String response = awaitResponse(sessionId, outcome);
 		SystemAccountProfile profile = null;
 		if(response.startsWith(Commands.OS_HERITAGE_RESPONSE_WINDOWS)) {
