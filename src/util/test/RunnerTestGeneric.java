@@ -24,10 +24,14 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
@@ -406,6 +410,7 @@ public class RunnerTestGeneric {
 			assertEquals(output, "");
 
 			testWindowsCmdPromptObfuscation(br, bw, config);
+			testWindowsPowershellPromptObfuscation(br, bw, config);
 			
 			testPwd(br, bw, config);
 
@@ -492,6 +497,35 @@ public class RunnerTestGeneric {
 			while (!output.equals("")) {
 				output = br.readLine();
 			}
+		}
+	}
+	
+	private static void testWindowsPowershellPromptObfuscation(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException
+	{
+		if(config.os == OS.WINDOWS) {
+			System.out.println("Testing obfuscated 'powershell' command");
+			OutputStreamWriterHelper.writeAndSend(bw, Commands.SESSION_START_OBFUSCATED_POWERSHELL_MODE);
+			OutputStreamWriterHelper.writeAndSend(bw, "Get-Date -Format \"MM/dd/yyyy\"");
+			OutputStreamWriterHelper.writeAndSend(bw, Commands.SESSION_END_OBFUSCATED_POWERSHELL_MODE);
+			String output = br.readLine();
+			assertEquals("Windows PowerShell", output);
+			output = br.readLine();
+			assertEquals("Copyright (C) Microsoft Corporation. All rights reserved.", output);
+			output = br.readLine();//Flush
+			output = br.readLine();
+			output = br.readLine();
+			
+			output = br.readLine();
+			assertTrue(output.startsWith("PS") && output.endsWith("Get-Date -Format \"MM/dd/yyyy\" "));
+			output = br.readLine();
+			try {
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+				LocalDate.parse(output, formatter);
+			}catch(DateTimeParseException  ex) {
+				fail("Attempted powershell command did not return real date");
+			}
+			output = br.readLine();
+			assertTrue(output.startsWith("PS") && output.endsWith("> "));
 		}
 	}
 	

