@@ -41,6 +41,7 @@ import c2.Constants;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
 import c2.session.macro.SpawnFodhelperElevatedSessionMacro;
+import c2.session.macro.persistence.WindowsHiddenUserMacro;
 import util.Time;
 import util.test.TestConfiguration.OS;
 
@@ -247,6 +248,41 @@ public class RunnerTestGeneric {
 		assertEquals(output, "");
 	}
 
+	static void testAddHiddenUsersError(BufferedReader br, OutputStreamWriter bw, String lang) throws IOException {
+		if(lang.equals("Python") || lang.equals("C++") || lang.equals("C#")) {
+			OutputStreamWriterHelper.writeAndSend(bw, WindowsHiddenUserMacro.COMMAND);
+			String output = br.readLine();
+			assertEquals("Cannot execute, errors encountered:", output);
+			output = br.readLine();
+			if(lang.equals("Python")) {
+				assertEquals("Unable to add user: Unable to add user, not administrator", output);
+			}else {//C++ & C#
+				assertEquals("Unable to add user: Error: 5", output);
+			}
+			
+			output = br.readLine();
+			assertTrue(output.startsWith("Sent Command: 'add_hidden_user"));
+			
+			output = br.readLine();
+			if(lang.equals("Python")) {
+				assertEquals("Received response: 'Unable to add user, not administrator", output);
+			}else {//C++ & C#
+				assertEquals("Received response: 'Error: 5", output);
+			}
+			output = br.readLine();
+			assertEquals("", output);
+			output = br.readLine();
+			assertEquals("'", output);
+			
+			output = br.readLine();
+			if(lang.equals("Python")) {
+				assertEquals("Error: Unable to add user: Unable to add user, not administrator", output);
+			}else {//C++ & C#
+				assertEquals("Error: Unable to add user: Error: 5", output);
+			}
+		}
+	}
+	
 	static void testCscDirEnum(BufferedReader br, OutputStreamWriter bw) throws IOException {
 		bw.write("dir" + System.lineSeparator());
 		bw.flush();
@@ -464,6 +500,8 @@ public class RunnerTestGeneric {
 				}
 
 			}
+			
+			testAddHiddenUsersError(br, bw, config.lang);
 
 			bw.write("die" + System.lineSeparator());
 			bw.flush();

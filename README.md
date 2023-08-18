@@ -176,9 +176,6 @@ harvest_user_dir
 harvest_outlook (basic | deep)
 	This command with the "basic" argument will harvest the default .pst and .ost files used by Outlook. In "deep" mode, the tool will search for a non-standard .pst location and harvest it.
 
-enumerate_users
-	This command will enumerate the users present on the system and the domain. If domain access is present, groups are enumerated as well. Current, this command will only work on Windows daemons
-
 regkey_persist (lm | cu) (calc - optional)
 	This command will use either the local machine (lm) or current user (cu) startup registry key to start the daemon process on next startup. To simulate an attempt to write to these keys without invoking the daemon on startup, the optional third argument "calc" can be used to configure the system to launch calc.exe on startup. This provides more flexibility in environments where the actual test daemon cannot be given actual persistence to stay within the test boundaries.
 
@@ -187,6 +184,9 @@ reg_debugger <process name>
 
 reg_silent_exit <process name>
 	This command will use the Windows SilentProcessExit registry key to launch the daemon process when the target process is closed. This is a reasonably stealthy technique if the attacker uses it skillfully in terms of user awareness. Requires an elevated session.
+
+add_hidden_user <optional - username> <optional - password>
+	This command, with no arugments, will generate a random user string and password, with the final character being '$' and creates the account via the Win32 API and with the UF_WORKSTATION_TRUST_ACCOUNT flag. This makes the user account unseen by "net user", so it is more stealthy and the baseline user creation techniques. If invoked with one argument, it will use the argument as the password. The user can also specify a username without the trailing '$'. TheAllCommander will honer that username, however it will post a warning. 
 	
 ### Enumeration
 
@@ -198,6 +198,10 @@ enum_network_share
 	
 enum_patches <wmic | ps>
 	This command uses WMIC or Powershell to enumerate patch level on Windows	
+
+enumerate_users
+	This command will enumerate the users present on the system and the domain. If domain access is present, groups are enumerated as well. Current, this command will only work on Windows daemons
+
 	
 # Near Term Project Goals
 DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  

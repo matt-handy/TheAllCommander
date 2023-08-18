@@ -155,6 +155,17 @@ For detection logic, the same filtering for "reg_debugger" can be applied to cat
 	
 	Object Name LIKE HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\*
 
+## Hidden Users - "add_hidden_user" macro
+Usernames will not show up in 'net user' checks when created in this manner, described in more detail in the primary README. However, PowerShell user enumeration can detect this obfuscation technique.
+
+Find users:
+Get-LocalUser
+
+Remove the accounts: 
+Remove-LocalUser -Name <paste>
+
+![HiddenUser](hidden_user.png)
+
 ## Enumeration
 
 ### Network Share Enumeration
