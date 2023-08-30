@@ -175,6 +175,7 @@ public class HTTPSManager extends C2Interface {
 						new PayloadHandler(cSharpPayload));
 			} else {
 			*/
+			
 				String importFile = properties.getProperty(Constants.DAEMONPAYLOADCSHARPMASTERIMPORT);
 				String fileList = properties.getProperty(Constants.DAEMONPAYLOADCSHARPFILELIST);
 				if (importFile != null) {

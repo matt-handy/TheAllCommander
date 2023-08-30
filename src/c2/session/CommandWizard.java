@@ -21,16 +21,18 @@ public class CommandWizard implements Runnable {
 
 	private Socket socket;
 	private Path csharpConfigDir;
+	private BufferedReader br;
 
-	public CommandWizard(Socket socket, Path csharpConfigDir) {
+	public CommandWizard(Socket socket, Path csharpConfigDir, BufferedReader br) {
 		this.socket = socket;
 		this.csharpConfigDir = csharpConfigDir;
+		this.br = br;
 	}
 
 	@Override
 	public void run() {
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			//BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			OutputStreamWriter bw = new OutputStreamWriter(socket.getOutputStream());
 			printAvailableCommands(bw);
 

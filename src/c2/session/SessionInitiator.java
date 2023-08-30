@@ -106,7 +106,8 @@ public class SessionInitiator implements Runnable {
 							
 						} catch (NumberFormatException e) {
 							if(input.equalsIgnoreCase("WIZARD")) {
-								CommandWizard wizard = new CommandWizard(newSession, CSHARP_CONFIG_PATH);
+								//We pass the reader to ensure the input stream is not reset
+								CommandWizard wizard = new CommandWizard(newSession, CSHARP_CONFIG_PATH, br);
 								commandWizardManager.submit(wizard);
 							}else {
 								bw.write(input + " is not a number.");

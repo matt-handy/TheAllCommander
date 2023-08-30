@@ -28,6 +28,8 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.security.auth.login.FailedLoginException;
+
 import org.junit.jupiter.api.Test;
 
 import c2.admin.LocalConnection;
@@ -109,13 +111,13 @@ class StagerGeneratorTest {
 					if (idx == 0) {
 						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
 								.startsWith("static async Task<string> "));
-					} else if (idx == 5) {
-						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-								.contains("HttpResponseMessage"));
 					} else if (idx == 6) {
 						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-								.endsWith(".EnsureSuccessStatusCode();"));
+								.contains("HttpResponseMessage"));
 					} else if (idx == 7) {
+						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
+								.endsWith(".EnsureSuccessStatusCode();"));
+					} else if (idx == 8) {
 						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
 								.endsWith(".Content.ReadAsStringAsync();"));
 					} else {
@@ -204,7 +206,7 @@ class StagerGeneratorTest {
 
 	}
 
-	//@Test 
+	@Test 
 	void testStagerProducesWorkingExeWithPermutations() {
 		if (System.getProperty("os.name").contains("Windows")) {
 			Path testPath = Paths.get("config", "test.properties");
@@ -262,7 +264,7 @@ class StagerGeneratorTest {
 		}
 	}
 	
-	//@Test
+	@Test
 	void testStagerProducesWorkingExe() {
 		if (System.getProperty("os.name").contains("Windows")) {
 
@@ -298,6 +300,7 @@ class StagerGeneratorTest {
 					ExecutorService services = Executors.newCachedThreadPool();
 					services.submit(manager);
 					manager.awaitStartup();
+					
 					
 				Process p = Runtime.getRuntime().exec(path.toAbsolutePath().toString());
 				BufferedReader pInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -475,10 +478,7 @@ class StagerGeneratorTest {
 		}
 	}
 
-	// @Test
-	// TODO restore this test. Manual testing shows the functionality works, however
-	// this
-	// doesn't work in automated tests
+	@Test
 	void testEndToEnd() {
 		// Test that the server will generate an exe, send it to the client on request
 		// Client writes that to disk and runs it, checks that the Hello World payload
@@ -498,12 +498,13 @@ class StagerGeneratorTest {
 			builder.println("sleep");
 			builder.println(LocalConnection.CMD_QUIT_LOCAL);
 			builder.flush();
+			builder.close();
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(new ByteArrayInputStream(cmdBuffer.toByteArray())));
 
 			// Prepare stream to receive output
-			cmdBuffer.reset();
-			PrintStream ps = new PrintStream(cmdBuffer);
+			ByteArrayOutputStream receiveCmdBuffer = new ByteArrayOutputStream();
+			PrintStream ps = new PrintStream(receiveCmdBuffer);
 
 			// Set up server elements
 			IOManager io = new IOManager(new IOLogger(Paths.get("test")), null);
@@ -512,9 +513,29 @@ class StagerGeneratorTest {
 			CommandMacroManager cmm = new CommandMacroManager(null, io, null);
 			SessionManager manager = new SessionManager(io, port, cmm);
 			SessionInitiator testSession = new SessionInitiator(manager, io, port, cmm);
-			ExecutorService service = Executors.newCachedThreadPool();
+			ExecutorService service = Executors.newFixedThreadPool(4);
 			service.submit(testSession);
 
+			HTTPSManager httpsManager = new HTTPSManager();
+			Path testPath = null;
+			if (System.getProperty("os.name").contains("Windows")) {
+				testPath = Paths.get("config", "test.properties");
+			} else {
+				testPath = Paths.get("config", "test_linux.properties");
+			}
+			try (InputStream input = new FileInputStream(testPath.toFile())) {
+				Properties prop = new Properties();
+
+				// load a properties file
+				prop.load(input);
+				httpsManager.initialize(io, prop, null, null);
+			}catch(Exception ex) {
+				fail(ex.getMessage());
+			}
+			ExecutorService services = Executors.newCachedThreadPool();
+			services.submit( httpsManager);
+			httpsManager.awaitStartup();
+			
 			LocalConnection lc = new LocalConnection();
 			String args[] = { "127.0.0.1", port + "" };
 			try {
@@ -525,7 +546,7 @@ class StagerGeneratorTest {
 			}
 
 			// Read back the stream through the client
-			br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(cmdBuffer.toByteArray())));
+			br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(receiveCmdBuffer.toByteArray())));
 			// Iterate over lines and validate
 
 			br.readLine();// Available sessions
@@ -534,6 +555,7 @@ class StagerGeneratorTest {
 			assertEquals("Enter 'WIZARD' to begin other server commands", line);
 			line = br.readLine();
 			assertEquals("Available commands: ", line);
+			br.readLine();// Option line
 			br.readLine();// Command line
 			br.readLine();// Example line
 			br.readLine();// Command line
@@ -559,6 +581,8 @@ class StagerGeneratorTest {
 			assertEquals("Hello world" + System.lineSeparator(), output);
 
 			Files.delete(LocalConnection.CSHARP_TMP_FILE);
+			httpsManager.stop();
+			Time.sleepWrapped(5000);
 		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}

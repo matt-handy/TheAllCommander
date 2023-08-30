@@ -2,6 +2,7 @@ static async Task<string> $function_name_1$(HttpClient $variable_pf_1$)
     {
 		try	
   		{
+  			System.Net.ServicePointManager.SecurityProtocol = (SecurityProtocolType)48 | (SecurityProtocolType)192 | (SecurityProtocolType)768 | (SecurityProtocolType)3072;
 			System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
     		HttpResponseMessage $variable_pf_2$ = await $variable_pf_1$.GetAsync("$connection_arg_1$");
      		$variable_pf_2$.EnsureSuccessStatusCode();
@@ -10,7 +11,7 @@ static async Task<string> $function_name_1$(HttpClient $variable_pf_1$)
   		catch(HttpRequestException e)
   		{
      			Console.WriteLine("\nException Caught!");	
-     			Console.WriteLine("Message :{0} ",e.Message);
+     			Console.WriteLine("Message :{0} ",e.ToString());
 			return e.ToString();
   		}
 	}

@@ -27,6 +27,7 @@ public class StagerGenerator {
 			fileText = generateStagedSourceFileWithRandomCode(configDirectory, stagerType, connectionArgs);
 		}else {
 			fileText = generateStagedSourceFile(configDirectory, stagerType, connectionArgs);
+			//System.out.println(fileText);
 		}
 		Files.writeString(TEMPORARY_DISK_SRC_FILE, fileText);
 		Process process = Runtime.getRuntime().exec(String.format(
