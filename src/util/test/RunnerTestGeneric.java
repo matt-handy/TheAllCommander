@@ -532,8 +532,14 @@ public class RunnerTestGeneric {
 				output = br.readLine();
 			}
 			//iterate until we find the end
+			if(config.lang.equals("Native")) {
+				while (!output.contains("bytes free")) {
+					output = br.readLine();
+				}	
+			}else {
 			while (!output.equals("")) {
 				output = br.readLine();
+			}
 			}
 		}
 	}
@@ -552,10 +558,15 @@ public class RunnerTestGeneric {
 			output = br.readLine();//Flush
 			output = br.readLine();
 			output = br.readLine();
+			output = br.readLine();
+			//Native system does not echo the command
+			if(config.lang.startsWith("Native")) {
+				assertTrue(output.startsWith("PS"));
+			}else {
+				assertTrue(output.startsWith("PS") && output.endsWith("Get-Date -Format \"MM/dd/yyyy\" "));
+			}
+			output = br.readLine();
 			
-			output = br.readLine();
-			assertTrue(output.startsWith("PS") && output.endsWith("Get-Date -Format \"MM/dd/yyyy\" "));
-			output = br.readLine();
 			try {
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 				LocalDate.parse(output, formatter);
