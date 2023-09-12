@@ -11,6 +11,17 @@ public class TestConfiguration {
 		this.lang = lang;
 		this.protocol = protocol;
 	}
+	
+	public static OS getThisSystemOS() {
+		String osLower = System.getProperty("os.name").toLowerCase();
+		if(osLower.contains("windows")) {
+			return OS.WINDOWS;
+		}else if(osLower.contains("mac")) {
+			return OS.MAC;
+		}else {
+			return OS.LINUX;
+		}
+	}
 
 	private boolean execInRoot = true;
 	private boolean testSecondaryClient = false;
@@ -59,6 +70,6 @@ public class TestConfiguration {
 	}
 
 	public enum OS {
-		WINDOWS, LINUX
+		WINDOWS, LINUX, MAC
 	};
 }
