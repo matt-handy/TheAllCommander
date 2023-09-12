@@ -586,7 +586,9 @@ public class RunnerTestGeneric {
 		OutputStreamWriterHelper.writeAndSend(bw, Commands.CLIENT_CMD_OS_HERITAGE);
 		if (config.os == OS.WINDOWS) {
 			assertEquals(Commands.OS_HERITAGE_RESPONSE_WINDOWS, br.readLine());
-		} else {// Have not implemented Mac, so Linux is "else" for now
+		}else if(config.os == OS.MAC) {
+			assertEquals(Commands.OS_HERITAGE_RESPONSE_MAC, br.readLine());
+		} else {//Linux
 			assertEquals(Commands.OS_HERITAGE_RESPONSE_LINUX, br.readLine());
 		}
 	}
