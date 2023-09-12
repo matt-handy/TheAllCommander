@@ -677,7 +677,7 @@ public class RunnerTestGeneric {
 			bw.write("pwd" + System.lineSeparator());
 			bw.flush();
 			String output = br.readLine();
-			if (config.os == TestConfiguration.OS.LINUX) {
+			if (config.os != TestConfiguration.OS.WINDOWS) {
 				if (config.isRemote()) {
 					assertEquals(output, TestConstants.EXECUTIONROOT_LINUX);
 				} else {
