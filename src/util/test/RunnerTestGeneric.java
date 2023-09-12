@@ -403,7 +403,7 @@ public class RunnerTestGeneric {
 
 			String output = br.readLine();
 			// System.out.println("Username: " + output);
-			if (config.os == TestConfiguration.OS.LINUX) {
+			if (config.os != TestConfiguration.OS.WINDOWS) {
 				assertEquals("Username: " + TestConstants.USERNAME_LINUX, output);
 			} else {
 				if (config.isRemote()) {
@@ -419,6 +419,8 @@ public class RunnerTestGeneric {
 			} else {
 				if (config.os == TestConfiguration.OS.LINUX) {
 					assertEquals(output, "Home Directory: /home/" + TestConstants.USERNAME_LINUX);
+				}else if(config.os == TestConfiguration.OS.MAC){
+					assertEquals(output, "Home Directory: /Users/" + TestConstants.USERNAME_LINUX);
 				} else {
 					if (config.isRemote()) {
 						assertTrue(output.startsWith("Home Directory: C:\\Users\\"));
@@ -429,7 +431,7 @@ public class RunnerTestGeneric {
 			}
 			output = br.readLine();
 			// System.out.println("Hostname: " + output);
-			if (config.os == TestConfiguration.OS.LINUX) {
+			if (config.os != TestConfiguration.OS.WINDOWS) {
 				assertEquals(output, "Hostname: " + TestConstants.HOSTNAME_LINUX);
 			} else {
 				if (config.lang.equals("C++")) {
