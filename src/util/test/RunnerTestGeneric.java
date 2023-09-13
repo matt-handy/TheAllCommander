@@ -458,9 +458,10 @@ public class RunnerTestGeneric {
 
 			testUplinkRandomBinaryFile(br, bw, config);
 
+			//Current screenshot library only works for Windows
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
 					|| config.lang.equals("python") || config.lang.equals("Java"))
-					&& config.os != TestConfiguration.OS.LINUX && config.isExecInRoot()) {
+					&& config.os == TestConfiguration.OS.WINDOWS && config.isExecInRoot()) {
 				System.out.println("Screenshot test");
 				bw.write("screenshot" + System.lineSeparator());
 				bw.flush();
