@@ -495,8 +495,8 @@ public class RunnerTestGeneric {
 			if (config.lang.equals("Native")) {
 				System.out.println("Native shell, cannot test sub shell spawning");
 			} else {
-				if (config.os == OS.LINUX) {
-					System.out.println("Shell capability not yet working on Linux");
+				if (config.os != OS.WINDOWS) {
+					System.out.println("Shell capability only working on Windows");
 				} else if (config.lang.equals("C#")) {
 					System.out.println("Shell capability not yet working on C#");
 				} else if (config.lang.equals("Java")) {
