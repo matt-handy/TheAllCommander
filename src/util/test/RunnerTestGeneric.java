@@ -471,7 +471,8 @@ public class RunnerTestGeneric {
 				testScreenshotsOnFS(config.lang);
 			}
 
-			if (config.os != TestConfiguration.OS.LINUX) {
+			//Clipboard API likewise only Windows
+			if (config.os == TestConfiguration.OS.WINDOWS) {
 				testClipboard(br, bw, config.lang, config.isRemote());
 			}
 
