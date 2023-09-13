@@ -23,12 +23,11 @@ class NcatIntegrationTest extends ClientServerTest {
 		if (System.getProperty("os.name").contains("Windows")) {
 			initiateServer();
 			spawnClient(TestConstants.WINDOWSNATIVE_TEST_EXE);
-			RunnerTestGeneric.test(new TestConfiguration(OS.WINDOWS, "Native", "TCP"));
 		} else {
 			initiateServer("test_linux.properties");
 			spawnClient("ncat localhost 8003 -e /bin/bash");
-			RunnerTestGeneric.test(new TestConfiguration(OS.LINUX, "Native", "TCP"));
 		}
+		RunnerTestGeneric.test(new TestConfiguration(TestConfiguration.getThisSystemOS(), "Native", "TCP"));
 		awaitClient();
 		teardown();
 	}

@@ -27,7 +27,7 @@ public class PythonPortForwardTest extends ClientServerTest {
 
 	@Test
 	void testDNS() {
-		//Tests not yet validated on Linux
+		//Tests not yet validated on Linux/Mac
 		if (System.getProperty("os.name").contains("Windows")) {
 		initiateServer();
 		spawnClient(TestConstants.PYTHON_DNSDAEMON_TEST_EXE);

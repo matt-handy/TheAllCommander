@@ -26,12 +26,8 @@ class HarvesterIntegrationTest  extends ClientServerTest {
 		}
 		spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 
-		TestConfiguration.OS osConfig = null;
-		if (System.getProperty("os.name").contains("Windows")) {
-			osConfig = TestConfiguration.OS.WINDOWS;
-		} else {
-			osConfig = TestConfiguration.OS.LINUX;
-		}
+		TestConfiguration.OS osConfig = TestConfiguration.getThisSystemOS();
+		
 		TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "HTTPS");
 		HarvestTestHelper.testDataExfilBody(testConfig);
 		
@@ -51,12 +47,8 @@ class HarvesterIntegrationTest  extends ClientServerTest {
 		}
 		spawnClient(TestConstants.PYTHON_DNSDAEMON_TEST_EXE);
 
-		TestConfiguration.OS osConfig = null;
-		if (System.getProperty("os.name").contains("Windows")) {
-			osConfig = TestConfiguration.OS.WINDOWS;
-		} else {
-			osConfig = TestConfiguration.OS.LINUX;
-		}
+		TestConfiguration.OS  osConfig = TestConfiguration.getThisSystemOS();
+		
 		TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "DNS");
 		HarvestTestHelper.testDataExfilBody(testConfig);
 		
