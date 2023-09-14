@@ -18,6 +18,8 @@ import c2.Constants;
 import c2.session.CommandLoader;
 import c2.session.IOManager;
 import c2.session.log.IOLogger;
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
 
 class CleanFodhelperMacroTest {
 
@@ -27,7 +29,7 @@ class CleanFodhelperMacroTest {
 	@BeforeEach
 	void setUp() throws Exception {
 		Path testPath = null;
-		if (System.getProperty("os.name").contains("Windows")) {
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
 			testPath = Paths.get("config", "test.properties");
 		}else {
 			testPath = Paths.get("config", "test_linux.properties");

@@ -24,13 +24,15 @@ import util.Time;
 import util.test.ClientServerTest;
 import util.test.EmailHelper;
 import util.test.RunnerTestGeneric;
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
 
 public class EmailHandlerTester extends ClientServerTest{
 
 
 	@Test
 	void testNoServer() {
-		if (System.getProperty("os.name").contains("Windows")) {
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
 			Properties prop = EmailHelper.setup();
 			if (!prop.getProperty(Constants.COMMSERVICES).contains("EmailHandler")) {
 				System.out.println("TheAllCommander not configured for email operations, skipping test.");
@@ -65,7 +67,7 @@ public class EmailHandlerTester extends ClientServerTest{
 
 	@Test
 	void testIntegratedWithC2() {
-		if (System.getProperty("os.name").contains("Windows")) {
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
 			Properties prop = EmailHelper.setup();
 			if (!prop.getProperty(Constants.COMMSERVICES).contains("EmailHandler")) {
 				System.out.println("TheAllCommander not configured for email operations, skipping test.");

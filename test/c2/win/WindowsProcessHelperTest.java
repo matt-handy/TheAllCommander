@@ -8,6 +8,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
+
 class WindowsProcessHelperTest {
 
 	@BeforeEach
@@ -20,7 +23,7 @@ class WindowsProcessHelperTest {
 
 	@Test
 	void test() {
-		if (System.getProperty("os.name").contains("Windows")) {
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
 			List<String> processes = WindowsCmdLineHelper.listRunningProcesses();
 			for (String process : processes) {
 				//TODO: Wow this is a shitty test. Need to write a better one

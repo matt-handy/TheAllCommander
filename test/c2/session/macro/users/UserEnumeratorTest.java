@@ -1,6 +1,9 @@
 package c2.session.macro.users;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -20,7 +23,6 @@ import c2.session.CommandLoader;
 import c2.session.IOManager;
 import c2.session.log.IOLogger;
 import c2.session.macro.MacroOutcome;
-import c2.session.macro.OutlookHarvesterMacro;
 import c2.session.macro.users.Group.GROUP_TYPE;
 import util.Time;
 import util.test.ClientServerTest;

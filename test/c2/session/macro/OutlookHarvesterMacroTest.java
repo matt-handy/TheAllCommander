@@ -36,7 +36,9 @@ import util.test.ClientServerTest;
 import util.test.OutputStreamWriterHelper;
 import util.test.RunnerTestGeneric;
 import util.test.TestCommons;
+import util.test.TestConfiguration;
 import util.test.TestConstants;
+import util.test.TestConfiguration.OS;
 
 class OutlookHarvesterMacroTest extends ClientServerTest {
 
@@ -342,7 +344,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 		// This test is only enabled by user choice, as we don't want to test with
 		// actual user data if someone
 		// isn't reading the fine print and doesn't know what they're doing
-		if (TestConstants.OUTLOOKHARVEST_LIVE_ENABLE && System.getProperty("os.name").contains("Windows")) {
+		if (TestConstants.OUTLOOKHARVEST_LIVE_ENABLE && TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
 			Path referencePST = determineReferencePSTFile();
 			Path referenceOST = determineReferenceOSTFile();
 
