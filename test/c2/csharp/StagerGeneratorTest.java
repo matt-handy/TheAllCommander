@@ -41,6 +41,8 @@ import c2.session.SessionInitiator;
 import c2.session.SessionManager;
 import c2.session.log.IOLogger;
 import util.Time;
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
 
 class StagerGeneratorTest {
 
@@ -486,7 +488,10 @@ class StagerGeneratorTest {
 		// This involves firing up the test client and routing through it's IO, and
 		// seeing
 		// that the EXE is correctly interpreted
-
+		if(TestConfiguration.getThisSystemOS() != OS.WINDOWS) {
+			System.out.println("Cannot test end-to-end on non-Windows host");
+			return;
+		}
 		try {
 			// Queue up commands into br for the client
 			ByteArrayOutputStream cmdBuffer = new ByteArrayOutputStream();
