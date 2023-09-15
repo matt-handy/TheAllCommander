@@ -132,7 +132,7 @@ public class GenericTCPInitiator extends C2Interface {
 
 						Time.sleepWrapped(Constants.getConstants().getTextOverTCPStaticWait());
 						String resp = readUnknownLinesFromSocket(br, newSession, false);
-						System.out.println("Received: " + resp);
+						//System.out.println("Received: " + resp);
 						TestConfiguration.OS osEn = null;
 						if (resp.contains("Linux")) {
 							osEn = TestConfiguration.OS.LINUX;
