@@ -73,7 +73,7 @@ public class TCPShellHandler implements Runnable {
 				if (nextCommand != null) {
 					if (myOS.equals(OS.WINDOWS)) {
 						operateWindowsCommand(bw, nextCommand);
-					} else if (myOS.equals(OS.LINUX)) {
+					} else {//Mac or Linux
 						operateNixCommand(bw, nextCommand);
 					}
 
@@ -143,7 +143,11 @@ public class TCPShellHandler implements Runnable {
 			ioManager.sendIO(sessionId, sb.toString());
 		}else if(nextCommand.equalsIgnoreCase(Commands.CLIENT_CMD_OS_HERITAGE)) {
 			StringBuilder sb = new StringBuilder();
-			sb.append(Commands.OS_HERITAGE_RESPONSE_LINUX);
+			if(myOS == OS.LINUX) {
+				sb.append(Commands.OS_HERITAGE_RESPONSE_LINUX);
+			}else {
+				sb.append(Commands.OS_HERITAGE_RESPONSE_MAC);
+			}
 			sb.append(System.lineSeparator());
 			ioManager.sendIO(sessionId, sb.toString());
 		} else if (nextCommand.equalsIgnoreCase("die")) {
