@@ -1025,7 +1025,7 @@ public class RunnerTestGeneric {
 		if (!config.lang.equals("Java") && !(config.lang.equals("Native") && config.os == OS.WINDOWS)) {
 			System.out.println("reading flush");
 			output = br.readLine();
-			if (config.lang.equals("Native") && config.os != TestConfiguration.OS.LINUX) {
+			if (config.lang.equals("Native") && config.os == TestConfiguration.OS.WINDOWS) {
 				assertTrue(output.startsWith("C:\\"));
 			} else {
 				assertEquals(output, "");
