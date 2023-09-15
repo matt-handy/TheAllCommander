@@ -18,13 +18,14 @@ import c2.Commands;
 import c2.Constants;
 import c2.http.HTTPSManager;
 import c2.session.IOManager;
-import c2.tcp.GenericTCPInitiator.OS;
 import util.Time;
 import util.test.OutputStreamWriterHelper;
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
 
 public class TCPShellHandler implements Runnable {
 
-	private OS myOS;
+	private TestConfiguration.OS myOS;
 	private IOManager ioManager;
 	private Socket socket;
 	private int sessionId;
@@ -42,7 +43,7 @@ public class TCPShellHandler implements Runnable {
 	public static String CANNOT_UPLINK_FILE_HEADER = "Cannot uplink file: ";
 
 	public TCPShellHandler(IOManager ioManager, SocketReader reader, Socket socket, int sessionId, String hostname,
-			String username, String lz, OS myOS) {
+			String username, String lz, TestConfiguration.OS myOS) {
 		this.ioManager = ioManager;
 		this.socket = socket;
 		this.sessionId = sessionId;
@@ -73,7 +74,7 @@ public class TCPShellHandler implements Runnable {
 					if (myOS.equals(OS.WINDOWS)) {
 						operateWindowsCommand(bw, nextCommand);
 					} else if (myOS.equals(OS.LINUX)) {
-						operateLinuxCommand(bw, nextCommand);
+						operateNixCommand(bw, nextCommand);
 					}
 
 					try {
@@ -101,7 +102,7 @@ public class TCPShellHandler implements Runnable {
 
 	}
 
-	private void operateLinuxCommand(OutputStreamWriter bw, String nextCommand) throws IOException {
+	private void operateNixCommand(OutputStreamWriter bw, String nextCommand) throws IOException {
 		// No need to translate pwd, this works as is
 		if (nextCommand.equalsIgnoreCase("getUID")) {
 			StringBuilder sb = new StringBuilder();

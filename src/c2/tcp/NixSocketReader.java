@@ -4,13 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
 
-public class LinuxSocketReader extends SocketReader{
+public class NixSocketReader extends SocketReader{
 
 	private boolean usesDollarSigns;
 	
 	//Some shells include $ either before or after their output returns, we want to know 
 	//if we need to sanitize these out
-	public LinuxSocketReader(Socket socket, BufferedReader br, boolean usesDollarSigns) {
+	public NixSocketReader(Socket socket, BufferedReader br, boolean usesDollarSigns) {
 		super(socket, br, false);
 		this.usesDollarSigns = usesDollarSigns;
 	}
