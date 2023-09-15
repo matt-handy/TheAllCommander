@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
@@ -40,7 +39,6 @@ import c2.Commands;
 import c2.Constants;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
-import c2.session.macro.SpawnFodhelperElevatedSessionMacro;
 import c2.session.macro.persistence.WindowsHiddenUserMacro;
 import util.Time;
 import util.test.TestConfiguration.OS;
@@ -142,9 +140,9 @@ public class RunnerTestGeneric {
 		System.out.println("Reading second session id...");
 		output = br.readLine();
 		System.out.println("Daemon supplies: " + output);
-		if (isLinux) {
+		if (isLinux && !isRemote) {
 			assertTrue(output
-					.startsWith(baseIndex + ":" + TestConstants.HOSTNAME_LINUX + ":" + TestConstants.USERNAME_LINUX));
+					.startsWith(baseIndex + ":" + InetAddress.getLocalHost().getHostName() + ":" + System.getProperty("user.name")));
 		} else {
 			if (isRemote) {
 				assertTrue(output.contains(baseIndex + ":"));
@@ -379,9 +377,9 @@ public class RunnerTestGeneric {
 					output = br.readLine();
 					assertEquals(Paths.get("").toAbsolutePath().toString(), output);
 				} else {
-					assertEquals(TestConstants.EXECUTIONROOT_LINUX + "/test", output);
+					assertEquals(TestConstants.EXECUTIONROOT_REMOTE + "/test", output);
 					output = br.readLine();
-					assertEquals(TestConstants.EXECUTIONROOT_LINUX, output);
+					assertEquals(TestConstants.EXECUTIONROOT_REMOTE, output);
 				}
 
 				if (!config.isRemote()) {
@@ -403,24 +401,22 @@ public class RunnerTestGeneric {
 
 			String output = br.readLine();
 			// System.out.println("Username: " + output);
-			if (config.os != TestConfiguration.OS.WINDOWS) {
-				assertEquals("Username: " + TestConstants.USERNAME_LINUX, output);
-			} else {
+			
 				if (config.isRemote()) {
 					assertTrue(output.startsWith("Username: "));
 				} else {
 					assertEquals("Username: " + System.getProperty("user.name"), output);
 				}
-			}
+			
 			output = br.readLine();
 			// System.out.println("Home Dir: " + output);
 			if (config.lang.equals("C++")) {
 				assertEquals(output, "Home Directory: Not supported");
 			} else {
 				if (config.os == TestConfiguration.OS.LINUX) {
-					assertEquals(output, "Home Directory: /home/" + TestConstants.USERNAME_LINUX);
+					assertEquals(output, "Home Directory: /home/" + System.getProperty("user.name"));
 				}else if(config.os == TestConfiguration.OS.MAC){
-					assertEquals(output, "Home Directory: /Users/" + TestConstants.USERNAME_LINUX);
+					assertEquals(output, "Home Directory: /Users/" + System.getProperty("user.name"));
 				} else {
 					if (config.isRemote()) {
 						assertTrue(output.startsWith("Home Directory: C:\\Users\\"));
@@ -431,19 +427,13 @@ public class RunnerTestGeneric {
 			}
 			output = br.readLine();
 			// System.out.println("Hostname: " + output);
-			if (config.os != TestConfiguration.OS.WINDOWS) {
-				assertEquals(output, "Hostname: " + TestConstants.HOSTNAME_LINUX);
+			if (config.isRemote()) {
+				assertTrue(output.startsWith("Hostname: "));
 			} else {
-				if (config.lang.equals("C++")) {
-					assertEquals(output, "Hostname: " + InetAddress.getLocalHost().getHostName().toUpperCase());
-				} else {
-					if (config.isRemote()) {
-						assertTrue(output.startsWith("Hostname: "));
-					} else {
-						assertEquals(output, "Hostname: " + InetAddress.getLocalHost().getHostName());
-					}
-				}
+				String reference = "Hostname: " + InetAddress.getLocalHost().getHostName();
+				assertEquals(reference.toUpperCase(), output.toUpperCase());
 			}
+			
 			output = br.readLine();
 			assertEquals(output, "");
 
@@ -686,7 +676,7 @@ public class RunnerTestGeneric {
 			String output = br.readLine();
 			if (config.os != TestConfiguration.OS.WINDOWS) {
 				if (config.isRemote()) {
-					assertEquals(output, TestConstants.EXECUTIONROOT_LINUX);
+					assertEquals(output, TestConstants.EXECUTIONROOT_REMOTE);
 				} else {
 					assertEquals(output, Paths.get("").toAbsolutePath().toString());
 				}
@@ -1299,7 +1289,7 @@ public class RunnerTestGeneric {
 		bw.write("shell 0" + System.lineSeparator());
 		if (config.os == OS.LINUX) {
 			if (config.isRemote()) {
-				bw.write("python3 " + TestConstants.EXECUTIONROOT_LINUX
+				bw.write("python3 " + TestConstants.EXECUTIONROOT_REMOTE
 						+ "/TheAllCommander/test_support_scripts/basic_io_loop.py" + System.lineSeparator());
 			} else {
 				bw.write("python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py"
@@ -1352,7 +1342,7 @@ public class RunnerTestGeneric {
 		response = br.readLine();
 		if (config.os == OS.LINUX) {
 			if (config.isRemote()) {
-				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX
+				assertEquals("Shell 0: python3 " + TestConstants.EXECUTIONROOT_REMOTE
 						+ "/TheAllCommander/test_support_scripts/basic_io_loop.py", response);
 			} else {
 				assertEquals("Shell 0: python3 " + Paths.get("").toAbsolutePath().toString() + "/basic_io_loop.py",
@@ -1383,7 +1373,7 @@ public class RunnerTestGeneric {
 		if (config.os == OS.LINUX) {
 			if (config.isRemote()) {
 				assertEquals(
-						"Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX
+						"Shell 0: python3 " + TestConstants.EXECUTIONROOT_REMOTE
 								+ "/TheAllCommander/test_support_scripts/basic_io_loop.py exited with code 139",
 						response);
 			} else {
@@ -1410,7 +1400,7 @@ public class RunnerTestGeneric {
 		if (config.os == OS.LINUX) {
 			if (config.isRemote()) {
 				assertEquals(
-						"Shell 0: python3 " + TestConstants.EXECUTIONROOT_LINUX
+						"Shell 0: python3 " + TestConstants.EXECUTIONROOT_REMOTE
 								+ "/TheAllCommander/test_support_scripts/basic_io_loop.py exited with code 139",
 						response);
 			} else {

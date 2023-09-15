@@ -9,9 +9,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class TestConstants {
-	private static final String I_USERNAME_LINUX = "username.linux";
-	private static final String I_HOSTNAME_LINUX = "hostname.linux";
-	private static final String I_EXECUTIONROOT_LINUX = "executionroot.linux";
+	private static final String I_EXECUTIONROOT_REMOTE = "executionroot.remote";
 	
 	private static final String I_TMP_DIR = "tmp.dir";
 	private static final String I_TMP_CHROME_COOKIES = "tmp.chrome.cookies";
@@ -49,9 +47,7 @@ public class TestConstants {
 	private static final String I_PORT_FORWARD_TEST_IP_LOCAL="portforward.testip.local";
 	private static final String I_PORT_FORWARD_TEST_IP_LINUX="portforward.testip.linux";
 	
-	public static String USERNAME_LINUX;
-	public static String HOSTNAME_LINUX;
-	public static String EXECUTIONROOT_LINUX;
+	public static String EXECUTIONROOT_REMOTE;
 	
 	public static String TMP_DIR;
 	public static String TMP_CHROME_COOKIES;
@@ -97,9 +93,7 @@ public class TestConstants {
 			// load a properties file
 			prop.load(input);
 			
-			USERNAME_LINUX = prop.getProperty(I_USERNAME_LINUX);
-			HOSTNAME_LINUX = prop.getProperty(I_HOSTNAME_LINUX);
-			EXECUTIONROOT_LINUX = prop.getProperty(I_EXECUTIONROOT_LINUX);
+			EXECUTIONROOT_REMOTE = prop.getProperty(I_EXECUTIONROOT_REMOTE);
 			
 			TMP_DIR = prop.getProperty(I_TMP_DIR);
 			TMP_CHROME_COOKIES = prop.getProperty(I_TMP_CHROME_COOKIES);
