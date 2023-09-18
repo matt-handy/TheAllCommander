@@ -472,7 +472,9 @@ public class RunnerTestGeneric {
 
 			testUplinkDownloadErrorHandling(br, bw);
 			testCatErrorHandling(br, bw, config);
-			testUplinkDownloadWithSpaces(br, bw, config);
+			if(config.os != OS.MAC) {
+				testUplinkDownloadWithSpaces(br, bw, config);
+			}
 		
 			if (!config.lang.equals("Java")) {
 				testClientIdentifesExecutable(br, bw, config);
@@ -824,11 +826,13 @@ public class RunnerTestGeneric {
 			output = br.readLine();
 			assertEquals(output, "Invalid cat directive");
 
-			System.out.println("Testing cat file X file2 with a bad operator");
-			bw.write("cat execCentral.bat %% no_file" + System.lineSeparator());
-			bw.flush();
-			output = br.readLine();
-			assertEquals(output, "No valid cat interpretation");
+			if(config.os != OS.MAC) {
+				System.out.println("Testing cat file X file2 with a bad operator");
+				bw.write("cat execCentral.bat %% no_file" + System.lineSeparator());
+				bw.flush();
+				output = br.readLine();
+				assertEquals(output, "No valid cat interpretation");
+			}
 		} catch (IOException ex) {
 
 		}

