@@ -472,10 +472,8 @@ public class RunnerTestGeneric {
 
 			testUplinkDownloadErrorHandling(br, bw);
 			testCatErrorHandling(br, bw, config);
-			//Currently this functionality doesn't work on MAC
-			if(config.os != OS.MAC) {
-				testUplinkDownloadWithSpaces(br, bw, config);
-			}
+			testUplinkDownloadWithSpaces(br, bw, config);
+		
 			if (!config.lang.equals("Java")) {
 				testClientIdentifesExecutable(br, bw, config);
 			} else {
@@ -845,8 +843,6 @@ public class RunnerTestGeneric {
 			String encodedString = new String(encoded, StandardCharsets.US_ASCII);
 			bw.write("<control> download test file " + encodedString + System.lineSeparator());
 			bw.flush();
-			// Give time for endpoint to receive
-			Time.sleepWrapped(5000);
 			String output = br.readLine();
 			assertEquals(output, "File written: test file");
 
