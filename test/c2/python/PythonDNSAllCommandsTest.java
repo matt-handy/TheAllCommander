@@ -6,7 +6,6 @@ import util.Time;
 import util.test.ClientServerTest;
 import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
-import util.test.TestConfiguration.OS;
 import util.test.TestConstants;
 
 class PythonDNSAllCommandsTest extends ClientServerTest {
@@ -15,38 +14,31 @@ class PythonDNSAllCommandsTest extends ClientServerTest {
 	void testDNS() {
 		TestConfiguration.OS osConfig = TestConfiguration.getThisSystemOS();
 
-		if (osConfig == OS.MAC) {
-			System.out.println("DNS not supported on Mac yet");
-		} else {
-			TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "DNS");
-			executeStandardTest(TestConstants.PYTHON_DNSDAEMON_TEST_EXE, testConfig);
-		}
+		TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "DNS");
+		executeStandardTest(TestConstants.PYTHON_DNSDAEMON_TEST_EXE, testConfig);
 	}
 
 	@Test
 	void testDNSTwoSessions() {
 		TestConfiguration.OS osConfig = TestConfiguration.getThisSystemOS();
 
-		if (osConfig == OS.MAC) {
-			System.out.println("DNS not supported on Mac yet");
-		} else {
-			initiateServer();
-			spawnClient(TestConstants.PYTHON_DNSDAEMON_TEST_EXE);
-			Time.sleepWrapped(1000);
-			spawnClient(TestConstants.PYTHON_DNSDAEMON_TEST_EXE);
+		initiateServer();
+		spawnClient(TestConstants.PYTHON_DNSDAEMON_TEST_EXE);
+		Time.sleepWrapped(1000);
+		spawnClient(TestConstants.PYTHON_DNSDAEMON_TEST_EXE);
 
-			TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "DNS");
-			testConfig.setTestTwoClients(true);
-			testConfig.setTestSecondaryClient(true);
-			RunnerTestGeneric.test(testConfig);
+		TestConfiguration testConfig = new TestConfiguration(osConfig, "python", "DNS");
+		testConfig.setTestTwoClients(true);
+		testConfig.setTestSecondaryClient(true);
+		RunnerTestGeneric.test(testConfig);
 
-			TestConfiguration configParent = new TestConfiguration(osConfig, "python", "DNS");
-			configParent.setTestTwoClients(true);
-			RunnerTestGeneric.test(configParent);
+		TestConfiguration configParent = new TestConfiguration(osConfig, "python", "DNS");
+		configParent.setTestTwoClients(true);
+		RunnerTestGeneric.test(configParent);
 
-			awaitClient();
-			teardown();
-		}
+		awaitClient();
+		teardown();
+
 	}
 
 }

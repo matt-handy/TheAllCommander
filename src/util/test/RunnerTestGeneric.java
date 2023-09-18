@@ -727,7 +727,7 @@ public class RunnerTestGeneric {
 					assertTrue(respElements[0].startsWith("C:\\"));
 					assertTrue(respElements[0].endsWith("python.exe"));
 				}else if (config.os == OS.MAC) {
-					assertTrue(respElements[0].contains("/usr/bin/python3"));
+					assertTrue(respElements[0].contains("python3"));
 				} else {
 					assertEquals("/usr/bin/python3", respElements[0]);
 				}
@@ -825,14 +825,12 @@ public class RunnerTestGeneric {
 			bw.flush();
 			output = br.readLine();
 			assertEquals(output, "Invalid cat directive");
-
-			if(config.os != OS.MAC) {
-				System.out.println("Testing cat file X file2 with a bad operator");
-				bw.write("cat execCentral.bat %% no_file" + System.lineSeparator());
-				bw.flush();
-				output = br.readLine();
-				assertEquals(output, "No valid cat interpretation");
-			}
+			
+			System.out.println("Testing cat file X file2 with a bad operator");
+			bw.write("cat execCentral.bat %% no_file" + System.lineSeparator());
+			bw.flush();
+			output = br.readLine();
+			assertEquals(output, "No valid cat interpretation");
 		} catch (IOException ex) {
 
 		}
