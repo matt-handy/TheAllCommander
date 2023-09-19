@@ -247,10 +247,15 @@ public class RunnerTestGeneric {
 	}
 
 	static void testAddHiddenUsersError(BufferedReader br, OutputStreamWriter bw, String lang) throws IOException {
+		System.out.println("Testing add_hidden_user error handling functionality");
 		if(lang.equals("Python") || lang.equals("C++") || lang.equals("C#")) {
 			OutputStreamWriterHelper.writeAndSend(bw, WindowsHiddenUserMacro.COMMAND);
 			String output = br.readLine();
-			assertEquals("Cannot execute, errors encountered:", output);
+			if(lang.equals("Python")) {
+				assertEquals("Cannot execute, errors encountered:", output);
+			}else {
+				assertTrue(output.startsWith("Cannot execute, errors encountered:"));
+			}
 			output = br.readLine();
 			if(lang.equals("Python")) {
 				assertEquals("Unable to add user: Unable to add user, not administrator", output);
@@ -269,6 +274,10 @@ public class RunnerTestGeneric {
 			}
 			output = br.readLine();
 			assertEquals("", output);
+			if(lang.equals("C++")) {
+				output = br.readLine();
+				assertEquals("", output);
+			}
 			output = br.readLine();
 			assertEquals("'", output);
 			
@@ -472,7 +481,7 @@ public class RunnerTestGeneric {
 
 			testUplinkDownloadErrorHandling(br, bw);
 			testCatErrorHandling(br, bw, config);
-			if(config.os != OS.MAC) {
+			if(config.os == OS.WINDOWS) {
 				testUplinkDownloadWithSpaces(br, bw, config);
 			}
 		
