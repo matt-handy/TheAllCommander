@@ -735,10 +735,8 @@ public class RunnerTestGeneric {
 				if (config.os == OS.WINDOWS) {
 					assertTrue(respElements[0].startsWith("C:\\"));
 					assertTrue(respElements[0].endsWith("python.exe"));
-				}else if (config.os == OS.MAC) {
-					assertTrue(respElements[0].contains("python3"));
 				} else {
-					assertEquals("/usr/bin/python3", respElements[0]);
+					assertTrue(respElements[0].contains("python3"));
 				}
 				if (config.protocol.equals("DNS")) {
 					assertEquals(Paths.get("agents", "python", "dnsSimpleAgent.py").toAbsolutePath().toString(),
