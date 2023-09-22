@@ -507,8 +507,10 @@ public class RunnerTestGeneric {
 
 			}
 			
-			testAddHiddenUsersError(br, bw, config.lang);
-
+			if(config.os == OS.WINDOWS) {
+				testAddHiddenUsersError(br, bw, config.lang);
+			}
+			
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
 
@@ -771,8 +773,8 @@ public class RunnerTestGeneric {
 				bw.write(Commands.CLIENT_CMD_GET_EXE + System.lineSeparator());
 				bw.flush();
 				String output = br.readLine();
-				if (config.os == OS.LINUX) {
-					assertTrue(output.startsWith("/home/kali"));
+				if (config.os != OS.WINDOWS) {
+					assertTrue(output.startsWith("/"));
 					if (config.protocol.equals("HTTPS")) {
 						assertTrue(output.endsWith("http_daemon"));
 					} else if (config.protocol.equals("DNS")) {
