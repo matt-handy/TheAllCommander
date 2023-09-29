@@ -186,7 +186,7 @@ reg_silent_exit <process name>
 	This command will use the Windows SilentProcessExit registry key to launch the daemon process when the target process is closed. This is a reasonably stealthy technique if the attacker uses it skillfully in terms of user awareness. Requires an elevated session.
 
 add_hidden_user <optional - username> <optional - password>
-	This command, with no arugments, will generate a random user string and password, with the final character being '$' and creates the account via the Win32 API and with the UF_WORKSTATION_TRUST_ACCOUNT flag. This makes the user account unseen by "net user", so it is more stealthy and the baseline user creation techniques. If invoked with one argument, it will use the argument as the password. The user can also specify a username without the trailing '$'. TheAllCommander will honer that username, however it will post a warning. 
+	This command, with no arguments, will generate a random user string and password, with the final character being '$' and creates the account via the Win32 API and with the UF_WORKSTATION_TRUST_ACCOUNT flag. This makes the user account unseen by "net user", so it is more stealthy and the baseline user creation techniques. If invoked with one argument, it will use the argument as the password. The user can also specify a username without the trailing '$'. TheAllCommander will honor that username, however it will post a warning. This feature is inspired by https://github.com/Ben0xA/DoUCMe  
 	
 ### Enumeration
 

