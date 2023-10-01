@@ -16,14 +16,9 @@ import util.test.TestConfiguration.OS;
 
 class WindowsCookierHarvesterTest extends ClientServerTest {
 
-	//Are all cookies available?
-	boolean canAttemptTest() {
-		return Files.exists(Paths.get(CookiesCommandHelper.getChromeCookiesFilename())) && Files.exists(Paths.get(CookiesCommandHelper.getEdgeCookiesFilename())) && Files.exists(Paths.get(CookiesCommandHelper.getFirefoxCookiesFilename()));
-	}
-	
 	@Test
 	void testPythonHTTPS() {
-		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS && canAttemptTest()) {
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS && HarvestTestHelper.canAttemptTest()) {
 			initiateServer();
 			spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 
@@ -40,7 +35,7 @@ class WindowsCookierHarvesterTest extends ClientServerTest {
 	
 	@Test
 	void testNative() {
-		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS && canAttemptTest()) {
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS && HarvestTestHelper.canAttemptTest()) {
 			initiateServer();
 			spawnClient(TestConstants.WINDOWSNATIVE_TEST_EXE);
 
