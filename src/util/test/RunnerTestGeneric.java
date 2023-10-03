@@ -569,19 +569,29 @@ public class RunnerTestGeneric {
 			output = br.readLine();
 			output = br.readLine();
 			output = br.readLine();
-			//Native system does not echo the command
+			//Native system does not echo the command. It may or may not preface with a PS prompt
+			boolean alreadySawDate = false;
 			if(config.lang.startsWith("Native")) {
-				assertTrue(output.startsWith("PS"));
+				if(!output.startsWith("PS")) {
+					try {
+						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+						LocalDate.parse(output, formatter);
+						alreadySawDate = true;
+					}catch(DateTimeParseException  ex) {
+						fail("Native shell did not respond with PS prompt or valid date");
+					}
+				}
 			}else {
 				assertTrue(output.startsWith("PS") && output.endsWith("Get-Date -Format \"MM/dd/yyyy\" "));
 			}
-			output = br.readLine();
-			
-			try {
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-				LocalDate.parse(output, formatter);
-			}catch(DateTimeParseException  ex) {
-				fail("Attempted powershell command did not return real date");
+			if(!alreadySawDate) {
+				output = br.readLine();
+				try {
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+					LocalDate.parse(output, formatter);
+				}catch(DateTimeParseException  ex) {
+					fail("Attempted powershell command did not return real date");
+				}
 			}
 			output = br.readLine();
 			assertTrue(output.startsWith("PS") && output.endsWith("> "));
