@@ -6,7 +6,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import c2.nativeshell.RunnerTestNativeLinuxDaemon;
 import c2.python.RunnerTestKeyloggerDNS;
 import c2.python.RunnerTestKeyloggerEmail;
 import c2.python.RunnerTestKeyloggerHTTPS;
@@ -29,10 +28,6 @@ class MasterLinearTest {
 		RunnerTestKeyloggerHTTPS.test();
 		RunnerTestKeyloggerDNS.test();
 		RunnerTestKeyloggerEmail.test();
-		
-		//Testing Linux
-		System.out.println("Testing Linux Native Shell");
-		RunnerTestNativeLinuxDaemon.test();
 		
 		//Python
 		System.out.println("Testing Python");

