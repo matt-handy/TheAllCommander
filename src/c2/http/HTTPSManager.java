@@ -77,8 +77,8 @@ public class HTTPSManager extends C2Interface {
 	}
 
 	public void stop() {
-		httpsServer.stop(1);
-		httpServer.stop(1);
+		httpsServer.stop(10);
+		httpServer.stop(10);
 		if (keylogHandler != null) {
 			keylogHandler.stop();
 		}

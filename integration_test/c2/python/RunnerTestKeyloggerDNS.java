@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.KeyLoggerTest;
 import util.test.TestCommons;
 import util.test.TestConstants;
 
@@ -43,7 +44,7 @@ public class RunnerTestKeyloggerDNS extends ClientServerTest{
 
 		Time.sleepWrapped(5000);
 
-		RunnerTestKeyloggerHTTPS.testGenericKeylogger(prop, false);
+		KeyLoggerTest.testGenericKeylogger(prop, false);
 		
 		teardown();
 	}
