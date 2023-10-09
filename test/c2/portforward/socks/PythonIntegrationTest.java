@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import c2.Constants;
 import util.test.EmailHelper;
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
 import util.test.TestConstants;
 import util.test.socks5.TestProcessor;
 
@@ -13,35 +15,49 @@ class PythonIntegrationTest {
 
 	@Test
 	void testHTTPSNominal() {
+		TestConfiguration.OS thisOs = TestConfiguration.getThisSystemOS();
 		//Tests not yet validated on Linux
-				if (System.getProperty("os.name").contains("Windows")) {
+				if (thisOs == OS.WINDOWS) {
 					System.out.println("Testing nominal HTTPS SOCKS5");
 		TestProcessor.testDaemonConnection(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE, false, false);
+				}else if(thisOs == OS.MAC) {
+					System.out.println("SOCKS5 not yet supported on Mac");
 				}
 	}
 	
 	@Test
 	void testHTTPSBrokenConnections() {
+		TestConfiguration.OS thisOs = TestConfiguration.getThisSystemOS();
 		//Tests not yet validated on Linux
-				if (System.getProperty("os.name").contains("Windows")) {
+		if (thisOs == OS.WINDOWS) {
 					System.out.println("Testing Broken HTTPS SOCKS5");
 		//TestProcessor.testDaemonConnection(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE, true, false);
+				}else if(thisOs == OS.MAC) {
+					System.out.println("SOCKS5 not yet supported on Mac");
 				}
 	}
 	
 	@Test
 	void testDNSNominal() {
+		TestConfiguration.OS thisOs = TestConfiguration.getThisSystemOS();
 		//Tests not yet validated on Linux
-				if (System.getProperty("os.name").contains("Windows")) {
+		if (thisOs == OS.WINDOWS) {
 					System.out.println("Testing nominal DNS SOCKS5");
 		TestProcessor.testDaemonConnection(TestConstants.PYTHON_DNSDAEMON_TEST_EXE, false, false);
 				}
+	else if(thisOs == OS.MAC) {
+		System.out.println("SOCKS5 not yet supported on Mac");
+	}
 	}
 	
 	@Test
 	void testDNSBrokenConnections() {
-		if (System.getProperty("os.name").contains("Windows")) {
+		TestConfiguration.OS thisOs = TestConfiguration.getThisSystemOS();
+		//Tests not yet validated on Linux
+		if (thisOs == OS.WINDOWS) {
 		//TestProcessor.testDaemonConnection(TestConstants.PYTHON_DNSDAEMON_TEST_EXE, true, false);
+		}else if(thisOs == OS.MAC) {
+			System.out.println("SOCKS5 not yet supported on Mac");
 		}
 	}
 	
