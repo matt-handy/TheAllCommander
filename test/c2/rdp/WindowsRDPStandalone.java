@@ -173,7 +173,8 @@ class WindowsRDPStandalone {
 
 	@BeforeEach
 	void setUp() throws Exception {
-		try (InputStream input = new FileInputStream("config\\test.properties")) {
+		Path path = Paths.get("config", "test.properties");
+		try (InputStream input = new FileInputStream(path.toFile())) {
 
 			Properties prop = new Properties();
 
