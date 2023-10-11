@@ -154,6 +154,7 @@ public class RunnerTestGeneric {
 		}
 		output = br.readLine();
 		assertEquals(SessionInitiator.WIZARD_BANNER, output);
+		System.out.println("Proper startup validated, continuing");
 	}
 
 	public static void connectionSetupGeneric(Socket remote, OutputStreamWriter bw, BufferedReader br, boolean isLinux,
@@ -319,6 +320,14 @@ public class RunnerTestGeneric {
 		assertEquals(output, "");
 	}
 
+	private static String getRelativeRoot(TestConfiguration config) {
+		String relativeRoot = "TheAllCommander";
+		if(config.lang.equals("C++")) {
+			relativeRoot = "TheAllCommanderPrivate";
+		}
+		return relativeRoot;
+	}
+	
 	public static void test(TestConfiguration config) {
 
 		Properties prop = new Properties();
@@ -386,9 +395,10 @@ public class RunnerTestGeneric {
 					output = br.readLine();
 					assertEquals(Paths.get("").toAbsolutePath().toString(), output);
 				} else {
-					assertEquals(TestConstants.EXECUTIONROOT_REMOTE + "/test", output);
+					String relativeRoot = getRelativeRoot(config);
+					assertEquals(TestConstants.EXECUTIONROOT_REMOTE + "/" + relativeRoot + "/test", output);
 					output = br.readLine();
-					assertEquals(TestConstants.EXECUTIONROOT_REMOTE, output);
+					assertEquals(TestConstants.EXECUTIONROOT_REMOTE + "/" + relativeRoot, output);
 				}
 
 				if (!config.isRemote()) {
@@ -423,9 +433,17 @@ public class RunnerTestGeneric {
 				assertEquals(output, "Home Directory: Not supported");
 			} else {
 				if (config.os == TestConfiguration.OS.LINUX) {
-					assertEquals(output, "Home Directory: /home/" + System.getProperty("user.name"));
+					if (config.isRemote()) {
+						assertTrue(output.startsWith("Home Directory: /home/"));
+					}else {
+						assertEquals(output, "Home Directory: /home/" + System.getProperty("user.name"));
+					}
 				}else if(config.os == TestConfiguration.OS.MAC){
-					assertEquals(output, "Home Directory: /Users/" + System.getProperty("user.name"));
+					if (config.isRemote()) {
+						assertTrue(output.startsWith("Home Directory: /Users/"));
+					}else {
+						assertEquals(output, "Home Directory: /Users/" + System.getProperty("user.name"));
+					}
 				} else {
 					if (config.isRemote()) {
 						assertTrue(output.startsWith("Home Directory: C:\\Users\\"));
@@ -699,7 +717,7 @@ public class RunnerTestGeneric {
 			String output = br.readLine();
 			if (config.os != TestConfiguration.OS.WINDOWS) {
 				if (config.isRemote()) {
-					assertEquals(output, TestConstants.EXECUTIONROOT_REMOTE);
+					assertEquals(TestConstants.EXECUTIONROOT_REMOTE + "/" + getRelativeRoot(config), output);
 				} else {
 					assertEquals(output, Paths.get("").toAbsolutePath().toString());
 				}
@@ -1130,7 +1148,7 @@ public class RunnerTestGeneric {
 				assertEquals(output, "");
 				if (config.lang.equals("Native")) {
 					output = br.readLine();
-					if (config.isRemote()) {
+					if (config.isRemote() && config.os == OS.WINDOWS) {
 						assertTrue(output.startsWith("C:\\Users\\"));
 					} else {
 						assertEquals(output, "");
@@ -1266,7 +1284,6 @@ public class RunnerTestGeneric {
 			bw.write("rm execCentral.bat.tmp" + System.lineSeparator());
 			bw.flush();
 
-			br.readLine();
 			System.out.println("Cleaned up cat test");
 		} else {
 			f1 = Files.readAllBytes(Paths.get(targetFileRoot));

