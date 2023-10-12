@@ -10,7 +10,7 @@ import c2.python.RunnerTestKeyloggerDNS;
 import c2.python.RunnerTestKeyloggerEmail;
 import c2.python.RunnerTestKeyloggerHTTPS;
 import c2.python.RunnerTestPythonEmail;
-import c2.win.RunnerTestPythonHTTPSDaemonWinRDP;
+import util.test.RDPTest;
 
 class MasterLinearTest {
 
@@ -32,8 +32,6 @@ class MasterLinearTest {
 		//Python
 		System.out.println("Testing Python");
 		RunnerTestPythonEmail.testEmail();
-		
-		RunnerTestPythonHTTPSDaemonWinRDP.test();
 	}
 
 }

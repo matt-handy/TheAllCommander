@@ -1,11 +1,10 @@
-package c2.win;
+package util.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -17,17 +16,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.junit.jupiter.api.Test;
-
 import c2.session.CommandMacroManager;
+import c2.win.WindowsCmdLineHelper;
 import util.Time;
-import util.test.ClientServerTest;
-import util.test.RunnerTestGeneric;
-import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
-import util.test.TestConstants;
 
-public class RunnerTestPythonHTTPSDaemonWinRDP extends ClientServerTest {
+public class RDPTest extends ClientServerTest {
 
 	public static final String INCOMING_TEST_STR = "This is an incoming transmission";
 	public static final String OUTGOING_TEST_STR = "This is an outgoing transmission";
@@ -68,22 +62,6 @@ public class RunnerTestPythonHTTPSDaemonWinRDP extends ClientServerTest {
 				fail(ex.getMessage());
 			}
 		}
-
-	}
-	
-	@Test
-	void testLocal() {
-		test();
-	}
-
-	public static void test() {
-		initiateServer();
-		String clientCmd = "cmd /c \"start " + TestConstants.PYTHON_EXE + " agents" + File.separator + "python" + File.separator + "httpsAgent.py\"";
-		spawnClient(clientCmd);
-
-		System.out.println("Transmitting commands");
-
-		RDPTestRunner();
 
 	}
 	
