@@ -84,8 +84,7 @@ public class RemoteTestExecutor {
 	}
 
 	public boolean executeBuildAndReceiveProducts(int port) {
-		try {
-			ServerSocket ss = new ServerSocket(port);
+		try (ServerSocket ss = new ServerSocket(port)){
 			ss.setSoTimeout(5000);
 
 			Socket newSession = ss.accept();
@@ -102,7 +101,7 @@ public class RemoteTestExecutor {
 						return false;
 					}
 					// Checkout correct directory
-					OutputStreamWriterHelper.writeAndSend(bw, CMD_EXECUTE_SHELL + " cd TheAllCommanderPrivate && git pull");
+					OutputStreamWriterHelper.writeAndSend(bw, CMD_EXECUTE_SHELL + " cd ../TheAllCommanderPrivate && git pull");
 					input = br.readLine();
 					if (!input.equalsIgnoreCase(MSG_PROCESS_EXECUTE)) {
 						return false;
@@ -112,7 +111,7 @@ public class RemoteTestExecutor {
 						return false;
 					}
 					// Make products
-					OutputStreamWriterHelper.writeAndSend(bw, CMD_EXECUTE_SHELL + " cd TheAllCommanderPrivate/agents/stager/daemon/cross-compile/ && make");
+					OutputStreamWriterHelper.writeAndSend(bw, CMD_EXECUTE_SHELL + " cd ../TheAllCommanderPrivate/agents/stager/daemon/cross-compile/ && make");
 					input = br.readLine();
 					if (!input.equalsIgnoreCase(MSG_PROCESS_EXECUTE)) {
 						return false;
@@ -140,13 +139,14 @@ public class RemoteTestExecutor {
 				}
 
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				newSession.close();
+				return false;
 			}
 
-			ss.close();
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			//ex.printStackTrace();
+			return false;
 		}
 		return true;
 	}
@@ -163,6 +163,10 @@ public class RemoteTestExecutor {
 				while (true) {
 					String input = br.readLine();
 					System.out.println("Working on command: " + input);
+					if(input == null) {
+						Time.sleepWrapped(500);
+						continue;
+					}
 					if (input.startsWith(CMD_READFILE)) {
 						String fileToRead = input.substring(CMD_READFILE.length() + 1);
 						byte[] file = Files.readAllBytes(Paths.get(fileToRead));
