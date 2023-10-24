@@ -28,8 +28,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.security.auth.login.FailedLoginException;
-
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import c2.admin.LocalConnection;
@@ -46,6 +45,17 @@ import util.test.TestConfiguration.OS;
 
 class StagerGeneratorTest {
 
+	private HTTPSManager httpsManager;
+	
+	@AfterEach
+	void teardown() {
+		if(httpsManager != null) {
+			httpsManager.stop();
+			Time.sleepWrapped(5000);//Let HTTPS manager shut down fully.
+			httpsManager = null;
+		}
+	}
+	
 	@Test
 	void testBogusFileDetection() {
 		try {
@@ -232,11 +242,11 @@ class StagerGeneratorTest {
 					Path path = Paths.get("test_tmp.exe");
 					Files.write(path, Base64.getDecoder().decode(file));
 					
-					HTTPSManager manager = new HTTPSManager();
-					manager.initialize(io, prop, null, null);
+					httpsManager = new HTTPSManager();
+					httpsManager.initialize(io, prop, null, null);
 					ExecutorService services = Executors.newCachedThreadPool();
-					services.submit(manager);
-					manager.awaitStartup();
+					services.submit(httpsManager);
+					httpsManager.awaitStartup();
 					
 				Process p = Runtime.getRuntime().exec(path.toAbsolutePath().toString());
 				BufferedReader pInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -251,9 +261,9 @@ class StagerGeneratorTest {
 
 				assertEquals("Hello world" + System.lineSeparator(), output);
 				
-				manager.stop();
+				//manager.stop();
 				Files.deleteIfExists(path);
-				Time.sleepWrapped(5000);//Let HTTPS manager shut down fully.
+				//Time.sleepWrapped(5000);//Let HTTPS manager shut down fully.
 			}catch(Exception ex) {
 				System.out.println("Warning: Could not execute test. This happens occasionally. Investigate if it persists");
 			}
@@ -297,11 +307,11 @@ class StagerGeneratorTest {
 					Path path = Paths.get("test_tmp.exe");
 					Files.write(path, Base64.getDecoder().decode(file));
 
-					HTTPSManager manager = new HTTPSManager();
-					manager.initialize(io, prop, null, null);
+					httpsManager = new HTTPSManager();
+					httpsManager.initialize(io, prop, null, null);
 					ExecutorService services = Executors.newCachedThreadPool();
-					services.submit(manager);
-					manager.awaitStartup();
+					services.submit(httpsManager);
+					httpsManager.awaitStartup();
 					
 					
 				Process p = Runtime.getRuntime().exec(path.toAbsolutePath().toString());
@@ -317,9 +327,9 @@ class StagerGeneratorTest {
 
 				assertEquals("Hello world" + System.lineSeparator(), output);
 
-				manager.stop();
+				//manager.stop();
 				Files.deleteIfExists(path);
-				Time.sleepWrapped(5000);//Let HTTPS manager shut down fully.
+				//Time.sleepWrapped(5000);//Let HTTPS manager shut down fully.
 				}catch(Exception ex) {
 					System.out.println("Warning: Could not execute test. This happens occasionally. Investigate if it persists");
 				}
@@ -521,7 +531,7 @@ class StagerGeneratorTest {
 			ExecutorService service = Executors.newFixedThreadPool(4);
 			service.submit(testSession);
 
-			HTTPSManager httpsManager = new HTTPSManager();
+			httpsManager = new HTTPSManager();
 			Path testPath = null;
 			if (System.getProperty("os.name").contains("Windows")) {
 				testPath = Paths.get("config", "test.properties");
@@ -586,8 +596,8 @@ class StagerGeneratorTest {
 			assertEquals("Hello world" + System.lineSeparator(), output);
 
 			Files.delete(LocalConnection.CSHARP_TMP_FILE);
-			httpsManager.stop();
-			Time.sleepWrapped(5000);
+			//httpsManager.stop();
+			//Time.sleepWrapped(5000);
 		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}

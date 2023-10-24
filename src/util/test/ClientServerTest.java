@@ -41,7 +41,7 @@ public class ClientServerTest {
 
 			return prop;
 		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
+			System.out.println("ClientServerTest: Unable to load TheAllCommander server config file");
 			fail(ex.getMessage());
 			return null;
 		}
@@ -95,6 +95,10 @@ public class ClientServerTest {
 		
 		//Kills the process if alive, returns true if process still existed
 		public boolean killProcess() {
+			if(process == null) {
+				//No process to kill
+				return false;
+			}
 			try {
 				process.exitValue();
 				return false;
@@ -150,8 +154,11 @@ public class ClientServerTest {
 	}
 	
 	protected static void teardown() {
-		service.shutdownNow();
-		runner.main.awaitFullShutdown();
+		if(service != null && runner != null) {
+			service.shutdownNow();
+			runner.main.awaitFullShutdown();
+		}
+		
 		RunnerTestGeneric.cleanLogs();
 		for(ChildManager manager : childManagers) {
 			if(manager.killProcess()) {

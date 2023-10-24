@@ -98,26 +98,31 @@ public class RemoteTestExecutor {
 				if (br.ready()) {
 					String input = br.readLine();
 					if (!input.equalsIgnoreCase(MSG_INITIAL_SERVER)) {
+						System.out.println("Did not get initial server hail, returning");
 						return false;
 					}
 					// Checkout correct directory
 					OutputStreamWriterHelper.writeAndSend(bw, CMD_EXECUTE_SHELL + " cd ../TheAllCommanderPrivate && git pull");
 					input = br.readLine();
 					if (!input.equalsIgnoreCase(MSG_PROCESS_EXECUTE)) {
+						System.out.println("Could not confirm git pull make, returning");
 						return false;
 					}
 					input = br.readLine();
 					if (!input.equalsIgnoreCase(MSG_COMMAND_COMPLETE)) {
+						System.out.println("Could not execute git pull, returning");
 						return false;
 					}
 					// Make products
 					OutputStreamWriterHelper.writeAndSend(bw, CMD_EXECUTE_SHELL + " cd ../TheAllCommanderPrivate/agents/stager/daemon/cross-compile/ && make");
 					input = br.readLine();
 					if (!input.equalsIgnoreCase(MSG_PROCESS_EXECUTE)) {
+						System.out.println("Could not confirm make execution, returning");
 						return false;
 					}
 					input = br.readLine();
 					if (!input.equalsIgnoreCase(MSG_COMMAND_COMPLETE)) {
+						System.out.println("Could not execute make, returning");
 						return false;
 					}
 					Files.createDirectories(Paths.get("agents", "build"));

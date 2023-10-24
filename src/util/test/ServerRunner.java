@@ -28,7 +28,7 @@ public class ServerRunner implements Runnable{
 			main.engage(prop);
 
 		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
+			System.out.println("ServerRunner: Unable to load TheAllCommanderServer config file");
 			ex.printStackTrace();
 		}
 	}

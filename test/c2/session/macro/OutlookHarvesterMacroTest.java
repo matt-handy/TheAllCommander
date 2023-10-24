@@ -156,6 +156,8 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 
 	}
 
+	
+	@BeforeEach
 	@AfterEach
 	void cleanup() {
 		RunnerTestGeneric.cleanLogs();
@@ -163,6 +165,11 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 		TestCommons.cleanFileHarvesterDir();
 	}
 
+	@AfterEach()
+	void stopServer(){
+		teardown();
+	}
+	
 	@Test
 	void testRecognizesCommandAndRejectsNonCommand() {
 		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
@@ -374,7 +381,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 				OutputStreamWriterHelper.writeAndSend(bw, OutlookHarvesterMacro.OUTLOOK_HARVEST_COMMAND + " "
 						+ OutlookHarvesterMacro.OUTLOOK_HARVEST_BASIC);
 
-				Time.sleepWrapped(150000);
+				Time.sleepWrapped(180000);
 
 				// TODO: dynamically load from configuration this directory
 				File[] directories = new File(
@@ -400,7 +407,6 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 			} catch (IOException ex) {
 
 			}
-			teardown();
 		} else {
 			System.out.println(
 					"WARNING: Skipping Outlook harvester test with local Outlook instance. If you want this to be configured, enable: "
@@ -445,7 +451,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 				System.out.println(command);
 				OutputStreamWriterHelper.writeAndSend(bw, command);
 
-				Time.sleepWrapped(60000);
+				Time.sleepWrapped(180000);
 
 				// TODO: dynamically load from configuration this directory
 				File[] directories = new File(
@@ -466,7 +472,6 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 			} catch (IOException ex) {
 
 			}
-			teardown();
 		} else {
 			System.out.println(
 					"WARNING: Skipping Outlook harvester test with local Outlook instance. If you want this to be configured, enable: "

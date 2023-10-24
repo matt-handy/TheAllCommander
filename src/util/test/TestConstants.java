@@ -20,6 +20,7 @@ public class TestConstants {
 	//We want this to be visible to read in warning messages
 	public static final String I_OUTLOOKHARVEST_LIVE_ENABLE = "outlookharvest.live.enable";
 	public static final String I_LARGE_HARVEST_TEST_ENABLE = "largeharvest.test.enable";
+	public static final String I_KEYLOGGER_TEST_ENABLE = "keylogger.test.enable";
 	
 	private static final String I_PROCESSHOLLOWER_TEST_EXE = "processhollower.testexe";
 	private static final String I_SIMPLESTAGER_TEST_EXE = "simplestager.testexe";
@@ -57,6 +58,7 @@ public class TestConstants {
 	
 	public static boolean OUTLOOKHARVEST_LIVE_ENABLE;
 	public static boolean LARGE_HARVEST_TEST_ENABLE;
+	public static boolean KEYLOGGER_TEST_ENABLE;
 	
 	public static String PROCESSHOLLOWER_TEST_EXE;
 	public static String SIMPLESTAGER_TEST_EXE;
@@ -86,6 +88,10 @@ public class TestConstants {
 	public static String PYTHON_SMTPDAEMON_TEST_EXE;
 	
 	static {
+		init();
+	}
+	
+	public static void init() {
 		try (InputStream input = new FileInputStream("test" + File.separator + "test_config.properties")) {
 
 			Properties prop = new Properties();
@@ -132,11 +138,12 @@ public class TestConstants {
 			PYTHON_DNSDAEMON_TEST_EXE = prop.getProperty(I_PYTHON_DNSDAEMON_TEST_EXE);
 			PYTHON_SMTPDAEMON_TEST_EXE = prop.getProperty(I_PYTHON_SMTPDAEMON_TEST_EXE);
 			
-			OUTLOOKHARVEST_LIVE_ENABLE = prop.getProperty(I_OUTLOOKHARVEST_LIVE_ENABLE).equalsIgnoreCase("true");
-			LARGE_HARVEST_TEST_ENABLE = prop.getProperty(I_LARGE_HARVEST_TEST_ENABLE).equalsIgnoreCase("true");
+			OUTLOOKHARVEST_LIVE_ENABLE = prop.getProperty(I_OUTLOOKHARVEST_LIVE_ENABLE, "false").equalsIgnoreCase("true");
+			LARGE_HARVEST_TEST_ENABLE = prop.getProperty(I_LARGE_HARVEST_TEST_ENABLE, "false").equalsIgnoreCase("true");
+			KEYLOGGER_TEST_ENABLE = prop.getProperty(I_KEYLOGGER_TEST_ENABLE, "false").equalsIgnoreCase("true");
 		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
-			fail(ex.getMessage());
+			System.out.println("Unable to load test config file");
+			ex.printStackTrace();
 		}
 	}
 }

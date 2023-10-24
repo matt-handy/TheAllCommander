@@ -38,7 +38,7 @@ public class Runner {
 			main.engage(prop);
 
 		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
+			System.out.println("Initialization failed: Unable to load TheAllCommander config file");
 		}
 
 	}

@@ -322,9 +322,9 @@ public class RunnerTestGeneric {
 
 	private static String getRelativeRoot(TestConfiguration config) {
 		String relativeRoot = "TheAllCommander";
-		if(config.lang.equals("C++")) {
-			relativeRoot = "TheAllCommanderPrivate";
-		}
+		//if(config.lang.equals("C++")) {
+		//	relativeRoot = "TheAllCommanderPrivate";
+		//}
 		return relativeRoot;
 	}
 	
@@ -337,7 +337,7 @@ public class RunnerTestGeneric {
 			prop.load(input);
 
 		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
+			System.out.println("RunnerTestGeneric: Unable to load TheAllCommander server config file");
 			fail(ex.getMessage());
 		}
 
@@ -490,7 +490,7 @@ public class RunnerTestGeneric {
 
 			//Clipboard API likewise only Windows
 			if (config.os == TestConfiguration.OS.WINDOWS) {
-				testClipboard(br, bw, config.lang, config.isRemote());
+				testClipboard(br, bw, config);
 			}
 
 			if (config.isExecInRoot()) {
@@ -990,7 +990,7 @@ public class RunnerTestGeneric {
 	}
 
 	
-	static void testClipboard(BufferedReader br, OutputStreamWriter bw, String lang, boolean isRemote)
+	static void testClipboard(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
 			throws IOException {
 		
 		System.out.println("Testing clipboard");
@@ -1008,7 +1008,7 @@ public class RunnerTestGeneric {
 		//Give time for a write
 		Time.sleepWrapped(1000);
 		
-		if (!isRemote) {
+		if (!config.isRemote()) {
 			File dir = new File("test");
 
 			File[] matches = dir.listFiles(new FilenameFilter() {
@@ -1016,11 +1016,11 @@ public class RunnerTestGeneric {
 					String hostname;
 					try {
 						hostname = InetAddress.getLocalHost().getHostName();
-						if (lang.equals("C++")) {
+						if (config.lang.equals("C++")) {
 							hostname = hostname.toUpperCase();
 						}
 						// The file name will be hostname-pid to start
-						if (lang.equalsIgnoreCase("Native")) {
+						if (config.lang.equalsIgnoreCase("Native")) {
 							return name.startsWith(hostname) && !name.startsWith(hostname + "-");
 						} else {
 							return name.startsWith(hostname) && name.matches(".*\\d.*");
@@ -1038,11 +1038,13 @@ public class RunnerTestGeneric {
 			});
 			assertEquals(1, clipboard.length);
 			String data = Files.readString(clipboard[0].toPath());
-			if(lang.equals("C#")) {
+			if(config.lang.equals("C#")) {
 				//Bug in C# library causes clipboard content not to return sometimes. Either returns nothing or correct
 				if(data.length() != 0) {
 					assertEquals(clipboardContents + System.lineSeparator(), data);
 				}
+			}else if(config.lang.equals("C++") && config.protocol.equals("DNS")) {
+				assertEquals(clipboardContents, data);
 			}else {
 				assertEquals(clipboardContents + System.lineSeparator(), data);
 			}
@@ -1283,6 +1285,11 @@ public class RunnerTestGeneric {
 					"<control> uplinked execCentral.bat.tmp amF2YSAtY3AgInRhcmdldC8qO3RhcmdldC9saWIvKiIgYzIuUnVubmVyIGNvbmZpZy90ZXN0LnByb3BlcnRpZXNqYXZhIC1jcCAidGFyZ2V0Lyo7dGFyZ2V0L2xpYi8qIiBjMi5SdW5uZXIgY29uZmlnL3Rlc3QucHJvcGVydGllcw==");
 			bw.write("rm execCentral.bat.tmp" + System.lineSeparator());
 			bw.flush();
+			
+			if(config.lang.equals("C++")) {
+				output = br.readLine();
+				assertEquals("", output);
+			}
 
 			System.out.println("Cleaned up cat test");
 		} else {

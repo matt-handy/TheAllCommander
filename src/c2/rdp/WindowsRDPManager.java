@@ -70,7 +70,7 @@ public class WindowsRDPManager {
 			defaultEnableRegKey = prop.getProperty("rdp.enable.reg.key");
 			defaultLocalChiselExec = prop.getProperty("local.chisel.exec");
 		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
+			System.out.println("Unable to load RDP config file");
 		}
 		CLIENT_CHISEL_DIR = defaultClientChiselDir;
 		CHISEL_WIN_BIN = defaultChiselWinBin;
