@@ -7,6 +7,7 @@ import java.util.Base64;
 import java.util.List;
 
 import c2.java.DaemonLoaderGenerator;
+import util.Time;
 
 public class JavaLoaderTestFramework {
 
@@ -23,18 +24,22 @@ public class JavaLoaderTestFramework {
 		this.jarsToHost = jarsToHost;
 		
 		//Stand up HTTP server
-		String pythonServerArgs[] = {"python", "-m", "http.server", "8010", "-d", Paths.get("").toString()};
+		String pythonServerArgs[] = {"python", "-m", "http.server", "8011", "-d", Paths.get("").toString()};
 		httpServerProcess = Runtime.getRuntime().exec(pythonServerArgs);
+		System.out.println("Python server started");
+		
 		
 		//Move in the jars we need
 		for(String jar : jarsToHost) {
 			Path pJar = Paths.get(testDaemonJar.toString(), jar);
 			Files.copy(pJar, Paths.get(jar));
 		}
+		System.out.println("Test jars staged");
+		
 	}
 	
 	public void generateAndPlaceLoaderJar() throws Exception {
-		String b64 = DaemonLoaderGenerator.generateDaemonLoaderB64Exe("localhost:8010", jarsToHost, mainMethod);
+		String b64 = DaemonLoaderGenerator.generateDaemonLoaderB64Exe("localhost:8011", jarsToHost, mainMethod);
 		byte[] jar = Base64.getDecoder().decode(b64);
 		Files.write(TMP_JAR, jar);
 	}
@@ -67,6 +72,9 @@ public class JavaLoaderTestFramework {
 		}
 		
 		jarProcess.destroyForcibly();
+		while(jarProcess.isAlive()) {
+			Time.sleepWrapped(500);
+		}
 		Files.delete(TMP_JAR);
 	}
 	
