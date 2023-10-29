@@ -28,6 +28,7 @@ public class LocalConnection {
 	public static String CMD_QUIT_LOCAL = "quitLocal";
 	
 	public static Path CSHARP_TMP_FILE = Paths.get("test_tmp.exe");
+	public static Path JAVA_TMP_FILE = Paths.get("DaemonLoader.jar");
 
 	public static void main(String args[]) throws NumberFormatException, UnknownHostException, IOException {
 		LocalConnection lc = new LocalConnection();
@@ -65,6 +66,13 @@ public class LocalConnection {
 									stream.write(data);
 								}
 								terminalOut.println("Exe downloaded");
+							}else if(output.startsWith("<control> " + CommandWizard.CMD_GENERATE_JAVA)) {
+								String[] elements = output.split(" ");
+								byte[] data = Base64.getDecoder().decode(elements[2]);
+								try (OutputStream stream = new FileOutputStream(JAVA_TMP_FILE.toFile())) {
+									stream.write(data);
+								}
+								terminalOut.println("Jar downloaded");
 							} else {
 								terminalOut.println(output);
 							}

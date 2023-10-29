@@ -353,3 +353,28 @@ NOTE: Automated testing of the outlook harvester macro is disabled by default, a
 
 #Code Quality
 Code quality is checked by Codiga : https://app.codiga.io/hub/project/35210/TheAllCommander
+
+#Contributing
+Looking to contribute? There are a few work items in the queue that would be great help with!
+
+1) SOCKS5 proxy support doesn't currently extend to Linux and Mac, lets add it!
+
+2) The SOCKS5 testHTTPSBrokenConnections and its DNS equivalent fail in automated testing, but work when executed manually.
+ 
+3) Edge cookie harvesting doesn't currently work - it seems Windows keeps a lock on the file even when Edge is not in use
+
+4) Create a keylogger implementation for Mac and Linux with Python, C++, and Java daemons
+
+5) Support basic port forward on Mac and Linux demonstrate on C++, Java, and Python
+
+6) Suspect there is an intermittent bug in communication with the DNS implementation - C++ DNS daemon doesn't work regularly with test. DNS doesn't work well with Linux/Mac and fails regularly
+
+7) PythonEmailAllCommandsTest and RunnerTestKeyloggerEmail currently disabled, will not run to completion. Suspect stability of mail server
+
+8) C# email test daemon will not run to completion.
+
+9) Implement current DNS protocol for C# daemon
+
+10) Add Where command support for C# and Java daemons
+
+11) The following commands don't work with the current SMB protocol: where, cat multiline, and shell
