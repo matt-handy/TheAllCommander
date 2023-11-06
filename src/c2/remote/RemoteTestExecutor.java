@@ -181,6 +181,7 @@ public class RemoteTestExecutor {
 					}else if(input.equals(CMD_EXECUTE_PYTHON)) {
 						runPython(bw);
 						OutputStreamWriterHelper.writeAndSend(bw, MSG_COMMAND_COMPLETE);
+						break;
 					} else if (input.startsWith(CMD_EXECUTE_SHELL)) {
 						String commandToExe =input.substring(CMD_EXECUTE_SHELL.length() + 1);
 						System.out.println("Executing: " + commandToExe);
