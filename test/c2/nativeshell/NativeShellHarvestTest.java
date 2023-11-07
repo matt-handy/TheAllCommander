@@ -43,11 +43,6 @@ class NativeShellHarvestTest extends util.test.ClientServerTest {
 		}
 	}
 	
-	@Test
-	void implementNonWaitingVersionOfSessionPoll() {
-		fail("Didn't do this");
-	}
-
 	void runNativeHarvestTest(TestConfiguration config) {
 		String delim = "\\";
 		if(config.os == OS.LINUX) {
