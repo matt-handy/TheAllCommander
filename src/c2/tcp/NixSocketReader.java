@@ -141,4 +141,29 @@ public class NixSocketReader extends SocketReader {
 			return "Unable to query current working directory";
 		}
 	}
+
+	@Override
+	public String getUserDirectory(OutputStreamWriter bw, int sessionId) {
+		throw new IllegalArgumentException("Implement me");
+	}
+
+	@Override
+	public String getClipboard(OutputStreamWriter bw, int sessionId) {
+		return "Clipboard snap not available on Linux";
+	}
+
+	@Override
+	public String downloadBase64File(String filename, String b64, OutputStreamWriter bw, int sessionId) {
+		throw new IllegalArgumentException("Implement me");
+	}
+
+	@Override
+	public String executeCatCopyCommand(OutputStreamWriter bw, int sessionId, String cmd) {
+		throw new IllegalArgumentException("Implement me");
+	}
+
+	@Override
+	public String executeCatAppendCommand(OutputStreamWriter bw, int sessionId, String cmd) {
+		throw new IllegalArgumentException("Implement me");
+	}
 }

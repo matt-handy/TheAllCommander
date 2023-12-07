@@ -41,9 +41,15 @@ public abstract class SocketReader {
 	public abstract List<String> getCurrentFilesFromNativeFormatDump(String parentDirectory, String dir);
 
 	public abstract String uplinkFileBase64(String filename, OutputStreamWriter bw, int sessionId) throws Exception;
+	
+	public abstract String downloadBase64File(String filename, String b64, OutputStreamWriter bw, int sessionId);
 
 	public abstract String getPwd(OutputStreamWriter bw, int sessionId);
 
+	public abstract String getUserDirectory(OutputStreamWriter bw, int sessionId);
+	
+	public abstract String getClipboard(OutputStreamWriter bw, int sessionId);
+	
 	public String readUnknownLinesFromSocket(BufferedReader br, Socket socket, boolean appendFinalLineSeparator,
 			long millisToWait) throws IOException {
 		if (usesDollarSigns) {
@@ -56,5 +62,8 @@ public abstract class SocketReader {
 		}
 		return GenericTCPInitiator.readUnknownLinesFromSocket(br, socket, appendFinalLineSeparator);
 	}
+	
+	public abstract String executeCatCopyCommand(OutputStreamWriter bw, int sessionId, String cmd);
 
+	public abstract String executeCatAppendCommand(OutputStreamWriter bw, int sessionId, String cmd);
 }
