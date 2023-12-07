@@ -726,7 +726,7 @@ public class RunnerTestGeneric {
 					assertEquals(output, Paths.get("").toAbsolutePath().toString());
 				}
 			} else if (config.lang.equals("Native") || config.lang.equals("PowershellWindows")) {
-				if (config.isRemote()) {
+				if (config.isRemote() || !config.isExecInRoot()) {
 					assertTrue(output.startsWith("C:\\Users\\"));
 				} else {
 					assertEquals(output, Paths.get("").toAbsolutePath().toString());
