@@ -80,7 +80,7 @@ class DaemonLoaderGeneratorTest {
 		BufferedOutputStream bos = new BufferedOutputStream(cmdBuffer);
 		PrintWriter builder = new PrintWriter(bos);
 		builder.println("WIZARD");
-		builder.println(CommandWizard.CMD_GENERATE_JAVA + " localhost:8010 HelloWorld HelloWorld.jar");
+		builder.println(CommandWizard.CMD_GENERATE_JAVA + " localhost:8011 HelloWorld HelloWorld.jar");
 		builder.println(CommandWizard.CMD_QUIT);
 		builder.println("sleep");
 		builder.println(LocalConnection.CMD_QUIT_LOCAL);

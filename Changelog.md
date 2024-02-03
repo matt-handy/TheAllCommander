@@ -21,3 +21,20 @@ Add initial Blue Team Guide - provides Indicator of Compromise (IOC) Detection R
 
 #Release 1.0.0 - December 2022
 Clean up code quality, improve unit test coverage. Add Codira code quality badge.
+
+#Release 2.0.0 - January 2024
+Add "harvest_pwd" command - daemons will crawl current working directory for content to upload
+Native text shells previously were not dynamically responsive to network latency, now will respond dynamically to data availability
+Java Stager Support - Staged java payloads are now generated and supported
+Mac Support - Python and Server will both run on Mac platforms
+C# stager generation contains a full end-to-end integration test
+C# stager code can be generated with automatic randomization and obfuscation
+Blue Team Guide expanded to include several IOCs, including
+	Windows registry key persistence
+	Launch daemon process using Windows Local Machine registry for process debugging
+	Launch daemon process using the SilentProcessExit registry key
+Refactored harvest_user_dir implementation for streamlined maintenance
+Expand user enumeration to non-Windows platforms
+Windows Powershell reverse shell support added
+Obfuscated powershell mode
+Obfuscated Windows command line mode

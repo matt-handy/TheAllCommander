@@ -49,7 +49,6 @@ public class DaemonLoaderGenerator {
 	
 	public static String generateDaemonLoaderString(String targetHost, List<String> jarFiles, String mainMethod) {
 		StringBuilder sb = new StringBuilder();
-		//sb.append("package c2.daemon;"); sb.append(System.lineSeparator());
 		sb.append("import java.io.IOException;"); sb.append(System.lineSeparator());
 		sb.append("import java.lang.reflect.Method;"); sb.append(System.lineSeparator());
 		sb.append("import java.lang.reflect.InvocationTargetException;"); sb.append(System.lineSeparator());

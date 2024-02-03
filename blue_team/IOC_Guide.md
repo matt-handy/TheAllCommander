@@ -170,21 +170,53 @@ Remove-LocalUser -Name <paste>
 
 ### Network Share Enumeration
 
-Detection Logic: TBD
+The command used here simply uses WMIC to list the available shares. Microsoft has deprecated the stand alone WMIC executable and intends to migrate this command into Powershell for better control and monitoring. In the meantime, the wmic executable exists. In general, normal users have no use case to invoke wmic on a system. As such, if SIEM detects that a command:
+
+1) Originates from a non-admin user AND
+
+2) Invokes the "wmic" process 
+
+This is a moderate confidence security event that should be investigated, particularly if other wmic invocations are implemented. Such detection is more challenging if an administrative user compromised as this sort of enumeration of a network is a nominal part of a system administrator's job.
 
 ### AntiVirus Enumeration
 
-Detection Logic: TBD
+There are several techniques for enumerating antivirus. One of which is to use a command such as "wmic /namespace:\\root\SecurityCenter2 path AntiVirusProduct get * /value" to query WMIC. The same detection logic applies as for "Network Share Enumeration" - normal users should be invoking wmic, while system administrators will regularly using wmic to do things like check if antivirus is registred and enabled.  
 
 ### Windows Patch Enumeration
 
-Detection Logic: TBD
+Patch levels can be enumerated through wmic, therefore the detection recommendations from "Network Share Enumeration" apply here as well. However, going a step beyond wmic, enumeration can also be accomplished via Powershell. To detect this, first that powershell commands are also being processed through the SIEM, as well as new processes launched. Apply the following rule to powershell commands processed. If...
+
+1) Commandlet Equals-Ignores-Case get-hotfix AND
+
+2) The user is a not a member of the system administrators group(s)
+
+This is a low-moderate confidence IOC. While some normal users might just be curious if their system is patching correctly, or a administrative troubleshooter might be walking them through troubleshooting steps to restore patching, likely an indicator of enumeration.
+
+### Windows User Enumeration
+
+The most straightforward way for attackers to list users and groups for Windows is via the "net" command. As with WMIC, there really aren't many reasons normal reasons should use the "net" command, although some power users may use it to confirm their own group memberships. Therefore, the following rules are suggested. A command can be flagged for review if it:
+
+1) Originates from a non-admin user AND
+
+2) invokes the "net" or "net1" process.
+
+Please note that net and net1 are synonymous in Windows, so checks for net.exe will miss any obfuscation attempts that use net1.exe
 
 ## LSASS Dump
 ### rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump <LSASS PID> lsass.dmp full
 This technique is blocked by default by Windows Defender easily, so we're not going to look at detection here
 ### ProcDump
 This technique is blocked by default by Windows Defender easily, so we're not going to look at detection here
+
+## Command obfuscation
+
+### Powershell obfuscation
+
+While there may be legitimate scripting reasons to echo commands into powershell, this technique should not be used in operations because it defeats logging and monitoring systems. Fortunately, the structure of the command is reliable; there is an echo, followed by text, followed by powershell. While the following regular expression should not be considered definitive, it is one possible regular expression that be used as a rule to flag commands for review: "(*)+echo (*)+|(*)+powershell(*)+". The extra "catch 0 or more characters of any type as represented by (*)+ occur in any potential breaks in the command to catch possible junk characters or attempts at misdirection.   
+
+### Windows Command Line obfuscation
+
+Analyzing this technique has a relatively straightforward solution. Because the "^" command can be easily filtered for, a SIEM pre-processing rule can be implemented that first eliminates all "^" characters from the processing of later rules. For example, before checking that a command matches the pattern "net user *", first apply a regular expression that eliminates "^" characters. However, to make sure that edge cases are considered, the ruleset should also be processed against the original command string. This is because, if there should be a "^" as part of an IOC elsewhere in the ruleset, it will not be eliminated. While this does have a substantial impact on the processing time of all rules that are processed against command line instruction, such events usually do not occur at such a volume as to overwhelm the computing power of a system. Weighed against the risk of allowing a threat actor to so easily bypass malicious command recognition, this rule or a similar rule should be implemented.  
 
 #SIEM Translation
 Transitioning between SIEM systems? I've experimented a bit with this translator: https://uncoder.io/

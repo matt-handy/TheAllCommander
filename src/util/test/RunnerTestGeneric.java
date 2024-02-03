@@ -583,9 +583,9 @@ public class RunnerTestGeneric {
 			assertEquals("Windows PowerShell", output);
 			output = br.readLine();
 			assertEquals("Copyright (C) Microsoft Corporation. All rights reserved.", output);
-			output = br.readLine();//Flush
-			output = br.readLine();
-			output = br.readLine();
+			output = br.readLine();//Blank
+			output = br.readLine();//Try the new cross-platform PowerShell https://aka.ms/pscore6
+			output = br.readLine();//Blank
 			System.out.println("Polling for actual output");
 			output = br.readLine();
 			System.out.println(output);
@@ -614,8 +614,10 @@ public class RunnerTestGeneric {
 					fail("Attempted powershell command did not return real date");
 				}
 			}
+			System.out.println("Checking for final powershell prompt");
 			output = br.readLine();
 			assertTrue(output.startsWith("PS") && output.endsWith("> "));
+			System.out.println("Powershell obfuscation test complete");
 		}
 	}
 	
