@@ -1,4 +1,7 @@
 # TheAllCommander
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bc6b9ef5b2e64a7eb000c221da7ae483)](https://app.codacy.com/gh/matt-handy/TheAllCommander?utm_source=github.com&utm_medium=referral&utm_content=matt-handy/TheAllCommander&utm_campaign=Badge_Grade)
+
 Framework for modeling and researching C2 communications for developing efficient filtering and detection logic.
 
 The All Commander 2.0 released January 2024 contains major new features, see [Change Log](Changelog.md)
