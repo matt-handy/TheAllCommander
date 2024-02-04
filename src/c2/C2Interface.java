@@ -43,4 +43,9 @@ public abstract class C2Interface implements Runnable{
 	*
 	*/
 	public abstract void notifyPendingShutdown();
+	
+	/**
+	 * This method blocks until all threading activity necessary to start the service is complete
+	 */
+	public abstract void awaitStartup();
 }

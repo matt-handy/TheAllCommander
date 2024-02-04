@@ -200,6 +200,7 @@ public class Runner {
 			ex.printStackTrace();
 		}
 		runningServiceFutures.add(service.submit(in));
+		in.awaitStartup();
 		System.out.println("Service online: " + in.getName());
 	}
 }

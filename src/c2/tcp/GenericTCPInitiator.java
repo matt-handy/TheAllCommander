@@ -65,6 +65,7 @@ public class GenericTCPInitiator extends C2Interface {
 		}
 	}
 
+	@Override
 	public void awaitStartup() {
 		try {
 			startLatch.await();

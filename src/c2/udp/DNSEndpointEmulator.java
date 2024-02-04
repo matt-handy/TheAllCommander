@@ -30,7 +30,8 @@ public class DNSEndpointEmulator extends C2Interface {
 
 	private boolean running = true;
 	private CountDownLatch deathLatch = new CountDownLatch(1);
-
+	private CountDownLatch startLatch = new CountDownLatch(1);
+	
 	private String screenshotBuffer = "";
 
 	private final byte BIT_ONE = 1;
@@ -81,6 +82,7 @@ public class DNSEndpointEmulator extends C2Interface {
 			DatagramSocket socket = new DatagramSocket(port);
 			socket.setSoTimeout(500);
 			System.out.println("DNS online: " + port);
+			startLatch.countDown();
 			while (running) {
 				try {
 					Arrays.fill(buf, (byte) 0);
@@ -232,6 +234,16 @@ public class DNSEndpointEmulator extends C2Interface {
 			System.out.println("Unable to bind to socket: " + e.getMessage());
 		}
 		deathLatch.countDown();
+	}
+
+	@Override
+	public void awaitStartup() {
+		try {
+			startLatch.await();
+		} catch (InterruptedException e) {
+			//Continue
+		}
+		
 	}
 
 }

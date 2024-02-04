@@ -346,4 +346,9 @@ public class EmailHandler extends C2Interface {
 		}
 	}
 
+	@Override
+	public void awaitStartup() {
+		//Interface requires no initialization allow incoming messages to queue.
+	}
+
 }
