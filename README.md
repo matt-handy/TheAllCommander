@@ -1,3 +1,5 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8841eabd9ba243ffacd9dc084dbfa3b1)](https://app.codacy.com/gh/matt-handy/TheAllCommander/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 # TheAllCommander
 Framework for modeling and researching C2 communications for developing efficient filtering and detection logic.
 
