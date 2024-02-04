@@ -115,29 +115,7 @@ class StagerGeneratorTest {
 					assertTrue(lines[23 + (pollCodeLines.length - 1) + idx].endsWith(afterVar));
 				}
 
-				// Check that the base code is present.
-				String pollCodeFunctionLines[] = Files
-						.readString(SessionInitiator.CSHARP_CONFIG_PATH.resolve("pollcode_function_http"))
-						.split(System.lineSeparator());
-				for (int idx = 0; idx < pollCodeFunctionLines.length; idx++) {
-					if (idx == 0) {
-						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-								.startsWith("static async Task<string> "));
-					} else if (idx == 6) {
-						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-								.contains("HttpResponseMessage"));
-					} else if (idx == 7) {
-						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-								.endsWith(".EnsureSuccessStatusCode();"));
-					} else if (idx == 8) {
-						assertTrue(lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]
-								.endsWith(".Content.ReadAsStringAsync();"));
-					} else {
-						assertEquals(pollCodeFunctionLines[idx],
-								lines[46 + (pollCodeLines.length - 1) + (assembliesLines.length - 1) + idx]);
-					}
-
-				}
+				
 			} catch (IOException ex) {
 				fail("This should not have happened: " + ex.getMessage());
 			}

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Example
 {
-    class HelloWorld
+    static class HelloWorld
     {
 		
 		//TODO: This is a total hack to make the stager work, as it only seems to behave with

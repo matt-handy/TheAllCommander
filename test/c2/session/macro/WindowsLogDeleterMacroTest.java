@@ -1,30 +1,23 @@
 package c2.session.macro;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import c2.Constants;
-import c2.session.CommandLoader;
 import c2.session.IOManager;
-import c2.session.log.IOLogger;
 import util.Time;
-import util.test.TestConfiguration;
-import util.test.TestConfiguration.OS;
+import util.test.ClientServerTest;
 
 class WindowsLogDeleterMacroTest {
+
+	IOManager io;
+	int sessionId;
 
 	private class ClientElevatedResponseEmulator implements Runnable {
 
@@ -60,31 +53,10 @@ class WindowsLogDeleterMacroTest {
 
 	}
 
-	IOManager io;
-	int sessionId;
-
 	@BeforeEach
 	void setUp() throws Exception {
-		Path testPath = null;
-		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
-			testPath = Paths.get("config", "test.properties");
-		}else {
-			testPath = Paths.get("config", "test_linux.properties");
-		}
-		try (InputStream input = new FileInputStream(testPath.toFile())) {
-
-			Properties prop = new Properties();
-
-			// load a properties file
-			prop.load(input);
-
-			CommandLoader cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
-			io = new IOManager(new IOLogger(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH))), cl);
-
-			sessionId = io.addSession("noone", "testHost", "protocol");
-		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
-		}
+		io = ClientServerTest.setupDefaultIOManager();
+		sessionId = io.addSession("noone", "testHost", "protocol");
 	}
 
 	@Test
@@ -94,13 +66,13 @@ class WindowsLogDeleterMacroTest {
 		assertTrue(logDeleter.isCommandMatch("delete_windows_logs all"));
 		assertFalse(logDeleter.isCommandMatch("bogus_cmd all"));
 	}
-	
+
 	@Test
 	void testFailsIfNotElevated() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		ClientElevatedResponseEmulator em = new ClientElevatedResponseEmulator(false, sessionId, io);
 		exec.submit(em);
-		
+
 		WindowsLogDeleterMacro logDeleter = new WindowsLogDeleterMacro();
 		logDeleter.initialize(io, null);
 		MacroOutcome outcome = logDeleter.processCmd("delete_windows_logs", sessionId, null);
@@ -114,49 +86,46 @@ class WindowsLogDeleterMacroTest {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		ClientElevatedResponseEmulator em = new ClientElevatedResponseEmulator(true, sessionId, io);
 		exec.submit(em);
-		
+
 		WindowsLogDeleterMacro logDeleter = new WindowsLogDeleterMacro();
 		logDeleter.initialize(io, null);
 		MacroOutcome outcome = logDeleter.processCmd("delete_windows_logs all", sessionId, null);
 		assertFalse(outcome.hasErrors());
-		
+
 		assertEquals(5, outcome.getOutput().size());
 		assertEquals("Sent Command: 'wevtutil clear-log Application'", outcome.getOutput().get(0));
 		assertEquals("Sent Command: 'wevtutil clear-log Security'", outcome.getOutput().get(1));
 		assertEquals("Sent Command: 'wevtutil clear-log System'", outcome.getOutput().get(2));
 		assertEquals("Sent Command: 'wevtutil clear-log Setup'", outcome.getOutput().get(3));
-		
+
 		assertEquals("Macro Executor: 'System Log Deletion Complete'", outcome.getOutput().get(4));
 	}
 
 	@Test
 	void testDeletesLogsIndividually() {
-		String logTypes[] = {"Application", "Security", "System", "Setup"};
-		for(String logType : logTypes) {
+		String logTypes[] = { "Application", "Security", "System", "Setup" };
+		for (String logType : logTypes) {
 			ExecutorService exec = Executors.newFixedThreadPool(2);
 			ClientElevatedResponseEmulator em = new ClientElevatedResponseEmulator(true, sessionId, io);
 			exec.submit(em);
-		
+
 			WindowsLogDeleterMacro logDeleter = new WindowsLogDeleterMacro();
 			logDeleter.initialize(io, null);
 			MacroOutcome outcome = logDeleter.processCmd("delete_windows_logs " + logType, sessionId, null);
 			assertFalse(outcome.hasErrors());
-		
+
 			assertEquals(2, outcome.getOutput().size());
 			assertEquals("Sent Command: 'wevtutil clear-log " + logType + "'", outcome.getOutput().get(0));
 			assertEquals("Macro Executor: 'System " + logType + " Log Deletion Complete'", outcome.getOutput().get(1));
 		}
 	}
-	
-	
-	
 
 	@Test
 	void testTooManyArgs() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		ClientElevatedResponseEmulator em = new ClientElevatedResponseEmulator(true, sessionId, io);
 		exec.submit(em);
-		
+
 		WindowsLogDeleterMacro logDeleter = new WindowsLogDeleterMacro();
 		logDeleter.initialize(io, null);
 		String cmd = "delete_windows_logs application fake_arg";
@@ -171,7 +140,7 @@ class WindowsLogDeleterMacroTest {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		ClientElevatedResponseEmulator em = new ClientElevatedResponseEmulator(true, sessionId, io);
 		exec.submit(em);
-		
+
 		WindowsLogDeleterMacro logDeleter = new WindowsLogDeleterMacro();
 		logDeleter.initialize(io, null);
 		String cmd = "delete_windows_logs bogus_log";

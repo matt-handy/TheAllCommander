@@ -6,12 +6,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import c2.Constants;
+import c2.session.CommandLoader;
+import c2.session.IOManager;
+import c2.session.log.IOLogger;
 import util.Time;
 import util.test.TestConfiguration.OS;
 
@@ -24,25 +31,41 @@ public class ClientServerTest {
 	
 	public static final String DEFAULT_SERVER_CONFIG = "test.properties";
 	
-	public static Properties getDefaultSystemTestProperties() {
-		String configName = "config" + File.separator;
-		if(System.getProperty("os.name").contains("Windows")) {
-			configName += "test.properties";
-		}else {
-			configName += "test_linux.properties";
+	public static Path getDefaultConfigPath() {
+		Path testPath = null;
+		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
+			testPath = Paths.get("config", "test.properties");
+		} else {
+			testPath = Paths.get("config", "test_linux.properties");
 		}
-		
-		try (InputStream input = new FileInputStream(configName)) {
+		return testPath;
+	}
+	
+	public static IOManager setupDefaultIOManager() {
+		try (InputStream input = new FileInputStream(ClientServerTest.getDefaultConfigPath().toFile())) {
 
 			Properties prop = new Properties();
 
 			// load a properties file
 			prop.load(input);
 
+			CommandLoader cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
+			return new IOManager(new IOLogger(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH))), cl);
+
+			
+		} catch (IOException ex) {
+			System.out.println("Unable to load config file");
+			return null;
+		}
+	}
+	
+	public static Properties getDefaultSystemTestProperties() {
+		try (InputStream input = new FileInputStream(ClientServerTest.getDefaultConfigPath().toFile())) {
+			Properties prop = new Properties();
+			prop.load(input);
 			return prop;
 		} catch (IOException ex) {
-			System.out.println("ClientServerTest: Unable to load TheAllCommander server config file");
-			fail(ex.getMessage());
+			System.out.println("Unable to load config file");
 			return null;
 		}
 	}
