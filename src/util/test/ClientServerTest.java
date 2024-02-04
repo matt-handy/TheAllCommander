@@ -1,8 +1,5 @@
 package util.test;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +24,6 @@ public class ClientServerTest {
 	protected static ExecutorService service;
 	protected static ServerRunner runner;
 	protected static List<ChildManager> childManagers = new ArrayList<>();
-	//protected static ChildManager childManager;
 	
 	public static final String DEFAULT_SERVER_CONFIG = "test.properties";
 	

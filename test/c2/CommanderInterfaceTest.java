@@ -1,14 +1,11 @@
 package c2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 
 import org.junit.jupiter.api.Test;
@@ -18,17 +15,15 @@ import util.Time;
 import util.test.ClientServerTest;
 import util.test.OutputStreamWriterHelper;
 import util.test.RunnerTestGeneric;
+import util.test.TestConfiguration;
+import util.test.TestConfiguration.OS;
 import util.test.TestConstants;
 
 class CommanderInterfaceTest extends ClientServerTest {
 
 	@Test
 	void testListAllMacros() {
-		if (System.getProperty("os.name").contains("Windows")) {
-			initiateServer();
-		} else {
-			initiateServer("test_linux.properties");
-		}
+		initiateServer();
 		
 		try {
 			System.out.println("Connecting test commander...");
@@ -120,13 +115,7 @@ class CommanderInterfaceTest extends ClientServerTest {
 	
 	@Test
 	void test() {
-		boolean isLinux = false;
-		if (System.getProperty("os.name").contains("Windows")) {
-			initiateServer();
-		} else {
-			initiateServer("test_linux.properties");
-			isLinux = true;
-		}
+		initiateServer();
 		spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 		System.out.println("Transmitting commands");
 
@@ -139,16 +128,16 @@ class CommanderInterfaceTest extends ClientServerTest {
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
 
-			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, isLinux, false);
+			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, TestConfiguration.getThisSystemOS() == OS.LINUX, false);
 
 			bw.write("quit_session" + System.lineSeparator());
 			bw.flush();
 
-			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, isLinux, false);
+			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, TestConfiguration.getThisSystemOS() == OS.LINUX, false);
 
 			bw.write("list_sessions" + System.lineSeparator());
 			bw.flush();
-			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, isLinux, 2, false);
+			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, TestConfiguration.getThisSystemOS() == OS.LINUX, 2, false);
 
 			// Test killing a session. First the session will disconnect, see that it isn't
 			// there, then
@@ -178,10 +167,10 @@ class CommanderInterfaceTest extends ClientServerTest {
 			bw = new OutputStreamWriter(remote.getOutputStream());
 			br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
 
-			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, isLinux, 3, false);
+			RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, TestConfiguration.getThisSystemOS() == OS.LINUX, 3, false);
 			bw.write("list_sessions" + System.lineSeparator());
 			bw.flush();
-			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, isLinux, 3, false);
+			RunnerTestGeneric.validateTwoSessionBanner(remote, bw, br, TestConfiguration.getThisSystemOS() == OS.LINUX, 3, false);
 
 			bw.write("die" + System.lineSeparator());
 			bw.flush();

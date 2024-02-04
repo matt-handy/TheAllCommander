@@ -1,11 +1,7 @@
 package c2.portforward.socks;
 
-import java.io.File;
-
 import org.junit.jupiter.api.Test;
 
-import c2.Constants;
-import util.test.EmailHelper;
 import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
 import util.test.TestConstants;

