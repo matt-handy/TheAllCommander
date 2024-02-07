@@ -289,11 +289,7 @@ public class WindowsRDPManager {
 	public boolean validateClientsideProxy(int sessionId) {
 		io.sendCommand(sessionId, "confirm_client_proxy 127.0.0.1:3389");
 		String proxyResults = io.awaitMultilineCommands(sessionId);
-		if(proxyResults.equals("yes")) {
-			return true;
-		}else {
-			return false;
-		}
+		return proxyResults.equals("yes");
 	}
 
 	public boolean validateServersideChisel(RDPSessionInfo info) {
@@ -331,11 +327,7 @@ public class WindowsRDPManager {
 		String regQuery = "reg query " + PERSIST_REG_KEY;
 		io.sendCommand(id, regQuery);
 		String regQueryOut = io.awaitMultilineCommands(id);
-		if (regQueryOut.contains(buildClientChiselExecArgs(info))) {
-			return true;
-		} else {
-			return false;
-		}
+		return regQueryOut.contains(buildClientChiselExecArgs(info));
 	}
 
 	public void installClientsideChisel(int id, RDPSessionInfo info, boolean needBinary, boolean needRegKey) throws Exception {
@@ -438,11 +430,7 @@ public class WindowsRDPManager {
 	public boolean validateUserInRDPGroup(int id, String userForRDP) {
 		io.sendCommand(id, "net localgroup \"Remote Desktop Users\"");
 		String groupListing = io.awaitMultilineCommands(id);
-		if (groupListing.contains(userForRDP)) {
-			return true;
-		} else {
-			return false;
-		}
+		return groupListing.contains(userForRDP);
 	}
 
 	public void addUserToRDPGroup(int sessionId, String userForRDP) throws Exception {

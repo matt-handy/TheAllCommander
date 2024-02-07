@@ -276,6 +276,12 @@ The tags within the default commands file are as follows. The tag proceeds comma
 # Configuration
 The execCentral.bar script provides a properties file. Most of the values in this properties file do not need to be changed, however they all the user an enormous level of freedom to modify many elements of TheAllCommander's function. Key configuration elements are listed below:
 
+commander.port.secure=8012		Port for TLS secured commander sessions
+
+commander.username.1=admin		Administrator username. In the future a more flexible user management system will implemented.
+
+commander.secret.1=changeme		Administrator password. In the future a more flexible and secure system will implemented.
+
 daemon.port=8000 				HTTPS port
 
 daemon.dns.port=8001			DNS/UDP emulation port
@@ -389,7 +395,7 @@ NOTE: If mvn is run to execute unit tests, both TheAllCommander and the sample H
 
 NOTE: The test sequence, when run on Windows, will validate that the expected browser cookie location is still legitimate. To do this, Firefox, Chrome, and Edge must be installed. If these browsers are not installed, skip test execution on Windows.
 
-3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file.
+3) execCentral.bat is a script which will launch TheAllCommander server using, by default, the configuration file config/test.properties. Please modify this configuration file with the desired configurations, or update the script to point to a custom configuration file. By default, TheAllCommander will connect to the server with a TLS session as of version 2.0.1, however and unencrpted connection is available, though support is deprecated. 
 
 4) To control TheAllCommander, execCommander.bat will launch a text client, which by default will connect to the locally running instance of TheAllCommander. There is a related project, TheAllCommanderFE which provides a very simply Angular front end for TheAllCommander, which is designed to function entirely independently. Note: execCommander.bat's simply local client will prompt the user for a session to choose. This session must be chosen quickly or the connection will time out.   
 

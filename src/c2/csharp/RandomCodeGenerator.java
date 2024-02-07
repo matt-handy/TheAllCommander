@@ -306,8 +306,8 @@ public class RandomCodeGenerator {
 	}
 	
 	private String generateRandomObject(VariableScope scope) {
-		int nextObjectIdx = rnd.nextInt(ObjectType.values().length);
-		ObjectType object = ObjectType.values()[nextObjectIdx];
+		//int nextObjectIdx = rnd.nextInt(ObjectType.values().length);
+		//ObjectType object = ObjectType.values()[nextObjectIdx];
 		//if(object == OBJECT_TYPE.HTTP_CONTENT) {
 			String payload = scope.selectRandomStringVariable("\"a\"");
 			return "HttpContent " + generateRandomString() + " = new StringContent(" + payload + ", Encoding.ASCII, \"text/plain\");";
