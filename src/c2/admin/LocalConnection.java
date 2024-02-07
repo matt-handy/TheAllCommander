@@ -93,7 +93,7 @@ public class LocalConnection {
 		// setup the key manager factory
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 		kmf.init(ks, password);
-		SSLContext sc = SSLContext.getInstance("SSL");
+		SSLContext sc = SSLContext.getInstance("TLSv1.3");
 		sc.init(kmf.getKeyManagers(), trustAllCerts, null);
 		SSLSocketFactory factory = sc.getSocketFactory();
         SSLSocket socket = (SSLSocket)factory.createSocket(targetIp, port);

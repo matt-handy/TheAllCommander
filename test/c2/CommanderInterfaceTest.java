@@ -34,7 +34,11 @@ class CommanderInterfaceTest extends ClientServerTest {
 	}
 	
 	private void secureBoot() {
-		initiateServer("test_secure.properties");
+		if (System.getProperty("os.name").contains("Windows")) {
+			initiateServer("test_secure.properties");
+		}else{
+			initiateServer("test_secure_unix.properties");
+		}
 		try {
 		remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
 		bw = new OutputStreamWriter(remote.getOutputStream());

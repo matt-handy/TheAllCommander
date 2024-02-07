@@ -35,7 +35,7 @@ public class SecureSessionInitiator extends SessionInitiator {
 		tmf.init(ks);
 
 		// setup the HTTPS context and parameters
-		SSLContext sslContext = SSLContext.getInstance("TLS");
+		SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
 		sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
 		SSLServerSocketFactory sslFactory = sslContext.getServerSocketFactory();

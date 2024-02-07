@@ -102,7 +102,7 @@ public class HTTPSManager extends C2Interface {
 
 			// initialise the HTTPS server
 			httpsServer = HttpsServer.create(address, 0);
-			SSLContext sslContext = SSLContext.getInstance("TLS");
+			SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
 			httpServer = HttpServer.create(addressHttp, 0);
 
 			// initialise the keystore
