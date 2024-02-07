@@ -7,53 +7,55 @@ import java.util.Random;
 
 public class RandomCodeGenerator {
 
-	private enum CODE_PERMUTATION {INTEGER_MATH, STRING_DEFINITION, WHILE_LOOP, FOR_LOOP, OBJECT_CONSTRUCTOR, TRIVIAL_SLEEP, TRY_CATCH, IF_STATEMENT, INTERNAL_VOID};
-	private enum OBJECT_TYPE {HTTP_CONTENT};
-	private enum RANDOM_METHODS {INTEGER("int"), STRING("String"), VOID("void"), BOOLEAN("bool");
+	private enum CodePermutation {INTEGER_MATH, STRING_DEFINITION, WHILE_LOOP, FOR_LOOP, OBJECT_CONSTRUCTOR, TRIVIAL_SLEEP, TRY_CATCH, IF_STATEMENT, INTERNAL_VOID};
+	private enum ObjectType {HTTP_CONTENT};
+	private enum RandomMethods {INTEGER("int"), STRING("String"), VOID("void"), BOOLEAN("bool");
 		public final String codeId;
-		private RANDOM_METHODS(String codeId) {
+		private RandomMethods(String codeId) {
 			this.codeId = codeId;
 		}
 	};
-	private enum MATH_OPERATIONS {PLUS("+"), MINUS("-"), MULTI("*"), DIV("/"), MOD("%");
+	private enum MathOperations {PLUS("+"), MINUS("-"), MULTI("*"), DIV("/"), MOD("%");
 		private static Random rnd = new SecureRandom();
 		public final String operand;
-		private MATH_OPERATIONS(String operand) {
+		private MathOperations(String operand) {
 			this.operand = operand;
 		}
-		public static MATH_OPERATIONS getRandomOperation() {
+		public static MathOperations getRandomOperation() {
 			return values()[rnd.nextInt(values().length)];
 		}
 	};
 	
+	private Random rnd = new SecureRandom();
 	private List<String> integerMethodNames = new ArrayList<>();
 	private List<String> stringMethodNames = new ArrayList<>();
 	private List<String> booleanMethodNames = new ArrayList<>();
 	private List<String> voidMethodNames = new ArrayList<>();
+	private List<String> generatedStrings = new ArrayList<>();
 	
 	public String addRandomMethod() {
-		int nextMethod = rnd.nextInt(RANDOM_METHODS.values().length);
-		RANDOM_METHODS method = RANDOM_METHODS.values()[nextMethod];
+		int nextMethod = rnd.nextInt(RandomMethods.values().length);
+		RandomMethods method = RandomMethods.values()[nextMethod];
 		String methodName = generateRandomString();
 		
 		StringBuilder sb = new StringBuilder();
 		VariableScope scope = new VariableScope();
 		sb.append("private static " + method.codeId + " " + methodName + "(){" + System.lineSeparator());
 		sb.append(generateNextLineStatement(scope) + System.lineSeparator());
-		if(method == RANDOM_METHODS.INTEGER) {
+		if(method == RandomMethods.INTEGER) {
 			sb.append("return " + generateRandomMathPredicate(scope)+ ";" + System.lineSeparator());
-		}else if(method == RANDOM_METHODS.BOOLEAN) {
+		}else if(method == RandomMethods.BOOLEAN) {
 			sb.append("return " + buildRandomLogicGate(scope)+ ";" + System.lineSeparator());
-		}else if(method == RANDOM_METHODS.STRING) {
+		}else if(method == RandomMethods.STRING) {
 			sb.append("return " + generateStringAssignmentPredicate(scope)+ ";" + System.lineSeparator());
 		}
 		sb.append("}");
 		
-		if(method == RANDOM_METHODS.BOOLEAN) {
+		if(method == RandomMethods.BOOLEAN) {
 			booleanMethodNames.add(methodName);
-		}else if(method == RANDOM_METHODS.INTEGER) {
+		}else if(method == RandomMethods.INTEGER) {
 			integerMethodNames.add(methodName);
-		}else if(method == RANDOM_METHODS.STRING) {
+		}else if(method == RandomMethods.STRING) {
 			stringMethodNames.add(methodName);
 		}else {//void
 			voidMethodNames.add(methodName);
@@ -89,28 +91,26 @@ public class RandomCodeGenerator {
 		}
 	}
 	
-	private Random rnd = new SecureRandom();
-	
 	public String generateNextLineStatement(VariableScope currentScope) {
-		int nextOperation = rnd.nextInt(CODE_PERMUTATION.values().length);
-		CODE_PERMUTATION nextOp =CODE_PERMUTATION.values()[nextOperation]; 
-		if(nextOp == CODE_PERMUTATION.INTEGER_MATH) {
+		int nextOperation = rnd.nextInt(CodePermutation.values().length);
+		CodePermutation nextOp =CodePermutation.values()[nextOperation]; 
+		if(nextOp == CodePermutation.INTEGER_MATH) {
 			return generateRandomMathStatement(currentScope) + ";";
-		}else if(nextOp == CODE_PERMUTATION.OBJECT_CONSTRUCTOR) {
+		}else if(nextOp == CodePermutation.OBJECT_CONSTRUCTOR) {
 			return generateRandomObject(currentScope) + ";";
-		}else if(nextOp == CODE_PERMUTATION.STRING_DEFINITION) {
+		}else if(nextOp == CodePermutation.STRING_DEFINITION) {
 			return generateRandomStringVariable(currentScope) + ";";
-		}else if(nextOp == CODE_PERMUTATION.TRIVIAL_SLEEP) {
+		}else if(nextOp == CodePermutation.TRIVIAL_SLEEP) {
 			return "System.Threading.Thread.Sleep(" + rnd.nextInt(1) +");";
-		}else if(nextOp == CODE_PERMUTATION.WHILE_LOOP) {
+		}else if(nextOp == CodePermutation.WHILE_LOOP) {
 			//return buildWhileLoop(currentScope);
 			return "System.Threading.Thread.Sleep(" + rnd.nextInt(1) +");";
-		}else if(nextOp == CODE_PERMUTATION.FOR_LOOP) {
+		}else if(nextOp == CodePermutation.FOR_LOOP) {
 			return "System.Threading.Thread.Sleep(" + rnd.nextInt(1) +");";
 			//return buildForLoop(currentScope);
-		}else if(nextOp == CODE_PERMUTATION.TRY_CATCH) {
+		}else if(nextOp == CodePermutation.TRY_CATCH) {
 			return buildTryCatch(currentScope);
-		}else if(nextOp == CODE_PERMUTATION.INTERNAL_VOID) {
+		}else if(nextOp == CodePermutation.INTERNAL_VOID) {
 			if(voidMethodNames.isEmpty()) {//If we don't have any voids to choose from, fall back to something that always works
 				return generateRandomObject(currentScope) + ";";
 			}else {
@@ -264,7 +264,7 @@ public class RandomCodeGenerator {
 				sb.append(";");
 			}else {
 				sb.append(" ");
-				sb.append(MATH_OPERATIONS.getRandomOperation().operand);
+				sb.append(MathOperations.getRandomOperation().operand);
 				sb.append(" ");
 			}
 		}
@@ -281,8 +281,6 @@ public class RandomCodeGenerator {
 		currentScope.addIntegerVariable(newVariableName);
 		return sb.toString();
 	}
-	
-	private List<String> generatedStrings = new ArrayList<>();
 	
 	private String generateRandomString() {
 	    int leftLimit = 97; // letter 'a'
@@ -308,8 +306,8 @@ public class RandomCodeGenerator {
 	}
 	
 	private String generateRandomObject(VariableScope scope) {
-		int nextObjectIdx = rnd.nextInt(OBJECT_TYPE.values().length);
-		OBJECT_TYPE object = OBJECT_TYPE.values()[nextObjectIdx];
+		int nextObjectIdx = rnd.nextInt(ObjectType.values().length);
+		ObjectType object = ObjectType.values()[nextObjectIdx];
 		//if(object == OBJECT_TYPE.HTTP_CONTENT) {
 			String payload = scope.selectRandomStringVariable("\"a\"");
 			return "HttpContent " + generateRandomString() + " = new StringContent(" + payload + ", Encoding.ASCII, \"text/plain\");";

