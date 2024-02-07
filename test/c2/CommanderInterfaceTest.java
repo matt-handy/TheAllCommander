@@ -4,12 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import c2.admin.LocalConnection;
 import c2.session.SessionInitiator;
 import util.Time;
 import util.test.ClientServerTest;
@@ -21,13 +24,101 @@ import util.test.TestConstants;
 
 class CommanderInterfaceTest extends ClientServerTest {
 
+	Socket remote;
+	OutputStreamWriter bw;
+	BufferedReader br;
+	
+	@AfterEach()
+	void clean(){
+		teardown();
+	}
+	
+	private void secureBoot() {
+		initiateServer("test_secure.properties");
+		try {
+		remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
+		bw = new OutputStreamWriter(remote.getOutputStream());
+		br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
+		}catch(Exception ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		}
+	}
+	
+	private void secureTeardown() {
+		try {
+			bw.close();
+			br.close();
+			remote.close();
+		}catch(IOException ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		}
+	}
+	
+	@Test
+	void testDoesSecureLogin() {
+		secureBoot();
+		try {
+			String output = br.readLine();
+			assertEquals("Username:", output);
+			OutputStreamWriterHelper.writeAndSend(bw, "admin");
+			output = br.readLine();
+			assertEquals("Password:", output);
+			OutputStreamWriterHelper.writeAndSend(bw, "changeme");
+			output = br.readLine();
+			assertEquals("Access Granted", output);
+		}catch(Exception ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		}
+		secureTeardown();
+	}
+	
+	@Test
+	void testDoesSecureLoginCheckUsername() {
+		secureBoot();
+		try {
+			String output = br.readLine();
+			assertEquals("Username:", output);
+			OutputStreamWriterHelper.writeAndSend(bw, "notadmin");
+			output = br.readLine();
+			assertEquals("Invalid Username",output);
+			
+			
+		}catch(Exception ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		}
+		secureTeardown();
+	}
+	
+	@Test
+	void testDoesSecureLoginCheckPassword() {
+		secureBoot();
+		try {
+			String output = br.readLine();
+			assertEquals("Username:", output);
+			OutputStreamWriterHelper.writeAndSend(bw, "admin");
+			output = br.readLine();
+			assertEquals("Password:", output);
+			OutputStreamWriterHelper.writeAndSend(bw, "barf");
+			output = br.readLine();
+			assertEquals("Invalid Password", output);
+		}catch(Exception ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		}
+		secureTeardown();
+	}
+	
 	@Test
 	void testListAllMacros() {
 		initiateServer();
 		
 		try {
 			System.out.println("Connecting test commander...");
-			Socket remote = new Socket("localhost", 8111);
+			Socket remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
 			System.out.println("Locking test commander streams...");
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
@@ -109,8 +200,6 @@ class CommanderInterfaceTest extends ClientServerTest {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
-
-		teardown();
 	}
 	
 	@Test
@@ -123,7 +212,7 @@ class CommanderInterfaceTest extends ClientServerTest {
 
 		try {
 			System.out.println("Connecting test commander...");
-			Socket remote = new Socket("localhost", 8111);
+			Socket remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
 			System.out.println("Locking test commander streams...");
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
@@ -162,7 +251,7 @@ class CommanderInterfaceTest extends ClientServerTest {
 			// Wait long enough for a reconnect
 			Time.sleepWrapped(2000);
 			System.out.println("Connecting test commander...");
-			remote = new Socket("localhost", 8111);
+			remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
 			System.out.println("Locking test commander streams...");
 			bw = new OutputStreamWriter(remote.getOutputStream());
 			br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
@@ -184,7 +273,6 @@ class CommanderInterfaceTest extends ClientServerTest {
 		}
 
 		awaitClient();
-		teardown();
 	}
 
 }

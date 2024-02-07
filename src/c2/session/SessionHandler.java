@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 import c2.Commands;
 import c2.Constants;
@@ -44,12 +45,15 @@ public class SessionHandler implements Runnable {
 			bw.flush();
 			
 			while (!Thread.interrupted() && stayAlive) {
-				if(br.ready()) {
+				//if(br.ready()) {
+					try {
 					String command = br.readLine();
 					if(Constants.DEBUG) {
 						System.out.println("Received command for session: " + sessionId + ": " + command);
 					}
-					if(command.equals("quit_session")) {
+					if(command == null) {
+						//Continue
+					}else if(command.equals("quit_session")) {
 						switchSessions(bw, br);
 					}else if(command.equals("list_sessions")) {
 						SessionInitiator.printAvailableSessions(bw, ioManager);
@@ -98,8 +102,11 @@ public class SessionHandler implements Runnable {
 						stayAlive = false;
 						break;
 					}
+					}catch(SocketTimeoutException ex) {
+						//Continue
+					}
 					
-				}
+				//}
 				
 				String latestOutput = ioManager.pollIO(sessionId);
 				if (latestOutput != null) {

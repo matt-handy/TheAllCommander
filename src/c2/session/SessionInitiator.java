@@ -12,9 +12,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import c2.Constants;
 
 public class SessionInitiator implements Runnable {
 
@@ -26,18 +29,20 @@ public class SessionInitiator implements Runnable {
 	
 	private SessionManager sessionManager;
 	private IOManager ioManager;
-	private int port;
-	private boolean stayAlive = true;
+	protected Properties properties;
+	protected int port;
+	protected boolean stayAlive = true;
 	private CountDownLatch stopLatch = new CountDownLatch(1);
 	private CommandMacroManager cmm;
 	
 	private ExecutorService commandWizardManager = Executors.newCachedThreadPool();
 	
-	public SessionInitiator(SessionManager sessionManager, IOManager ioManager, int port, CommandMacroManager cmm) {
+	public SessionInitiator(SessionManager sessionManager, IOManager ioManager, int port, CommandMacroManager cmm, Properties properties) {
 		this.sessionManager = sessionManager;
 		this.ioManager = ioManager;
 		this.port = port;
 		this.cmm = cmm;
+		this.properties = properties;
 	}
 	
 	public void stop() {
@@ -49,10 +54,96 @@ public class SessionInitiator implements Runnable {
 		}
 	}
 
+	protected void processNewSocket(Socket newSession) {
+		try {
+			newSession.setSoTimeout(10000);
+			OutputStreamWriter bw = new OutputStreamWriter(
+					new BufferedOutputStream(newSession.getOutputStream()));
+			BufferedReader br = new BufferedReader(new InputStreamReader(newSession.getInputStream()));
+
+			if(properties.get(Constants.COMMANDERUSERNAME) != null) {
+				String user = properties.getProperty(Constants.COMMANDERUSERNAME);
+				String pass = properties.getProperty(Constants.COMMANDERSECRET);
+				bw.write("Username:" + System.lineSeparator());
+				bw.flush();
+				String line = br.readLine();
+				if(!user.equals(line)) {
+					bw.write("Invalid Username" + System.lineSeparator());
+					bw.flush();
+					newSession.close();
+					return;
+				}
+				bw.write("Password:" + System.lineSeparator());
+				bw.flush();
+				line = br.readLine();
+				if(!pass.equals(line)) {
+					bw.write("Invalid Password" + System.lineSeparator());
+					bw.flush();
+					newSession.close();
+					return;
+				}
+				bw.write("Access Granted" + System.lineSeparator());
+				bw.flush();
+			}
+
+			printAvailableSessions(bw, ioManager);
+			
+			
+				String input = br.readLine();
+				if(input == null) {
+					System.out.println("Connection reset");
+					newSession.close();
+					return;
+				}
+				try {
+					// TODO: need to make sure that only one session is
+					// locked
+					// Do this by adding hook in SessionManager so that
+					// dead SessionHandlers
+					// release their sessions
+					int sessionId = Integer.parseInt(input);
+					
+					String sessionName = null;
+					for (Session session : ioManager.getSessions()) {
+						if(session.id == sessionId) {
+							sessionName = session.uid;
+						}
+					}
+				
+					if (sessionName != null) {
+						newSession.setSoTimeout(1000);
+						sessionManager.addSession(new SessionHandler(ioManager, newSession, sessionId, sessionName, cmm));
+					} else {
+						bw.write("Invalid Session id, bye-bye!");
+						newSession.close();
+					}
+					
+				} catch (NumberFormatException e) {
+					if(input.equalsIgnoreCase("WIZARD")) {
+						//We pass the reader to ensure the input stream is not reset
+						CommandWizard wizard = new CommandWizard(newSession, CSHARP_CONFIG_PATH, br);
+						commandWizardManager.submit(wizard);
+					}else {
+						bw.write(input + " is not a number.");
+						newSession.close();
+					}
+				}
+				
+		}catch (SocketTimeoutException ex) {
+			System.out.println("This guy isn't talking to us");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	protected ServerSocket getServerSocket() throws Exception {
+		return new ServerSocket(port);	
+	}
+	
 	@Override
 	public void run() {
 		try {
-			ServerSocket ss = new ServerSocket(port);
+			ServerSocket ss = getServerSocket();
 			ss.setSoTimeout(1000);
 
 			while (!Thread.interrupted() && stayAlive) {
@@ -62,72 +153,14 @@ public class SessionInitiator implements Runnable {
 				}catch(SocketTimeoutException ex) {
 					continue;//No worries 
 				}
-				
-				try {
-					OutputStreamWriter bw = new OutputStreamWriter(
-							new BufferedOutputStream(newSession.getOutputStream()));
-					BufferedReader br = new BufferedReader(new InputStreamReader(newSession.getInputStream()));
-
-					printAvailableSessions(bw, ioManager);
-
-					int count = 0;
-					while (count < 10 && !(newSession.getInputStream().available() > 1)) {
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							// continue
-						}
-						count++;
-					}
-					
-					if (br.ready()) {
-						String input = br.readLine();
-						try {
-							// TODO: need to make sure that only one session is
-							// locked
-							// Do this by adding hook in SessionManager so that
-							// dead SessionHandlers
-							// release their sessions
-							int sessionId = Integer.parseInt(input);
-							
-							String sessionName = null;
-							for (Session session : ioManager.getSessions()) {
-								if(session.id == sessionId) {
-									sessionName = session.uid;
-								}
-							}
-						
-							if (sessionName != null) {
-								sessionManager.addSession(new SessionHandler(ioManager, newSession, sessionId, sessionName, cmm));
-							} else {
-								bw.write("Invalid Session id, bye-bye!");
-								newSession.close();
-							}
-							
-						} catch (NumberFormatException e) {
-							if(input.equalsIgnoreCase("WIZARD")) {
-								//We pass the reader to ensure the input stream is not reset
-								CommandWizard wizard = new CommandWizard(newSession, CSHARP_CONFIG_PATH, br);
-								commandWizardManager.submit(wizard);
-							}else {
-								bw.write(input + " is not a number.");
-								newSession.close();
-							}
-						}
-					}else {
-						System.out.println("This guy isn't talking to us");
-						newSession.close();
-					}
-
-				} catch (IOException e) {
-					e.printStackTrace();
-					newSession.close();
-				} 
+				processNewSocket(newSession);
+				 
 			}
 			ss.close();
 			stopLatch.countDown();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.out.println("Can't lock session");
+			e.printStackTrace();
 		}
 	}
 	

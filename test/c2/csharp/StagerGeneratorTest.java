@@ -36,10 +36,12 @@ import c2.http.HTTPSManager;
 import c2.session.CommandMacroManager;
 import c2.session.CommandWizard;
 import c2.session.IOManager;
+import c2.session.SecureSessionInitiator;
 import c2.session.SessionInitiator;
 import c2.session.SessionManager;
 import c2.session.log.IOLogger;
 import util.Time;
+import util.test.ClientServerTest;
 import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
 
@@ -324,15 +326,15 @@ class StagerGeneratorTest {
 		Random random = new Random();
 		int port = 40000 + random.nextInt(1000);
 		CommandMacroManager cmm = new CommandMacroManager(null, io, null);
-		SessionManager manager = new SessionManager(io, port, cmm);
-		SessionInitiator testSession = new SessionInitiator(manager, io, port, cmm);
+		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
+		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
 		ExecutorService service = Executors.newCachedThreadPool();
 		service.submit(testSession);
 
 		Time.sleepWrapped(250);
 
 		try {
-			Socket socket = new Socket("127.0.0.1", port);
+			Socket socket = LocalConnection.getSocket("127.0.0.1", port, ClientServerTest.getDefaultSystemTestProperties());
 			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			OutputStreamWriter bw = new OutputStreamWriter(socket.getOutputStream());
 
@@ -363,7 +365,7 @@ class StagerGeneratorTest {
 			br.close();
 			bw.close();
 			socket.close();
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
 	}
@@ -380,15 +382,15 @@ class StagerGeneratorTest {
 		Random random = new Random();
 		int port = 40000 + random.nextInt(1000);
 		CommandMacroManager cmm = new CommandMacroManager(null, io, null);
-		SessionManager manager = new SessionManager(io, port, cmm);
-		SessionInitiator testSession = new SessionInitiator(manager, io, port, cmm);
+		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
+		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
 		ExecutorService service = Executors.newCachedThreadPool();
 		service.submit(testSession);
 
 		Time.sleepWrapped(250);
 
 		try {
-			Socket socket = new Socket("127.0.0.1", port);
+			Socket socket = LocalConnection.getSocket("127.0.0.1", port, ClientServerTest.getDefaultSystemTestProperties());
 			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			OutputStreamWriter bw = new OutputStreamWriter(socket.getOutputStream());
 
@@ -453,7 +455,7 @@ class StagerGeneratorTest {
 			br.close();
 			bw.close();
 			socket.close();
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
 	}
@@ -504,27 +506,13 @@ class StagerGeneratorTest {
 			Random random = new Random();
 			int port = 40000 + random.nextInt(1000);
 			CommandMacroManager cmm = new CommandMacroManager(null, io, null);
-			SessionManager manager = new SessionManager(io, port, cmm);
-			SessionInitiator testSession = new SessionInitiator(manager, io, port, cmm);
+			SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
+			SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
 			ExecutorService service = Executors.newFixedThreadPool(4);
 			service.submit(testSession);
 
 			httpsManager = new HTTPSManager();
-			Path testPath = null;
-			if (System.getProperty("os.name").contains("Windows")) {
-				testPath = Paths.get("config", "test.properties");
-			} else {
-				testPath = Paths.get("config", "test_linux.properties");
-			}
-			try (InputStream input = new FileInputStream(testPath.toFile())) {
-				Properties prop = new Properties();
-
-				// load a properties file
-				prop.load(input);
-				httpsManager.initialize(io, prop, null, null);
-			}catch(Exception ex) {
-				fail(ex.getMessage());
-			}
+			httpsManager.initialize(io, ClientServerTest.getDefaultSystemTestProperties(), null, null);
 			ExecutorService services = Executors.newCachedThreadPool();
 			services.submit( httpsManager);
 			httpsManager.awaitStartup();
@@ -532,7 +520,7 @@ class StagerGeneratorTest {
 			LocalConnection lc = new LocalConnection();
 			String args[] = { "127.0.0.1", port + "" };
 			try {
-				lc.engage(args, br, ps);
+				lc.engage(args, br, ps, ClientServerTest.getDefaultSystemTestProperties());
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				fail(ex.getMessage());

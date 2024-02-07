@@ -7,6 +7,11 @@ public final class Constants {
 	public static final String HTTPS_KEYSTORE_PASSWORD = "https.keystore.password";
 	
 	public static final String COMMANDERPORT = "commander.port";
+	public static final String SECURECOMMANDERPORT = "commander.port.secure";
+	public static final String FILERECEIVERPORT = "filereceiver.port";
+	
+	public static final String COMMANDERUSERNAME = "commander.username.1";
+	public static final String COMMANDERSECRET = "commander.secret.1";
 	
 	public static final String DAEMONPORT = "daemon.port";
 	public static final String DAEMONHTTPPORT = "daemon.http.port";

@@ -18,6 +18,7 @@ public class ServerRunner implements Runnable{
 
 	@Override
 	public void run() {
+		System.out.println("Starting test with config: " + propName);
 		try (InputStream input = new FileInputStream("config" + File.separator + propName)) {
 
 			Properties prop = new Properties();

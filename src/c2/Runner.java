@@ -121,7 +121,6 @@ public class Runner {
 		
 
 		int listenPort = Integer.parseInt(properties.getProperty(Constants.COMMANDERPORT));
-		System.out.println("Listening for instructions on: " + listenPort);
 		service = Executors.newCachedThreadPool();
 
 		CommandLoader cl;
@@ -133,8 +132,7 @@ public class Runner {
 			cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
 		}
 
-		//TODO: Make configurable
-		FileReceiverSessionReceiver receiver = new FileReceiverSessionReceiver(8010, Paths.get("test", "fileReceiverTest"));
+		FileReceiverSessionReceiver receiver = new FileReceiverSessionReceiver(Integer.parseInt(properties.getProperty(Constants.FILERECEIVERPORT)), Paths.get("test", "fileReceiverTest"));
 		service.execute(receiver);
 		
 		IOLogger logger = new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH)));
@@ -157,7 +155,7 @@ public class Runner {
 		cmm.initializeMacros(properties);
 		ioManager.setCommandMacroManager(cmm);
 		
-		SessionManager sessionManager = new SessionManager(ioManager, listenPort, cmm);
+		SessionManager sessionManager = new SessionManager(ioManager, listenPort, Integer.parseInt(properties.getProperty(Constants.SECURECOMMANDERPORT)), cmm, properties);
 
 		Future<?> session = service.submit(sessionManager);
 

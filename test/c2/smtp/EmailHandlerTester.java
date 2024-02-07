@@ -20,6 +20,7 @@ import java.util.Properties;
 import org.junit.jupiter.api.Test;
 
 import c2.Constants;
+import c2.admin.LocalConnection;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.EmailHelper;
@@ -105,7 +106,7 @@ public class EmailHandlerTester extends ClientServerTest{
 
 		try {
 			System.out.println("Connecting test commander...");
-			Socket remote = new Socket("localhost", 8111);
+			Socket remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
 			System.out.println("Locking test commander streams...");
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));

@@ -1,2 +1,2 @@
 #!/bin/bash
-java -cp "target/*" c2.admin.LocalConnection 127.0.0.1 8111
+java -cp "target/*" c2.admin.LocalConnection 127.0.0.1 8012 config/test_linux.properties

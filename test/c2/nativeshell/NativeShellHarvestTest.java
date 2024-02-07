@@ -19,8 +19,11 @@ import java.util.Comparator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import c2.Constants;
+import c2.admin.LocalConnection;
 import c2.remote.RemoteTestExecutor;
 import util.Time;
+import util.test.ClientServerTest;
 import util.test.OutputStreamWriterHelper;
 import util.test.RunnerTestGeneric;
 import util.test.TestConfiguration;
@@ -55,7 +58,7 @@ class NativeShellHarvestTest extends util.test.ClientServerTest {
 				// Ensure that python client has connected
 			}
 			System.out.println("Connecting test commander...");
-			Socket remote = new Socket("localhost", 8111);
+			Socket remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
 			System.out.println("Locking test commander streams...");
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
@@ -131,7 +134,7 @@ class NativeShellHarvestTest extends util.test.ClientServerTest {
 			}
 			
 			cleanDumpLogs(hostname);
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			fail(ex.getMessage());
 		}
 	}

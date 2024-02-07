@@ -1,25 +1,42 @@
 package c2.admin;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.Console;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Base64;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import c2.Constants;
 import c2.session.CommandWizard;
 import util.Time;
 
@@ -30,16 +47,69 @@ public class LocalConnection {
 	public static Path CSHARP_TMP_FILE = Paths.get("test_tmp.exe");
 	public static Path JAVA_TMP_FILE = Paths.get("DaemonLoader.jar");
 
-	public static void main(String args[]) throws NumberFormatException, UnknownHostException, IOException {
-		LocalConnection lc = new LocalConnection();
-		lc.engage(args, new BufferedReader(new InputStreamReader(System.in)), System.out);
+	public static void main(String args[]) throws NumberFormatException, UnknownHostException, IOException, Exception {
+		try (InputStream input = new FileInputStream(args[2])) {
+
+			Properties prop = new Properties();
+
+			// load a properties file
+			prop.load(input);
+
+			LocalConnection lc = new LocalConnection();
+			lc.engage(args, new BufferedReader(new InputStreamReader(System.in)), System.out, prop);
+
+		} catch (IOException ex) {
+			System.out.println("Initialization failed: Unable to load TheAllCommander config file");
+		}
+		
+	}
+	
+	public static Socket getSocket(String targetIp, int port, Properties properties) throws Exception {
+		TrustManager[] trustAllCerts = new TrustManager[] { (TrustManager) new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+
+			@Override
+			public void checkClientTrusted(java.security.cert.X509Certificate[] arg0, String arg1)
+					throws CertificateException {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void checkServerTrusted(java.security.cert.X509Certificate[] arg0, String arg1)
+					throws CertificateException {
+				// TODO Auto-generated method stub
+
+			}
+
+		} };
+		
+		char[] password = properties.getProperty(Constants.HTTPS_KEYSTORE_PASSWORD).toCharArray();
+		KeyStore ks = KeyStore.getInstance("JKS");
+		FileInputStream fis = new FileInputStream(properties.getProperty(Constants.HTTPS_KEYSTORE_PATH));
+		ks.load(fis, password);
+		// setup the key manager factory
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+		kmf.init(ks, password);
+		SSLContext sc = SSLContext.getInstance("SSL");
+		sc.init(kmf.getKeyManagers(), trustAllCerts, null);
+		SSLSocketFactory factory = sc.getSocketFactory();
+        SSLSocket socket = (SSLSocket)factory.createSocket(targetIp, port);
+        socket.startHandshake();
+        return socket;
 	}
 
-	public void engage(String args[], BufferedReader stdIn, PrintStream terminalOut)
-			throws NumberFormatException, UnknownHostException, IOException {
-		Socket remote = new Socket(args[0], Integer.parseInt(args[1]));
+	public void engage(String args[], BufferedReader stdIn, PrintStream terminalOut, Properties properties)
+			throws NumberFormatException, UnknownHostException, IOException, Exception {
+		Socket remote = getSocket(args[0], Integer.parseInt(args[1]), properties);
+		//Socket remote = new Socket(args[0], Integer.parseInt(args[1]));
 
-		OutputStreamWriter bw = new OutputStreamWriter(new BufferedOutputStream(remote.getOutputStream()));
+        PrintWriter out = new PrintWriter(
+                new BufferedWriter(
+                new OutputStreamWriter(
+                		remote.getOutputStream())));
 		BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
 
 		boolean stayAlive = true;
@@ -99,14 +169,14 @@ public class LocalConnection {
 				byte[] fileBytes = Files.readAllBytes(Paths.get(filename));
 				byte[] encoded = Base64.getEncoder().encode(fileBytes);
 				String encodedString = new String(encoded, StandardCharsets.US_ASCII);
-				bw.write("<control> download " + Paths.get(filename).getFileName().toString().replaceAll(" ", "_") + " "
-						+ encodedString + System.lineSeparator());
-				bw.flush();
+				out.println("<control> download " + Paths.get(filename).getFileName().toString().replaceAll(" ", "_") + " "
+						+ encodedString);
+				out.flush();
 			}else if(nextCmd.equals("sleep")) {
 				Time.sleepWrapped(10000);
 			} else {
-				bw.write(nextCmd + System.lineSeparator());
-				bw.flush();
+				out.println(nextCmd);
+				out.flush();
 			}
 		}
 

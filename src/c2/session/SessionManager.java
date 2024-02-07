@@ -1,5 +1,6 @@
 package c2.session;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,14 +10,19 @@ public class SessionManager implements Runnable{
 	private IOManager ioManager;
 	private ExecutorService service = Executors.newCachedThreadPool();
 	private int port;
+	private int securePort;
+	private Properties properties;
 	private SessionInitiator sessionInitiator;
+	private SecureSessionInitiator secureSessionInitiator;
 	private Set<SessionHandler> sessions = new HashSet<>();
 	private CommandMacroManager cmm;
 	
-	public SessionManager(IOManager ioManager, int port, CommandMacroManager cmm) {
+	public SessionManager(IOManager ioManager, int port, int securePort, CommandMacroManager cmm, Properties properties) {
 		this.ioManager = ioManager;
 		this.port = port;
 		this.cmm = cmm;
+		this.securePort = securePort;
+		this.properties = properties;
 	}
 	
 	public void addSession(SessionHandler sessionHandler){
@@ -26,9 +32,10 @@ public class SessionManager implements Runnable{
 	}
 	
 	public void stop() {
-		System.out.println("Closing Session Initiator");
+		System.out.println("Closing Session Initiator(s)");
 		sessionInitiator.stop();
-		System.out.println("Closed Session Initiator");
+		secureSessionInitiator.stop();
+		System.out.println("Closed Session Initiator(s)");
 		for(SessionHandler handler : sessions) {
 			System.out.println("Closing Session Handler");
 			handler.stop();
@@ -38,9 +45,12 @@ public class SessionManager implements Runnable{
 	
 	@Override
 	public void run(){
-		sessionInitiator = new SessionInitiator(this, ioManager, port, cmm);
+		System.out.println("Securely listening for commander sessions on: " + securePort);
+		secureSessionInitiator = new SecureSessionInitiator(this, ioManager, securePort, cmm, properties);
+		service.submit(secureSessionInitiator);
+		System.out.println("Listening for commander sessions on: " + port);
+		sessionInitiator = new SessionInitiator(this, ioManager, port, cmm, properties);
 		sessionInitiator.run();
-		
 	}
 	
 }

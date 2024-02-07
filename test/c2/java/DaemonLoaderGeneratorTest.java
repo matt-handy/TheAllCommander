@@ -24,10 +24,12 @@ import c2.admin.LocalConnection;
 import c2.session.CommandMacroManager;
 import c2.session.CommandWizard;
 import c2.session.IOManager;
+import c2.session.SecureSessionInitiator;
 import c2.session.SessionInitiator;
 import c2.session.SessionManager;
 import c2.session.log.IOLogger;
 import util.Time;
+import util.test.ClientServerTest;
 import util.test.JavaLoaderTestFramework;
 
 class DaemonLoaderGeneratorTest {
@@ -98,15 +100,15 @@ class DaemonLoaderGeneratorTest {
 		Random random = new Random();
 		int port = 40000 + random.nextInt(1000);
 		CommandMacroManager cmm = new CommandMacroManager(null, io, null);
-		SessionManager manager = new SessionManager(io, port, cmm);
-		SessionInitiator testSession = new SessionInitiator(manager, io, port, cmm);
+		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
+		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
 		ExecutorService service = Executors.newFixedThreadPool(4);
 		service.submit(testSession);
 		
 		LocalConnection lc = new LocalConnection();
 		String args[] = { "127.0.0.1", port + "" };
 		try {
-			lc.engage(args, br, ps);
+			lc.engage(args, br, ps, ClientServerTest.getDefaultSystemTestProperties());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());

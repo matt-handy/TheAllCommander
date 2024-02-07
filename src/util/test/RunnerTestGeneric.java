@@ -37,6 +37,7 @@ import java.util.Random;
 
 import c2.Commands;
 import c2.Constants;
+import c2.admin.LocalConnection;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
 import c2.session.macro.persistence.WindowsHiddenUserMacro;
@@ -358,7 +359,7 @@ public class RunnerTestGeneric {
 				// Ensure that python client has connected
 			}
 			System.out.println("Connecting test commander...");
-			Socket remote = new Socket("localhost", 8111);
+			Socket remote = LocalConnection.getSocket("127.0.0.1", 8012, ClientServerTest.getDefaultSystemTestProperties());
 			System.out.println("Locking test commander streams...");
 			OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
@@ -540,7 +541,7 @@ public class RunnerTestGeneric {
 
 			Files.deleteIfExists(Paths.get("System.Net.Sockets.SocketException"));
 			Files.deleteIfExists(Paths.get("localAgent", "csc", "System.Net.Sockets.SocketException"));
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}

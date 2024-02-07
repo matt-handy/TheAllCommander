@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import c2.Commands;
 import c2.Constants;
+import c2.admin.LocalConnection;
 import c2.session.CommandLoader;
 import c2.session.IOManager;
 import c2.session.log.IOLogger;
@@ -365,7 +366,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 					// Ensure that python client has connected
 				}
 				System.out.println("Connecting test commander...");
-				Socket remote = new Socket("localhost", 8111);
+				Socket remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
 				System.out.println("Locking test commander streams...");
 				OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 				BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
@@ -404,7 +405,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 				OutputStreamWriterHelper.writeAndSend(bw, "die");
 
 				awaitClient();
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 
 			}
 		} else {
@@ -432,7 +433,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 					// Ensure that python client has connected
 				}
 				System.out.println("Connecting test commander...");
-				Socket remote = new Socket("localhost", 8111);
+				Socket remote = LocalConnection.getSocket("127.0.0.1", Integer.parseInt(ClientServerTest.getDefaultSystemTestProperties().getProperty(Constants.SECURECOMMANDERPORT)), getDefaultSystemTestProperties());
 				System.out.println("Locking test commander streams...");
 				OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
 				BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
@@ -469,7 +470,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 				OutputStreamWriterHelper.writeAndSend(bw, "die");
 
 				awaitClient();
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 
 			}
 		} else {
