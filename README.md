@@ -61,7 +61,7 @@ Currently, TheAllCommander has been tested with the following payloads:
 
 4) A Java code parser and stager has been added alongside C#. While most active tradecraft for Windows using this sort of staged attack in a self-compiling language is focused on C#, the lack of focus on Java introduces a number of opportunities.
 
-5) C++, C# and Java daemons exist that interoperate with the server framework. However, these are currently invisible to antivirus software, making them useful in live engagements, which is an antigoal of this project. They will be public released outside the collaborative team when a reliable method for flagging them in antivirus is developed so they cannot be misused.   
+5) C++, C# and Java daemons with limited functionality exist that interoperate with the server framework, designed to generate IOCs related to tradecraft techniques related to use of these languages in certain red team strategies. However, useful Blue Team mitigations have not yet been developed, which is a goal of this project. They will be publicly released outside the collaborative team when a reliable method for Blue Team detection is developed.   
  
 
 # Commands
