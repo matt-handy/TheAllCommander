@@ -134,10 +134,10 @@ kill_harvest <index>
 
 ## Command Obfuscation Modes
 
-###Powershell obfuscation
+### Powershell obfuscation
 When this mode is active, commands entered will be treated as literal powershell commands and transmitted in an evasive way to evade trivial logging. "Get-Date" will become "ECHO Get-Date | powershell". This is functionally is equivalent in execution to powershell -c "Get-Date", except it will evade trivial logging. This mode can be enabled with "<ps-start>" and disabled with "<ps-end>"
 
-###Windows command line obfuscation
+### Windows command line obfuscation
 Windows command line will ignore "^" characters and execute a command as normal. For example, "n^et user evil_haxor hax123 /add" will add the evil_haxor user, while a SIEM rule looking for commands that include the "net" command literal will be defeated. Note that TheAllCommander will recognize when a user is attempting to run commands like "cd" or server side macros and will not alter these commands. This mode can be engaged as follows:
 
 &lt;esc> -> Prepend any command with "<esc> " to have TheAllCommander insert random ^ characters to demonstrate Windows cmd
