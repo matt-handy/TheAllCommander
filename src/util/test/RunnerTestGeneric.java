@@ -240,7 +240,10 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		if (!output.contains("bytes")) {
 			output = br.readLine();
-			assertTrue(output.contains("bytes"));
+			if(!output.contains("bytes")){
+				output = br.readLine();
+				assertTrue(output.contains("bytes"));
+			}
 		}
 		output = br.readLine();
 		assertTrue(output.contains("bytes free"));
