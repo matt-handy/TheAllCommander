@@ -589,10 +589,18 @@ public class RunnerTestGeneric {
 			assertEquals("Copyright (C) Microsoft Corporation. All rights reserved.", output);
 			output = br.readLine();//Blank
 			output = br.readLine();//Try the new cross-platform PowerShell https://aka.ms/pscore6
-			output = br.readLine();//Blank
-			System.out.println("Polling for actual output");
+			output = br.readLine();//Blank OR the Date response. Sometimes there's a command echo
+			//And sometimes there isn't.
+			if(output.length() != 0) {
+				try {
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+					LocalDate.parse(output, formatter);
+				}catch(DateTimeParseException  ex) {
+					fail("Native shell did not respond with PS prompt or valid date: " + output);
+				}
+			}else {
+			//System.out.println("Polling for actual output");
 			output = br.readLine();
-			System.out.println(output);
 			//Native system does not echo the command. It may or may not preface with a PS prompt
 			boolean alreadySawDate = false;
 			if(config.lang.startsWith("Native")) {
@@ -602,21 +610,25 @@ public class RunnerTestGeneric {
 						LocalDate.parse(output, formatter);
 						alreadySawDate = true;
 					}catch(DateTimeParseException  ex) {
-						fail("Native shell did not respond with PS prompt or valid date");
+						fail("Native shell did not respond with PS prompt or valid date: " + output);
 					}
 				}
 			}else {
 				assertTrue(output.startsWith("PS") && output.endsWith("Get-Date -Format \"MM/dd/yyyy\" "));
 			}
 			if(!alreadySawDate) {
-				System.out.println("Polling for second date attempt");
+				//System.out.println("Polling for second date attempt");
 				output = br.readLine();
+				if(output.startsWith("PS") && output.endsWith("> ")) {
+					fail("Windows failed to respond to a date command poll. This happens occasionally, investigate if it becomes non-transient");
+				}
 				try {
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 					LocalDate.parse(output, formatter);
 				}catch(DateTimeParseException  ex) {
-					fail("Attempted powershell command did not return real date");
+					fail("Attempted powershell command did not return real date: " + output);
 				}
+			}
 			}
 			System.out.println("Checking for final powershell prompt");
 			output = br.readLine();

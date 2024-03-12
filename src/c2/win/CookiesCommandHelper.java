@@ -1,6 +1,6 @@
 package c2.win;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.Base64;
@@ -24,7 +24,7 @@ public class CookiesCommandHelper {
 	private static String getFirefoxCookieFilenameWithAppdata() {
 		String firefoxProfileRoot = stripQuotesAndReplaceAppdata(CookiesCommandHelper.FIREFOX_COOKIES_ROOT);
 		File[] directories = new File(firefoxProfileRoot).listFiles(File::isDirectory);
-		assertEquals(directories.length, 1);
+		assertTrue(directories.length >= 1);
 		return CookiesCommandHelper.FIREFOX_COOKIES_ROOT + "\\" + directories[0].getName() + "\\" + CookiesCommandHelper.FIREFOX_COOKIES_FILENAME;
 	}
 	

@@ -18,7 +18,6 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 
 import c2.Constants;
-import c2.session.CommandMacroManager;
 import c2.session.macro.CookieHarvesterMacro;
 import c2.win.CookiesCommandHelper;
 import util.Time;
