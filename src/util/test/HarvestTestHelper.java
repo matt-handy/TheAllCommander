@@ -246,11 +246,11 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		}
 		
 		line = br.readLine();
-		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\fqs6w1w8.default\\cookies.sqlite'", line);
+		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\b1jk3u5w.default-release\\cookies.sqlite'", line);
 		line = br.readLine();
 		assertEquals("Macro Executor: 'Captured Firefox Cookies'", line);
 		line = br.readLine();
-		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\fqs6w1w8.default\\key4.db'", line);
+		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\b1jk3u5w.default-release\\key4.db'", line);
 		line = br.readLine();
 		assertEquals("Macro Executor: 'Captured Firefox creds'", line);
 		//line = br.readLine();

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import util.test.ClientServerTest;
@@ -16,6 +17,12 @@ import util.test.TestConfiguration.OS;
 
 class WindowsCookierHarvesterTest extends ClientServerTest {
 
+	@AfterEach
+	void stop(){
+		awaitClient();
+		teardown();
+	}
+	
 	@Test
 	void testPythonHTTPS() {
 		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS && HarvestTestHelper.canAttemptTest()) {
@@ -27,9 +34,6 @@ class WindowsCookierHarvesterTest extends ClientServerTest {
 			}catch(InterruptedException ex) {
 				fail(ex.getMessage());
 			}
-			
-			awaitClient();
-			teardown();
 		}
 	}
 	
@@ -44,9 +48,6 @@ class WindowsCookierHarvesterTest extends ClientServerTest {
 			}catch(InterruptedException ex) {
 				fail(ex.getMessage());
 			}
-			
-			awaitClient();
-			teardown();
 		}
 	}
 

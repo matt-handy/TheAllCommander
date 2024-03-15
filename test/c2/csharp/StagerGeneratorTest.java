@@ -561,7 +561,13 @@ class StagerGeneratorTest {
 
 			assertEquals("Hello world" + System.lineSeparator(), output);
 
-			Files.delete(LocalConnection.CSHARP_TMP_FILE);
+			try {
+				Files.delete(LocalConnection.CSHARP_TMP_FILE);
+			}catch(Exception ex) {
+				Time.sleepWrapped(2000);
+				//Try 2 seconds and try again
+				Files.delete(LocalConnection.CSHARP_TMP_FILE);
+			}
 			//httpsManager.stop();
 			//Time.sleepWrapped(5000);
 		} catch (IOException ex) {
