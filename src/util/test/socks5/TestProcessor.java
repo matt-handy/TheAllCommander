@@ -259,6 +259,7 @@ public class TestProcessor extends ClientServerTest {
 			bw.write("killSocks5" + System.lineSeparator());
 			bw.write("die" + System.lineSeparator());
 			bw.flush();
+			Time.sleepWrapped(1000);//Make sure client gets the memo
 			remote.close();
 			awaitClient();
 		}catch(Exception ex) {

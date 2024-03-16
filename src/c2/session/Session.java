@@ -83,33 +83,43 @@ public class Session implements Comparable<Session>{
 	}
 	
 	public synchronized void forwardTCPTraffic(String forwardUrl, String base64Forward) {
+		synchronized(portForwardOutboundQueues){
+			
+		
 		if(!portForwardOutboundQueues.containsKey(forwardUrl)) {
 			portForwardOutboundQueues.put(forwardUrl, new ConcurrentLinkedDeque<>());
 		}
 		portForwardOutboundQueues.get(forwardUrl).add(base64Forward);
+		}
 	}
 	
 	public synchronized String grabForwardedTCPTraffic(String forwardUrl) {
+		synchronized(portForwardOutboundQueues){
 		if(!portForwardOutboundQueues.containsKey(forwardUrl)) {
 			return null;
 		}else {
 			return portForwardOutboundQueues.get(forwardUrl).poll();
 		}
+		}
 	}
 	
 	public synchronized String receiveForwardedTCPTraffic(String forwardUrl) {
+		synchronized(portForwardInboundQueues){
 		if(!portForwardInboundQueues.containsKey(forwardUrl)) {
 			return null;
 		}else {
 			return portForwardInboundQueues.get(forwardUrl).poll();
 		}
+		}
 	}
 	
 	public synchronized void queueForwardedTCPTraffic(String forwardUrl, String base64Forward) {
+		synchronized(portForwardInboundQueues){
 		if(!portForwardInboundQueues.containsKey(forwardUrl)) {
 			portForwardInboundQueues.put(forwardUrl, new ConcurrentLinkedDeque<>());
 		}
 		portForwardInboundQueues.get(forwardUrl).add(base64Forward);
+		}
 	}
 	
 	public Set<String> availableForwards(){
