@@ -37,6 +37,9 @@ import c2.HarvestProcessor;
 import c2.KeyloggerProcessor;
 import c2.file.CSharpPayloadBuilder;
 import c2.file.FileHelper;
+import c2.http.httphandlers.PortForwardHandler;
+import c2.http.httphandlers.SessionRequestHandler;
+import c2.http.httphandlers.SocksOverHTTPSHandler;
 import c2.session.IOManager;
 import c2.session.filereceiver.FileReceiverDatagramHandler;
 

@@ -1,4 +1,4 @@
-package c2.http;
+package c2.http.httphandlers;
 
 import java.io.IOException;
 import java.io.OutputStream;

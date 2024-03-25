@@ -1,4 +1,4 @@
-package c2.http;
+package c2.http.httphandlers;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+import c2.http.AvailableSession;
 import c2.session.IOManager;
 import c2.session.Session;
 
