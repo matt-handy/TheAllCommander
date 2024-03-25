@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import c2.C2Interface;
 import c2.Constants;
@@ -37,7 +38,7 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 	private IOManager io;
 	private Properties properties;
 
-	private boolean running = true;
+	private AtomicBoolean running = new AtomicBoolean(true);
 	private CountDownLatch deathLatch = new CountDownLatch(1);
 	private CountDownLatch startLatch = new CountDownLatch(1);
 
@@ -79,11 +80,13 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 
 	@Override
 	public void notifyPendingShutdown() {
-		running = false;
+		running.set(false);
 	}
 
+	@Override
 	public void stop() {
-		running = false;
+		running.set(false);
+		
 		try {
 			deathLatch.await();
 		} catch (InterruptedException e) {
@@ -152,7 +155,7 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 			StringBuilder sb = new StringBuilder();
 			startLatch.countDown();
 			Map<Integer, StringBuilder> incompleteTransmissions = new HashMap<>();
-			while (running) {
+			while (running.get()) {
 				try {
 					Arrays.fill(buf, (byte) 0);
 					DatagramPacket packet = new DatagramPacket(buf, buf.length);

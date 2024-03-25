@@ -1,10 +1,10 @@
 package c2.session;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import c2.Constants;
 import c2.session.log.IOLogger;
@@ -12,7 +12,7 @@ import util.Time;
 
 public class IOManager {
 
-	private Map<Integer, Session> sessions = new HashMap<>();
+	private Map<Integer, Session> sessions = new ConcurrentHashMap<>();
 	private int nextSessionId = 2;
 
 	private CommandLoader cl;

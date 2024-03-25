@@ -146,6 +146,7 @@ public class LocalConnection {
 							} else {
 								terminalOut.println(output);
 							}
+							terminalOut.flush();
 						}
 					} catch (Exception e) {
 						// Keep going

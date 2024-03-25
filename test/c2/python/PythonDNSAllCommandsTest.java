@@ -1,5 +1,6 @@
 package c2.python;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import util.Time;
@@ -10,6 +11,12 @@ import util.test.TestConstants;
 
 class PythonDNSAllCommandsTest extends ClientServerTest {
 
+	@AfterEach()
+	void clean(){
+		awaitClient();
+		teardown();
+	}
+	
 	@Test
 	void testDNS() {
 		TestConfiguration.OS osConfig = TestConfiguration.getThisSystemOS();
@@ -35,10 +42,6 @@ class PythonDNSAllCommandsTest extends ClientServerTest {
 		TestConfiguration configParent = new TestConfiguration(osConfig, "python", "DNS");
 		configParent.setTestTwoClients(true);
 		RunnerTestGeneric.test(configParent);
-
-		awaitClient();
-		teardown();
-
 	}
 
 }

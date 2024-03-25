@@ -424,11 +424,11 @@ Note: There is a default_commands file under "test" which contains the load scri
 NOTE: Automated testing of the outlook harvester macro is disabled by default, and can be activated by setting outlookharvest.live.enable=true in the the test_config.properties file. This is disabled by default since some users are building and testing on production laptops with actual Outlook data, and therefore we want users to opt in to that test. The test starts a local daemon and a local TheAllCommander instance, and ensures that Outlook data is correctly processed by the local instance.
 
 # Contributing
-Looking to contribute? There are a few work items in the queue that would be great help with!
+Looking to contribute? There are a few work items in the queue that would be great to help with!
 
 1) SOCKS5 proxy support doesn't currently extend to Linux and Mac, lets add it!
 
-2) The SOCKS5 testHTTPSBrokenConnections and its DNS equivalent fail in automated testing, but work when executed manually.
+2) The SOCKS5 testHTTPSBrokenConnections and its DNS equivalent fail in automated testing, but work when executed manually. There is also a threading error preventing the nominal methods of PythonIntegrationTest from working correctly reliably.
  
 3) Edge cookie harvesting doesn't currently work - it seems Windows keeps a lock on the file even when Edge is not in use
 
