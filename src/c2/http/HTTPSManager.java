@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.text.SimpleDateFormat;
@@ -40,8 +42,10 @@ import c2.file.FileHelper;
 import c2.http.httphandlers.PortForwardHandler;
 import c2.http.httphandlers.SessionRequestHandler;
 import c2.http.httphandlers.SocksOverHTTPSHandler;
+import c2.http.httphandlers.telemetry.TelemetryHandler;
 import c2.session.IOManager;
 import c2.session.filereceiver.FileReceiverDatagramHandler;
+import c2.telemetry.TelemetryMemoryArchive;
 
 public class HTTPSManager extends C2Interface {
 
@@ -201,6 +205,11 @@ public class HTTPSManager extends C2Interface {
 			httpsServer.createContext("/socks5", socksHandler);
 			httpServer.createContext("/socks5", socksHandler);
 
+			Path tempTlmPath = Paths.get(properties.getProperty(Constants.TELEMETRY_LOGGING_DIR, "test" + FileSystems.getDefault().getSeparator() + "tlm"));
+			TelemetryMemoryArchive archive = new TelemetryMemoryArchive(tempTlmPath);
+			TelemetryHandler telemHandler = new TelemetryHandler(archive);
+			httpsServer.createContext("/telemetry", telemHandler);
+			
 			httpsServer.setExecutor(null); // creates a default executor
 			System.out.println("HTTPS online: " + port);
 			httpsServer.start();

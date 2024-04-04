@@ -3,6 +3,8 @@ package c2.telemetry;
 import java.util.ArrayList;
 import java.util.List;
 
+import c2.http.httphandlers.telemetry.IllegalTelemetryFormatException;
+import c2.http.httphandlers.telemetry.TelemetryReport;
 import c2.telemetry.type.Datum;
 
 public abstract class Measurement {
@@ -40,5 +42,7 @@ public abstract class Measurement {
 	}
 
 	public abstract Measurement dumpData();
+	
+	public abstract void ingestReport(TelemetryReport report) throws IllegalTelemetryFormatException;
 
 }

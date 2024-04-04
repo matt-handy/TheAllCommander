@@ -60,6 +60,8 @@ public final class Constants {
 	
 	public static final String PORT_FORWARD_NO_DATA = "<No Data>";
 	
+	public static final String TELEMETRY_LOGGING_DIR = "telemetry.logdir";
+	
 	private Constants() {
 		
 	}

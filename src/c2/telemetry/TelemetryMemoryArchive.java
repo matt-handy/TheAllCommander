@@ -1,50 +1,44 @@
 package c2.telemetry;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
-import c2.telemetry.type.DoubleDatum;
+import c2.http.httphandlers.telemetry.IllegalTelemetryFormatException;
+import c2.http.httphandlers.telemetry.TelemetryReport;
 
 public class TelemetryMemoryArchive {
 
-	private Map<String, Set<Measurement>> runningArchive = new HashMap<>();
-	private Map<String,Map<Integer, Set<Measurement>>> pidMeasurements = new HashMap<>();
-	
-	public Set<Measurement> dumpHostMeasurement(String hostname){
-		Set<Measurement> dump = new HashSet<>();
-		if(runningArchive.containsKey(hostname)) {
-			for(Measurement measure: runningArchive.get(hostname)) {
-				dump.add(measure.dumpData());
-			}
-			return dump;
-		}else {
-			throw new IllegalArgumentException("Unknown hostname: " + hostname);
-		}
+	private Path telemetryArchive;
+
+	public TelemetryMemoryArchive(Path telemetryArchive) {
+		this.telemetryArchive = telemetryArchive;
 	}
-	
-	public void addDoubleHostDatum(String hostname, String measurementName, DoubleDatum dd) {
-		if(runningArchive.containsKey(hostname)) {
-			Set<Measurement> measurements = runningArchive.get(hostname);
-			Measurement measure = null;
-			for(Measurement candidate : measurements) {
-				if(candidate.measurementName.equals(measurementName)) {
-					measure = candidate;
-					break;
-				}
+
+	public void ingestTelemetryReport(TelemetryReport report) throws IllegalTelemetryFormatException {
+		try {
+			Path archiveFolder = Paths.get(report.getHostname());
+			if (report.isPidSpecific()) {
+				archiveFolder = Paths.get(archiveFolder.toString(), report.getPid());
 			}
-			if(measure == null) {
-				measure = new DoubleMeasurement(hostname, measurementName, false);
-				measurements.add(measure);
+			Path archiveFile = telemetryArchive
+					.resolve(archiveFolder.resolve(Paths.get(report.getMeasurementName())));
+			if (Files.notExists(archiveFile.getParent())) {
+				Files.createDirectories(archiveFile.getParent());
 			}
-			if(!(measure instanceof DoubleMeasurement)) {
-				throw new IllegalArgumentException("Measurement: " + measurementName + " is not a Double");
+			if(Files.notExists(archiveFile)) {
+				Files.createFile(archiveFile);
 			}
-			DoubleMeasurement measureCast = (DoubleMeasurement) measure;
-			measureCast.addDatum(dd);
+			String logLine = report.getTimestamp() + " '" + report.getValue() + "' " + report.getType()
+					+ System.lineSeparator();
+			Files.writeString(archiveFile, logLine, StandardOpenOption.APPEND);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			throw new IllegalTelemetryFormatException("Unable to write to log file for telm: " + ex.getMessage());
 		}
+
 	}
-	
-	
+
 }

@@ -42,6 +42,7 @@ public class TestConstants {
 	private static final String I_PYTHON_HTTPSDAEMON_TEST_EXE = "python.httpsdaemon.textexe";
 	private static final String I_PYTHON_DNSDAEMON_TEST_EXE = "python.dnsdaemon.textexe";
 	private static final String I_PYTHON_SMTPDAEMON_TEST_EXE = "python.smtpdaemon.textexe";
+	private static final String I_PYTHON_TLMSIM_TEST_EXE = "python.tlmsim.textexe";
 	
 	private static final String I_PYTHON_EXE = "python.exe";
 	
@@ -86,6 +87,7 @@ public class TestConstants {
 	public static String PYTHON_HTTPSDAEMON_TEST_EXE;
 	public static String PYTHON_DNSDAEMON_TEST_EXE;
 	public static String PYTHON_SMTPDAEMON_TEST_EXE;
+	public static String PYTHON_TLMSIM_TEST_EXE;
 	
 	static {
 		init();
@@ -137,6 +139,7 @@ public class TestConstants {
 			PYTHON_HTTPSDAEMON_TEST_EXE = prop.getProperty(I_PYTHON_HTTPSDAEMON_TEST_EXE);
 			PYTHON_DNSDAEMON_TEST_EXE = prop.getProperty(I_PYTHON_DNSDAEMON_TEST_EXE);
 			PYTHON_SMTPDAEMON_TEST_EXE = prop.getProperty(I_PYTHON_SMTPDAEMON_TEST_EXE);
+			PYTHON_TLMSIM_TEST_EXE = prop.getProperty(I_PYTHON_TLMSIM_TEST_EXE);
 			
 			OUTLOOKHARVEST_LIVE_ENABLE = prop.getProperty(I_OUTLOOKHARVEST_LIVE_ENABLE, "false").equalsIgnoreCase("true");
 			LARGE_HARVEST_TEST_ENABLE = prop.getProperty(I_LARGE_HARVEST_TEST_ENABLE, "false").equalsIgnoreCase("true");
