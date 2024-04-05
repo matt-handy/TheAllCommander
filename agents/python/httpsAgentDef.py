@@ -19,6 +19,22 @@ class HTTPSAgent(LocalAgent):
 	def getScriptName(self):
 		return os.path.realpath(__file__)
 
+	def postTelemetry(self, measurement_time, pid, measurement_mame, measurement_val, measurement_type):
+		telem_template = '''{{
+  "timestamp": "{0}",
+  "hostname": "{1}",
+  "pid": "{2}",
+  "measurementName": "{3}",
+  "value": "{4}",
+  "pidSpecific": false,
+  "type": "{5}"
+}}'''
+		formatted_report = telem_template.format(measurement_time, socket.gethostname(), pid, measurement_mame, measurement_val, measurement_type)
+		try:
+			self.postHTTPS(self.headers, '/telemetry', formatted_report)
+		except Exception as e:
+			print("Oops, something went wrong when posting telemetry: {}".format(e), file=sys.stderr)
+
 	def getHTTPSConnection(self):
 		ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
 		ssl_context.check_hostname = False
