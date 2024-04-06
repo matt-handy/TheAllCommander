@@ -434,14 +434,9 @@ commservices=c2.http.HTTPSManager,c2.udp.DNSEndpointEmulator,c2.smtp.EmailHandle
 Note also that the test daemon "emailAgent.py" has placeholder values for the email server which must be filled in
 
 # Test
-There are two classes of test for TheAllCommander. One is the standard unit tests, which test TheAllCommander's core java code by itself. These tests can be run with "mvn test" 
+There is a default_commands file under "test" which contains the load script for automatic commands, or commands which are executed against a daemon immediately on connection. They are set to a default username and hostname and must be updated if that test will pass.
 
-The second, and far more comprehensive, test suite is included in the integration_test directory. These tests are orchestrated through junit, but involve TheAllCommander server being started in its entirety, and one of the test daemons being engaged to run through a standard set of test sequences. This tests both the server and the daemons in an apples-to-apples manner.
-NOTE: Currently automated cross platform testing with Linux requires supplemental software which has not yet been documented. Documentation for automated Linux functional testing is pending. 
-
-Note: There is a default_commands file under "test" which contains the load script for automatic commands, or commands which are executed against a daemon immediately on connection. They are set to a default username and hostname and must be updated if that test will pass.
-
-NOTE: Automated testing of the outlook harvester macro is disabled by default, and can be activated by setting outlookharvest.live.enable=true in the the test_config.properties file. This is disabled by default since some users are building and testing on production laptops with actual Outlook data, and therefore we want users to opt in to that test. The test starts a local daemon and a local TheAllCommander instance, and ensures that Outlook data is correctly processed by the local instance.
+Automated testing of the outlook harvester macro is disabled by default, and can be activated by setting outlookharvest.live.enable=true in the the test_config.properties file. This is disabled by default since some users are building and testing on production laptops with actual Outlook data, and therefore we want users to opt in to that test. The test starts a local daemon and a local TheAllCommander instance, and ensures that Outlook data is correctly processed by the local instance.
 
 # Contributing
 Looking to contribute? There are a few work items in the queue that would be great to help with!
