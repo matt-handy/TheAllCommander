@@ -62,3 +62,11 @@ Obfuscated Windows command line mode
 
 # Release 2.0.1 - January 2024
 Add support for secure commander sessions, unencrypted command sessions will be deprecated later.
+
+# Release 2.1 - April 2024
+
+Support for client telemetry gathering
+
+Windows 11 Test suite support
+
+PyInstaller and Windows service installation for Python daemons - Alpha Release
