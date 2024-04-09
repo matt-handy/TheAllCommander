@@ -22,6 +22,7 @@ import c2.session.CommandMacroManager;
 import c2.session.IOManager;
 import c2.session.SessionManager;
 import c2.session.log.IOLogger;
+import c2.session.wizard.Wizard;
 import c2.tcp.filereceiver.FileReceiverSessionReceiver;
 
 public class Runner {
@@ -90,7 +91,7 @@ public class Runner {
 		}
 
 	}
-
+	
 	private void notifyAllServicesForShutdown() {
 		for (C2Interface in : interfaces) {
 			in.notifyPendingShutdown();
@@ -156,8 +157,10 @@ public class Runner {
 		cmm.initializeMacros(properties);
 		ioManager.setCommandMacroManager(cmm);
 
+		List<Wizard> wizards = Wizard.initializeWizards(properties);
+		
 		SessionManager sessionManager = new SessionManager(ioManager, listenPort,
-				Integer.parseInt(properties.getProperty(Constants.SECURECOMMANDERPORT)), cmm, properties);
+				Integer.parseInt(properties.getProperty(Constants.SECURECOMMANDERPORT)), cmm, properties, wizards);
 
 		Future<?> session = service.submit(sessionManager);
 

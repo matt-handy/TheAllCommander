@@ -7,15 +7,15 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import c2.csharp.StagerGenerator;
-import c2.java.DaemonLoaderGenerator;
+import c2.session.wizard.Wizard;
 
 public class CommandWizard implements Runnable {
 
 	public static String CMD_QUIT = "quit";
 	public static String CMD_GENERATE_CSHARP = "generate_csharp";
-	public static String CMD_GENERATE_JAVA = "generate_java";
 	public static String CMD_GENERATE_CSHARP_OPTION_DISABLE_RANDOM ="disable_random";
 	public static String CMD_GENERATE_CSHARP_OPTION_EXE ="exe";
 	public static String CMD_GENERATE_CSHARP_OPTION_TEXT ="text";
@@ -23,11 +23,14 @@ public class CommandWizard implements Runnable {
 	private Socket socket;
 	private Path csharpConfigDir;
 	private BufferedReader br;
+	
+	private List<Wizard> wizards;
 
-	public CommandWizard(Socket socket, Path csharpConfigDir, BufferedReader br) {
+	public CommandWizard(Socket socket, Path csharpConfigDir, BufferedReader br, List<Wizard> wizards) {
 		this.socket = socket;
 		this.csharpConfigDir = csharpConfigDir;
 		this.br = br;
+		this.wizards = wizards;
 	}
 
 	@Override
@@ -45,16 +48,6 @@ public class CommandWizard implements Runnable {
 				if (nextCommand.equalsIgnoreCase(CMD_QUIT)) {
 					stayRunning = false;
 					bw.write("Goodbye!" + System.lineSeparator());
-				}else if(nextCommand.startsWith(CMD_GENERATE_JAVA)) {
-					String args[] = nextCommand.split(" ");
-					if(args.length < 4) {
-						bw.write("Command requires at least one jar file" + System.lineSeparator());
-					}
-					List<String> jars = new ArrayList<>();
-					for(int i = 3; i < args.length; i++) {
-						jars.add(args[i]);
-					}
-					bw.write("<control> " + CMD_GENERATE_JAVA + " " + DaemonLoaderGenerator.generateDaemonLoaderB64Exe(args[1], jars, args[2]) + System.lineSeparator());
 				} else if (nextCommand.startsWith(CMD_GENERATE_CSHARP)) {
 					String args[] = nextCommand.split(" ");
 					if (args.length < 4) {
@@ -95,7 +88,16 @@ public class CommandWizard implements Runnable {
 						}
 					}
 				}else {
-					bw.write("Unknown command" + System.lineSeparator());
+					boolean foundWizard = false;
+					for(Wizard wizard : wizards) {
+						if(wizard.getInvocationName().equalsIgnoreCase(nextCommand)) {
+							foundWizard = true;
+							wizard.surrenderControlFlow(bw, br);
+						}
+					}
+					if(!foundWizard) {
+						bw.write("Unknown command" + System.lineSeparator());
+					}
 				}
 				bw.flush();
 			}
@@ -109,7 +111,6 @@ public class CommandWizard implements Runnable {
 
 	private void printAvailableCommands(OutputStreamWriter bw) throws IOException {
 		bw.write("Available commands: " + System.lineSeparator());
-		bw.write(CMD_GENERATE_JAVA + " <url (ex: localhost:8010)> <Main Class name (ex HelloWorld)> <List of jar files to load> ");
 		bw.write(CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_DISABLE_RANDOM + " : Disable random C# code generation" + System.lineSeparator());
 		bw.write(CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_TEXT + " <format - http> <argments>" + System.lineSeparator());
 		bw.write("Example: " + CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_TEXT + " http https://127.0.0.1:8000/csharpboot"
@@ -118,6 +119,9 @@ public class CommandWizard implements Runnable {
 		bw.write("Example: " + CMD_GENERATE_CSHARP + " " + CMD_GENERATE_CSHARP_OPTION_EXE + " http https://127.0.0.1:8000/csharpboot"
 				+ System.lineSeparator());
 		bw.write("Note: Only available with TheAllCommander on Windows" + System.lineSeparator());
+		for(Wizard wizard : wizards) {
+			bw.write(wizard.getInvocationName() + " - " + wizard.getHumanReadableName() + System.lineSeparator());
+		}
 		bw.write(CMD_QUIT + System.lineSeparator());
 		bw.flush();
 	}

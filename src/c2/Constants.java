@@ -62,6 +62,8 @@ public final class Constants {
 	
 	public static final String TELEMETRY_LOGGING_DIR = "telemetry.logdir";
 	
+	public static final String WIZARDS = "wizards";
+	
 	private Constants() {
 		
 	}

@@ -40,6 +40,7 @@ import c2.session.SecureSessionInitiator;
 import c2.session.SessionInitiator;
 import c2.session.SessionManager;
 import c2.session.log.IOLogger;
+import c2.session.wizard.Wizard;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.TestConfiguration;
@@ -326,8 +327,9 @@ class StagerGeneratorTest {
 		Random random = new Random();
 		int port = 40000 + random.nextInt(1000);
 		CommandMacroManager cmm = new CommandMacroManager(null, io, null);
-		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
-		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
+		List<Wizard> wizards = Wizard.initializeWizards(ClientServerTest.getDefaultSystemTestProperties());
+		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties(), wizards);
+		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties(), wizards);
 		ExecutorService service = Executors.newCachedThreadPool();
 		service.submit(testSession);
 
@@ -342,7 +344,7 @@ class StagerGeneratorTest {
 			bw.flush();
 
 			// Flush banner
-			for (int idx = 0; idx < 11; idx++) {
+			for (int idx = 0; idx < 13; idx++) {
 				br.readLine();
 			}
 
@@ -382,8 +384,9 @@ class StagerGeneratorTest {
 		Random random = new Random();
 		int port = 40000 + random.nextInt(1000);
 		CommandMacroManager cmm = new CommandMacroManager(null, io, null);
-		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
-		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
+		List<Wizard> wizards = Wizard.initializeWizards(ClientServerTest.getDefaultSystemTestProperties());
+		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties(), wizards);
+		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties(), wizards);
 		ExecutorService service = Executors.newCachedThreadPool();
 		service.submit(testSession);
 
@@ -410,6 +413,8 @@ class StagerGeneratorTest {
 			br.readLine();// Example line
 			line = br.readLine();
 			assertEquals("Note: Only available with TheAllCommander on Windows", line);
+			assertEquals("generate_java - Java Staged Payload Wizard", br.readLine());
+			assertEquals("study_pen300 - PEN300 Study Support Tools", br.readLine());
 			line = br.readLine();
 			assertEquals(CommandWizard.CMD_QUIT, line);
 
@@ -506,8 +511,9 @@ class StagerGeneratorTest {
 			Random random = new Random();
 			int port = 40000 + random.nextInt(1000);
 			CommandMacroManager cmm = new CommandMacroManager(null, io, null);
-			SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
-			SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
+			List<Wizard> wizards = Wizard.initializeWizards(ClientServerTest.getDefaultSystemTestProperties());
+			SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties(), wizards);
+			SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties(), wizards);
 			ExecutorService service = Executors.newFixedThreadPool(4);
 			service.submit(testSession);
 
@@ -543,6 +549,8 @@ class StagerGeneratorTest {
 			br.readLine();// Example line
 			line = br.readLine();
 			assertEquals("Note: Only available with TheAllCommander on Windows", line);
+			assertEquals("generate_java - Java Staged Payload Wizard", br.readLine());
+			assertEquals("study_pen300 - PEN300 Study Support Tools", br.readLine());
 			line = br.readLine();
 			assertEquals(CommandWizard.CMD_QUIT, line);
 			line = br.readLine();

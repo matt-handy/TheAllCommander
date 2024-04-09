@@ -16,6 +16,7 @@ import c2.Constants;
 import c2.session.CommandLoader;
 import c2.session.IOManager;
 import c2.session.log.IOLogger;
+import c2.session.wizard.Wizard;
 import util.Time;
 import util.test.TestConfiguration.OS;
 

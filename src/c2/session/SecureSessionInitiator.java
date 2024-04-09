@@ -3,6 +3,7 @@ package c2.session;
 import java.io.FileInputStream;
 import java.net.ServerSocket;
 import java.security.KeyStore;
+import java.util.List;
 import java.util.Properties;
 
 import javax.net.ssl.SSLServerSocket;
@@ -12,12 +13,13 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import c2.Constants;
+import c2.session.wizard.Wizard;
 
 public class SecureSessionInitiator extends SessionInitiator {
 
 	public SecureSessionInitiator(SessionManager sessionManager, IOManager ioManager, int port, CommandMacroManager cmm,
-			Properties properties) {
-		super(sessionManager, ioManager, port, cmm, properties);
+			Properties properties, List<Wizard> wizards) {
+		super(sessionManager, ioManager, port, cmm, properties, wizards);
 	}
 
 	@Override

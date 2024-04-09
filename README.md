@@ -461,4 +461,12 @@ Looking to contribute? There are a few work items in the queue that would be gre
 
 10) Add Where command support for C# and Java daemons
 
+# PEN300 Study Wizard
+
+Per request, I've integrated some of the tools I built to study for PEN300 course into a PEN300 study tool wizard. These tools are designed to automated some of the copy-paste tasks that students will be doing frequently to prepare for the course. One more than one occasion I made a copy paste error between scripts that cost me hours of work, and I'm hoping to help spare friends of the project who are studying that same misery. 
+
+This wizard is currently in an Alpha state and will be declared operational/reliable/not complete garbage in a later release.
+
+Please note, all of the scripts and tools that this wizard creates or modifies are caught immediately by Windows Defender if used on a modern, patched version of Windows. They are study tools only and cannot be used in an actual pen test. TheAllCommander remains a research and support tool, not an tool of Red Team engagement.
+
 11) The following commands don't work with the current SMB protocol: where, cat multiline, and shell

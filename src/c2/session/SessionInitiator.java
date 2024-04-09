@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import c2.Constants;
+import c2.session.wizard.Wizard;
 
 public class SessionInitiator implements Runnable {
 
@@ -34,15 +35,18 @@ public class SessionInitiator implements Runnable {
 	protected boolean stayAlive = true;
 	private CountDownLatch stopLatch = new CountDownLatch(1);
 	private CommandMacroManager cmm;
+	private List<Wizard> wizards;
 	
 	private ExecutorService commandWizardManager = Executors.newCachedThreadPool();
 	
-	public SessionInitiator(SessionManager sessionManager, IOManager ioManager, int port, CommandMacroManager cmm, Properties properties) {
+	public SessionInitiator(SessionManager sessionManager, IOManager ioManager, int port, CommandMacroManager cmm, Properties properties,
+			List<Wizard> wizards) {
 		this.sessionManager = sessionManager;
 		this.ioManager = ioManager;
 		this.port = port;
 		this.cmm = cmm;
 		this.properties = properties;
+		this.wizards = wizards;
 	}
 	
 	public void stop() {
@@ -121,7 +125,7 @@ public class SessionInitiator implements Runnable {
 				} catch (NumberFormatException e) {
 					if(input.equalsIgnoreCase("WIZARD")) {
 						//We pass the reader to ensure the input stream is not reset
-						CommandWizard wizard = new CommandWizard(newSession, CSHARP_CONFIG_PATH, br);
+						CommandWizard wizard = new CommandWizard(newSession, CSHARP_CONFIG_PATH, br, wizards);
 						commandWizardManager.submit(wizard);
 					}else {
 						bw.write(input + " is not a number.");

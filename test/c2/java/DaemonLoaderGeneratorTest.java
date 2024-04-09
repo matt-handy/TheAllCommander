@@ -1,6 +1,7 @@
 package c2.java;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -25,9 +26,10 @@ import c2.session.CommandMacroManager;
 import c2.session.CommandWizard;
 import c2.session.IOManager;
 import c2.session.SecureSessionInitiator;
-import c2.session.SessionInitiator;
 import c2.session.SessionManager;
 import c2.session.log.IOLogger;
+import c2.session.wizard.JavaStagerWizard;
+import c2.session.wizard.Wizard;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.JavaLoaderTestFramework;
@@ -82,7 +84,8 @@ class DaemonLoaderGeneratorTest {
 		BufferedOutputStream bos = new BufferedOutputStream(cmdBuffer);
 		PrintWriter builder = new PrintWriter(bos);
 		builder.println("WIZARD");
-		builder.println(CommandWizard.CMD_GENERATE_JAVA + " localhost:8011 HelloWorld HelloWorld.jar");
+		builder.println(JavaStagerWizard.CMD_GENERATE_JAVA);
+		builder.println(JavaStagerWizard.CMD_GENERATE_JAVA + " localhost:8011 HelloWorld HelloWorld.jar");
 		builder.println(CommandWizard.CMD_QUIT);
 		builder.println("sleep");
 		builder.println(LocalConnection.CMD_QUIT_LOCAL);
@@ -100,8 +103,9 @@ class DaemonLoaderGeneratorTest {
 		Random random = new Random();
 		int port = 40000 + random.nextInt(1000);
 		CommandMacroManager cmm = new CommandMacroManager(null, io, null);
-		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
-		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties());
+		List<Wizard> wizards = Wizard.initializeWizards(ClientServerTest.getDefaultSystemTestProperties());
+		SessionManager manager = new SessionManager(io, port + 1, port, cmm, ClientServerTest.getDefaultSystemTestProperties(), wizards);
+		SecureSessionInitiator testSession = new SecureSessionInitiator(manager, io, port, cmm, ClientServerTest.getDefaultSystemTestProperties(), wizards);
 		ExecutorService service = Executors.newFixedThreadPool(4);
 		service.submit(testSession);
 		
@@ -131,8 +135,11 @@ class DaemonLoaderGeneratorTest {
 		br.readLine();// Example line
 		line = br.readLine();
 		assertEquals("Note: Only available with TheAllCommander on Windows", line);
+		assertEquals("generate_java - Java Staged Payload Wizard", br.readLine());
+		assertEquals("study_pen300 - PEN300 Study Support Tools", br.readLine());
 		line = br.readLine();
 		assertEquals(CommandWizard.CMD_QUIT, line);
+		assertEquals("generate_java <url (ex: localhost:8010)> <Main Class name (ex HelloWorld)> <List of jar files to load> ", br.readLine());
 		line = br.readLine();
 		assertEquals("Jar downloaded", line);
 		

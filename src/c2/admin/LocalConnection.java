@@ -38,6 +38,7 @@ import javax.net.ssl.X509TrustManager;
 
 import c2.Constants;
 import c2.session.CommandWizard;
+import c2.session.wizard.JavaStagerWizard;
 import util.Time;
 
 public class LocalConnection {
@@ -136,7 +137,7 @@ public class LocalConnection {
 									stream.write(data);
 								}
 								terminalOut.println("Exe downloaded");
-							}else if(output.startsWith("<control> " + CommandWizard.CMD_GENERATE_JAVA)) {
+							}else if(output.startsWith("<control> " + JavaStagerWizard.CMD_GENERATE_JAVA)) {
 								String[] elements = output.split(" ");
 								byte[] data = Base64.getDecoder().decode(elements[2]);
 								try (OutputStream stream = new FileOutputStream(JAVA_TMP_FILE.toFile())) {
