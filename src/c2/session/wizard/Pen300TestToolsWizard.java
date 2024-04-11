@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import util.test.OutputStreamWriterHelper;
@@ -17,6 +18,9 @@ public class Pen300TestToolsWizard implements Wizard{
 	public static String INVOKE_COMMAND = "study_pen300";
 	
 	private List<Wizard> children = new ArrayList<>();
+	
+	private List<String> win10_11AmsiBypassInstructions = new ArrayList<>();
+	private List<String> winServerAmsiBypassInstructions = new ArrayList<>();
 	
 	@Override
 	public void init(Properties properties) throws WizardConfigurationException {
@@ -29,6 +33,32 @@ public class Pen300TestToolsWizard implements Wizard{
 		} catch (IOException ex) {
 			throw new WizardConfigurationException("Cannot load configuration for MSF Caesar Wizard");
 		}
+		
+		try (InputStream input = new FileInputStream(Paths.get("config", "pen300_study_tools", "amsi.properties").toFile())) {
+			Properties prop = new Properties();
+			prop.load(input);
+			int i = 1;
+			while(prop.containsKey("win10_11." + i)) {
+				win10_11AmsiBypassInstructions.add(prop.getProperty("win10_11." + i));
+				i++;
+			}
+			i = 1;
+			while(prop.containsKey("winserver." + i)) {
+				winServerAmsiBypassInstructions.add(prop.getProperty("winserver." + i));
+				i++;
+			}
+			children.add(new ReconScriptGenerator(this));
+		}catch (IOException ex) {
+			throw new WizardConfigurationException("Cannot load configuration AMSI configuration");
+		}
+	}
+	
+	protected List<String> getWin10_11AmsiBypassInstructions(){
+		return new ArrayList<>(win10_11AmsiBypassInstructions);
+	}
+	
+	protected List<String> getWinServerAmsiBypassInstructions(){
+		return new ArrayList<>(winServerAmsiBypassInstructions);
 	}
 
 	@Override
