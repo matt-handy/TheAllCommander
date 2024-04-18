@@ -1,9 +1,7 @@
 package c2.session.macro.persistence;
 
 import c2.Commands;
-import c2.HarvestProcessor;
 import c2.csharp.StagerGenerator;
-import c2.session.IOManager;
 import c2.session.macro.AbstractCommandMacro;
 import c2.session.macro.MacroOutcome;
 

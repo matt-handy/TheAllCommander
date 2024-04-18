@@ -21,6 +21,7 @@ public class TestConstants {
 	public static final String I_OUTLOOKHARVEST_LIVE_ENABLE = "outlookharvest.live.enable";
 	public static final String I_LARGE_HARVEST_TEST_ENABLE = "largeharvest.test.enable";
 	public static final String I_KEYLOGGER_TEST_ENABLE = "keylogger.test.enable";
+	public static final String I_WINLOGON_REG_LIVE_DENIAL_ENABLE = "winlogon.enable";
 	
 	private static final String I_PROCESSHOLLOWER_TEST_EXE = "processhollower.testexe";
 	private static final String I_SIMPLESTAGER_TEST_EXE = "simplestager.testexe";
@@ -57,6 +58,7 @@ public class TestConstants {
 	public static String TMP_EDGE_COOKIES;
 	public static String TMP_GENERIC;
 	
+	public static boolean WINLOGON_REG_LIVE_DENIAL_ENABLE;
 	public static boolean OUTLOOKHARVEST_LIVE_ENABLE;
 	public static boolean LARGE_HARVEST_TEST_ENABLE;
 	public static boolean KEYLOGGER_TEST_ENABLE;
@@ -144,6 +146,7 @@ public class TestConstants {
 			OUTLOOKHARVEST_LIVE_ENABLE = prop.getProperty(I_OUTLOOKHARVEST_LIVE_ENABLE, "false").equalsIgnoreCase("true");
 			LARGE_HARVEST_TEST_ENABLE = prop.getProperty(I_LARGE_HARVEST_TEST_ENABLE, "false").equalsIgnoreCase("true");
 			KEYLOGGER_TEST_ENABLE = prop.getProperty(I_KEYLOGGER_TEST_ENABLE, "false").equalsIgnoreCase("true");
+			WINLOGON_REG_LIVE_DENIAL_ENABLE = prop.getProperty(I_WINLOGON_REG_LIVE_DENIAL_ENABLE, "false").equalsIgnoreCase("true");
 		} catch (IOException ex) {
 			System.out.println("Unable to load test config file");
 			ex.printStackTrace();
