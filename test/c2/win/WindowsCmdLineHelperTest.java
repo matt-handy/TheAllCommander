@@ -129,7 +129,7 @@ public class WindowsCmdLineHelperTest {
 	@BeforeEach
 	void setUp() throws Exception {
 		io = ClientServerTest.setupDefaultIOManager();
-		sessionId = io.addSession("noone", "testHost", "protocol");
+		sessionId = io.determineAndGetCorrectSessionId("noone", "testHost", "protocol", false, null);
 	}
 	
 	@Test

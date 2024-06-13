@@ -35,7 +35,7 @@ class WindowsPatchEnumeratorTest {
 					CommandLoader cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
 		io = new IOManager(new IOLogger(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH))), cl);
 
-		sessionId = io.addSession("noone", "testHost", "protocol");
+		sessionId = io.determineAndGetCorrectSessionId("noone", "testHost", "protocol", false, null);
 	}
 	
 	@Test

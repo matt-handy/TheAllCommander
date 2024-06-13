@@ -54,7 +54,7 @@ class DefaultCommandsTest {
 			CommandMacroManager cmm = new CommandMacroManager(null, io, "nostring");
 			cmm.initializeMacros(prop);
 			io.setCommandMacroManager(cmm);
-			int id = io.addSession(System.getProperty("user.name"), hostname, "HTTPS");
+			int id = io.determineAndGetCorrectSessionId(System.getProperty("user.name"), hostname, "HTTPS", false, null);
 			assertEquals(2, id);
 			assertEquals(CleanFodhelperMacro.CLIENT_COMMAND, io.pollCommand(id));
 			assertEquals(null, io.pollCommand(id));

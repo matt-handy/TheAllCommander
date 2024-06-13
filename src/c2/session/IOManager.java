@@ -24,7 +24,7 @@ public class IOManager {
 	private CommandMacroManager cmm;
 
 	public IOManager(IOLogger logger, CommandLoader cl) {
-		sessions.put(1, new Session(1, "default", "default", "default"));
+		sessions.put(1, new Session(1, "default", "default", "default", false));
 		this.cl = cl;
 		this.preprocessor = new ServersideCommandPreprocessor(this);
 		this.logger = logger;
@@ -87,11 +87,12 @@ public class IOManager {
 		}
 	}
 
-	public int determineAndGetCorrectSessionId(String hostname, String username, String protocol, String daemonUID) {
-		String sessionUID = hostname + ":" + username + ":" + protocol;
+	public int determineAndGetCorrectSessionId(String hostname, String username, String protocol, boolean isElevated, String daemonUID) {
+		//Why no daemon UID? B/C the first session will be added without a UID.
+		String sessionUID = Session.buildSessionUID(hostname, username, protocol, null, isElevated);
 		Integer sessionId = getSessionId(sessionUID);
 		if (sessionId == null) {
-			sessionId = addSession(username, hostname, protocol);
+			sessionId = addSession(username, hostname, protocol, isElevated);
 			if (daemonUID != null) {
 				updateDaemonUID(sessionId, daemonUID);
 			}
@@ -103,7 +104,7 @@ public class IOManager {
 				} else {
 					Integer candidateSessionId = getSessionId(sessionUID + ":" + daemonUID);
 					if (candidateSessionId == null) {
-						sessionId = addSession(username, hostname, protocol, daemonUID);
+						sessionId = addSession(username, hostname, protocol, isElevated, daemonUID);
 					} else {
 						sessionId = candidateSessionId;
 					}
@@ -266,13 +267,15 @@ public class IOManager {
 	 * @param username  The username of the connecting session
 	 * @param hostname  The hostname of the connecting session
 	 * @param protocol  The protocol of the connecting session
+	 * @param isElevated Indicates if the connected session has a High Integrity Token
 	 * @param daemonUID The UID presented by the daemon
 	 * @return an int representing the registered session ID.
 	 */
-	public synchronized int addSession(String username, String hostname, String protocol, String daemonUID) {
+	private synchronized int addSession(String username, String hostname, String protocol, boolean isElevated, String daemonUID) {
+		
 		checkForExistingSession(hostname + ":" + username + ":" + protocol + ":" + daemonUID);
 		int newSessionId = nextSessionId++;
-		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol, daemonUID));
+		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol, daemonUID, isElevated));
 
 		sendPresetCommands(newSessionId, username, hostname);
 
@@ -282,16 +285,21 @@ public class IOManager {
 	/**
 	 * C2Interface implementations use this method to add a new session and retrieve
 	 * a session ID that can be used for further communication with the class.
+	 * 
+	 * This method has been updated to private with TheAllCommander 2.1. New sessions 
+	 * should be governed by determineAndGetCorrectSessionId
 	 *
 	 * @param username The username of the connecting session
 	 * @param hostname The hostname of the connecting session
 	 * @param protocol The protocol of the connecting session
+	 * @param isElevated Indicates if the connected session has a High Integrity Token
 	 * @return an int representing the registered session ID.
 	 */
-	public synchronized int addSession(String username, String hostname, String protocol) {
-		checkForExistingSession(hostname + ":" + username + ":" + protocol);
+	private synchronized int addSession(String username, String hostname, String protocol, boolean isElevated) {
+		String strId = Session.buildSessionUID(hostname, username, protocol, null, isElevated);
+		checkForExistingSession(strId);
 		int newSessionId = nextSessionId++;
-		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol));
+		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol, isElevated));
 
 		sendPresetCommands(newSessionId, username, hostname);
 

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import util.RandomHelper;
+
 public class RandomCodeGenerator {
 
 	private enum CodePermutation {INTEGER_MATH, STRING_DEFINITION, WHILE_LOOP, FOR_LOOP, OBJECT_CONSTRUCTOR, TRIVIAL_SLEEP, TRY_CATCH, IF_STATEMENT, INTERNAL_VOID};
@@ -283,20 +285,10 @@ public class RandomCodeGenerator {
 	}
 	
 	private String generateRandomString() {
-	    int leftLimit = 97; // letter 'a'
-	    int rightLimit = 122; // letter 'z'
-	    int targetStringLength = 3 + rnd.nextInt(10);
-
-	    String newString = rnd.ints(leftLimit, rightLimit + 1)
-	  	      .limit(targetStringLength)
-		      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-		      .toString(); 
+	    String newString = RandomHelper.generateRandomLowercaseString();
 	    
 	    while(generatedStrings.contains(newString)) {
-	    	newString = rnd.ints(leftLimit, rightLimit + 1)
-	  	  	      .limit(targetStringLength)
-	  		      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-	  		      .toString(); 
+	    	newString = RandomHelper.generateRandomLowercaseString(); 
 	    }
 	    
 	    generatedStrings.add(newString);

@@ -20,18 +20,15 @@ import c2.session.IOManager;
 import c2.session.log.IOLogger;
 import c2.win.WindowsCmdLineHelperTest;
 import util.test.ClientServerTest;
+import util.test.IOManagerUserTest;
 import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
 
-class RecycleBinCleanMacroTest {
-
-	IOManager io;
-	int sessionId;
+class RecycleBinCleanMacroTest extends IOManagerUserTest{
 
 	@BeforeEach
 	void setUp() throws Exception {
-		io = ClientServerTest.setupDefaultIOManager();
-		sessionId = io.addSession("noone", "testHost", "protocol");
+		setUpManagerAndSession();
 	}
 
 	@Test

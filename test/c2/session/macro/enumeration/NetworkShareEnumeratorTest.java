@@ -22,20 +22,13 @@ import c2.session.macro.MacroOutcome;
 import c2.session.macro.persistence.RegistryDebugger;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.IOManagerUserTest;
 
-class NetworkShareEnumeratorTest {
-
-	
-	IOManager io;
-	int sessionId;
+class NetworkShareEnumeratorTest extends IOManagerUserTest{
 
 	@BeforeEach
 	void setUp() throws Exception {
-		Properties prop = ClientServerTest.getDefaultSystemTestProperties();
-					CommandLoader cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
-		io = new IOManager(new IOLogger(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH))), cl);
-
-		sessionId = io.addSession("noone", "testHost", "protocol");
+		setUpManagerAndSession();
 	}
 	
 	@Test

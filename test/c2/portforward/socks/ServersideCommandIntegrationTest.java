@@ -29,7 +29,7 @@ class ServersideCommandIntegrationTest {
 	void testInvalidCommandOptions() {
 		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-		io.addSession("fake", "fake", "fake");
+		io.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 		ServersideCommandPreprocessor preprocessor = new ServersideCommandPreprocessor(io);
 
 		// Invalid start command - bad port
@@ -53,7 +53,7 @@ class ServersideCommandIntegrationTest {
 		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
 			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 					new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-			io.addSession("fake", "fake", "fake");
+			io.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 			ExecutorService service = Executors.newCachedThreadPool();
 
 			Random rnd = new Random();

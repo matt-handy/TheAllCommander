@@ -25,7 +25,7 @@ public class WinlogonMacro extends AbstractCommandMacro {
 
 	@Override
 	public String getBehaviorDescription() {
-		return "Amendment of the Winlogon registry key will result in Windows starting an instance of the daemon every time a yser logs in, in addition to the default shell (explorer.exe).";
+		return "Amendment of the Winlogon registry key will result in Windows starting an instance of the daemon every time a user logs in, in addition to the default shell (explorer.exe).";
 	}
 
 	@Override

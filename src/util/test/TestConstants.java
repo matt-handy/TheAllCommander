@@ -22,6 +22,7 @@ public class TestConstants {
 	public static final String I_LARGE_HARVEST_TEST_ENABLE = "largeharvest.test.enable";
 	public static final String I_KEYLOGGER_TEST_ENABLE = "keylogger.test.enable";
 	public static final String I_WINLOGON_REG_LIVE_DENIAL_ENABLE = "winlogon.enable";
+	public static final String I_UAC_CMSTP_TEST_ENABLE = "uac.cmstp.test.enable";
 	
 	private static final String I_PROCESSHOLLOWER_TEST_EXE = "processhollower.testexe";
 	private static final String I_SIMPLESTAGER_TEST_EXE = "simplestager.testexe";
@@ -62,6 +63,7 @@ public class TestConstants {
 	public static boolean OUTLOOKHARVEST_LIVE_ENABLE;
 	public static boolean LARGE_HARVEST_TEST_ENABLE;
 	public static boolean KEYLOGGER_TEST_ENABLE;
+	public static boolean UAC_CMSTP_TEST_ENABLE;
 	
 	public static String PROCESSHOLLOWER_TEST_EXE;
 	public static String SIMPLESTAGER_TEST_EXE;
@@ -147,6 +149,7 @@ public class TestConstants {
 			LARGE_HARVEST_TEST_ENABLE = prop.getProperty(I_LARGE_HARVEST_TEST_ENABLE, "false").equalsIgnoreCase("true");
 			KEYLOGGER_TEST_ENABLE = prop.getProperty(I_KEYLOGGER_TEST_ENABLE, "false").equalsIgnoreCase("true");
 			WINLOGON_REG_LIVE_DENIAL_ENABLE = prop.getProperty(I_WINLOGON_REG_LIVE_DENIAL_ENABLE, "false").equalsIgnoreCase("true");
+			UAC_CMSTP_TEST_ENABLE = prop.getProperty(I_UAC_CMSTP_TEST_ENABLE, "false").equalsIgnoreCase("true");
 		} catch (IOException ex) {
 			System.out.println("Unable to load test config file");
 			ex.printStackTrace();

@@ -323,18 +323,24 @@ public class HTTPSManager extends C2Interface {
 			String protocol = t.getRequestHeaders().getFirst("Protocol");
 
 			String daemonUID = t.getRequestHeaders().getFirst("UID");
+			
+			String elevated = t.getRequestHeaders().getFirst("Integrity");
 
 			if (protocol == null) {
 				protocol = "HTTPS";
+			}
+			
+			boolean elevatedIntegrity = false;
+			if(elevated != null && elevated.equalsIgnoreCase("High")) {
+				elevatedIntegrity = true;
 			}
 
 			Integer sessionId = null;
 			if (hostname == null || pid == null || username == null) {
 				sessionId = 1;
 			} else {
-				sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, daemonUID);
+				sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, elevatedIntegrity, daemonUID);
 			}
-
 			io.updateSessionContactTime(sessionId);
 
 			String response = "acknowledged response";

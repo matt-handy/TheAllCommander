@@ -24,23 +24,32 @@ public class Session implements Comparable<Session>{
 	private String daemonUID = null;
 	private Date lastContactTime = new Date();//Assumption is valid, session created on new contact.
 	
-	public Session(int id, String hostname, String username, String protocol) {
+	public Session(int id, String hostname, String username, String protocol, boolean isElevated) {
 		this.id = id;
-		String uid = hostname+":"+username+":"+protocol;
-		this.uid = uid;
+		this.uid =  buildSessionUID(hostname, username, protocol, daemonUID, isElevated);
 		this.hostname = hostname;
 		this.username = username;
 		this.protocol = protocol;
 	}
 	
-	public Session(int id, String hostname, String username, String protocol, String daemonUID) {
+	public Session(int id, String hostname, String username, String protocol, String daemonUID, boolean isElevated) {
 		this.id = id;
-		String uid = hostname+":"+username+":"+protocol+":"+daemonUID;
-		this.uid = uid;
+		this.uid = buildSessionUID(hostname, username, protocol, daemonUID, isElevated);
 		this.hostname = hostname;
 		this.username = username;
 		this.protocol = protocol;
 		this.daemonUID = daemonUID;
+	}
+	
+	public static String buildSessionUID(String hostname, String username, String protocol, String daemonUID, boolean isElevated) {
+		String uid = hostname+":"+username+":"+protocol;
+		if(isElevated) {
+			uid += ":HighIntegrity";
+		}
+		if(daemonUID != null) {
+			uid += ":"+daemonUID;
+		}
+		return uid;
 	}
 	
 	public void updateSessionContactTime() {
