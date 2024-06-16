@@ -12,7 +12,7 @@ The attack relies on the user setting the value of the HKCU:\Software\Classes\ms
 
 	Windows Event ID == 4657 AND
 	
-	Object Name LIKE \REGISTRY\USER\<ID regular expression>_Classes\ms-settings\Shell\Open\command
+	Object Name LIKE \REGISTRY\USER\"ID regular expression"_Classes\ms-settings\Shell\Open\command
 	
 ![Deletion](fod_helper.png)
 ## Cookie Harvest - "harvest_cookies" - macro
@@ -26,11 +26,11 @@ Two Windows events are helpful for detecting access for cookies. 4656 is generat
  
 	Windows Event ID == 4656 OR 4663 AND
 	
-	Object Name == <target cookie file> AND
+	Object Name == "target cookie file" AND
 	
-	Process Name != <target browser> AND
+	Process Name != "target browser" AND
 	
-	Process Name != <backup software solution>
+	Process Name != "your backup software solution"
 	
 ![Cookie Harvest](Cookie_access.png)	
 ## Outlook Harvest - "harvest_outlook" - macro
@@ -48,7 +48,7 @@ Outlook files are stored as .pst and .ost, both of which can be read to grab sto
 
 	Process Name != Outlook AND
 
-	Process Name != <backup software solution>
+	Process Name != "backup software solution"
 
 ## Cookie Deletion  - "delete_cookies" - macro
 1) Enable Audit object access "Success and Failure" for the system under the group policy
@@ -59,7 +59,7 @@ Outlook files are stored as .pst and .ost, both of which can be read to grab sto
 
 	Windows Event ID == 4656 AND
 
-	Process Name != Expected browser AND
+	Process Name != "Expected browser" AND
 
 	Accesses INCLUDES "DELETE"
 
@@ -76,7 +76,7 @@ At this time, I can only offer a modest fidelity detection which will detect the
 
 	Windows Event ID = 4688
 
-	Process Command Line LIKE "del <regular expression for spaces and arguments> $Recycle.Bin"
+	Process Command Line LIKE "del 'regular expression for spaces and arguments' $Recycle.Bin"
 
 ## Enumerate Users - "enumerate_users" - macro
 TheAllCommander uses the net command to enumerate users in a very simplistic enumeration strategy. The technique for monitoring for use of the net command for enumeration with the following rule requires that only a manageable pool of system administrators are using net for managing the user base. If the rights to perform these functions are permitted for nominal users, then this technique generates false notifications.
@@ -102,7 +102,7 @@ To augment this technique, it is wise to create a honeypot user account that no 
 
 	Windows Event ID = 4662
 
-	Account Name = <your honeypot>
+	Account Name = 'your honeypot'
 	
 Any time anyone performs domain or system wide enumeration, such as with "net user /domain", the user will be accessed and 4662 will be generated. This can, of course, still happen with nominal housekeeping, but it is much more granular than trying to track all accesses of "net". It is also more comprehensive, as techniques which bypass net to enumerate users will still be captured.
 
@@ -121,7 +121,7 @@ HKLM:\Software\Microsoft\Windows\CurrentVersion\Run
 
 	Windows Event ID == 4657 AND
 	
-	Object Name LIKE <each of the registry keys shown above>
+	Object Name LIKE 'each of the registry keys shown above'
 
 ## Windows Debug Key - "reg_debugger" macro
 HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\<process name> can be given a "Debugger" key, which will launch the evil process instead of the desired one. The Image File Execution Options keys should not be modified regularly, so watching them for access changes is a reasonable IOC.
