@@ -55,7 +55,7 @@ class WindowsPowerShellObfuscationModeTest {
 	@Test
 	void testNominalProcessing() {
 		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-		int id = io.addSession("fake", "fake", "fake");
+		int id = io.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 		
 		ExecutorService executor = Executors.newCachedThreadPool();
 		CommandClientToggleEmulator em = new CommandClientToggleEmulator();

@@ -123,7 +123,7 @@ public class DNSEndpointEmulator extends C2Interface {
 							daemonUID = args[4];
 							message = args[5];
 						}
-						Integer sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, daemonUID);
+						Integer sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, false, daemonUID);
 						io.updateSessionContactTime(sessionId);
 						
 						if (message.startsWith("<portForward>")) {

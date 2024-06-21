@@ -221,6 +221,7 @@ class LocalAgent:
 
 	def __init__(self):
 		self.daemonUID = self.makeUID();
+		self.isElevated = self.isElevatedWindowsProcess();
 
 	def makeUID(self):
 		letters = string.ascii_letters
@@ -734,6 +735,13 @@ class LocalAgent:
 		data = "TheAllCommander is executing a daemon test on your system. If you did not expect this test, please investigate this incident.".encode("ascii")
 		win32evtlogutil.ReportEvent(applicationName, eventID, eventCategory=category, 
 		eventType=myType, strings=descr, data=data, sid=my_sid)
+
+	def isElevatedWindowsProcess(self):
+		cmd_output = subprocess.Popen("net session 2>&1", shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8")
+		if "Access is denied." in cmd_output:
+			return False;
+		else:
+			return True;
 
 	def run(self, newLineAfterCmdOutput = False, autoScreenshot = True):
 		if platform.system() == 'Windows':

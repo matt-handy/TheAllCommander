@@ -22,37 +22,16 @@ import c2.session.CommandLoader;
 import c2.session.IOManager;
 import c2.session.log.IOLogger;
 import util.Time;
+import util.test.ClientServerTest;
+import util.test.IOManagerUserTest;
 import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
 
-class SpawnFodhelperElevatedSessionMacroTest {
-
-	
-	IOManager io;
-	int sessionId;
+class SpawnFodhelperElevatedSessionMacroTest extends IOManagerUserTest{
 
 	@BeforeEach
 	void setUp() throws Exception {
-		Path testPath = null;
-		if (TestConfiguration.getThisSystemOS() == OS.WINDOWS) {
-			testPath = Paths.get("config", "test.properties");
-		}else {
-			testPath = Paths.get("config", "test_linux.properties");
-		}
-		try (InputStream input = new FileInputStream(testPath.toFile())) {
-
-			Properties prop = new Properties();
-
-			// load a properties file
-			prop.load(input);
-
-			CommandLoader cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
-			io = new IOManager(new IOLogger(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH))), cl);
-
-			sessionId = io.addSession("noone", "testHost", "protocol");
-		} catch (IOException ex) {
-			System.out.println("Unable to load config file");
-		}
+		setUpManagerAndSession();
 	}
 
 	private class ClientStartCmdEmulator implements Runnable {
@@ -82,7 +61,7 @@ class SpawnFodhelperElevatedSessionMacroTest {
 		}
 
 	}
-	
+
 	@Test
 	void testDetectCommand() {
 		SpawnFodhelperElevatedSessionMacro macro = new SpawnFodhelperElevatedSessionMacro();
@@ -90,13 +69,13 @@ class SpawnFodhelperElevatedSessionMacroTest {
 		assertTrue(macro.isCommandMatch(SpawnFodhelperElevatedSessionMacro.COMMAND));
 		assertFalse(macro.isCommandMatch("bogus_cmd all"));
 	}
-	
+
 	@Test
 	void testNominalSendCommand() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io);
 		exec.submit(em);
-		
+
 		SpawnFodhelperElevatedSessionMacro macro = new SpawnFodhelperElevatedSessionMacro();
 		macro.initialize(io, null);
 		MacroOutcome outcome = macro.processCmd(SpawnFodhelperElevatedSessionMacro.COMMAND, sessionId, null);
@@ -104,11 +83,16 @@ class SpawnFodhelperElevatedSessionMacroTest {
 		assertEquals(7, outcome.getOutput().size());
 		assertEquals("Sent Command: '" + Commands.CLIENT_CMD_GET_EXE + "'", outcome.getOutput().get(0));
 		assertEquals("Received response: 'fakestart.exe" + System.lineSeparator() + "'", outcome.getOutput().get(1));
-		assertEquals("Sent Command: '" + SpawnFodhelperElevatedSessionMacro.NEW_ITEM_CMD + "'", outcome.getOutput().get(2));
-		assertEquals("Sent Command: '" + SpawnFodhelperElevatedSessionMacro.NEW_ITEM_PROP_CMD + "'", outcome.getOutput().get(3));
-		assertEquals("Sent Command: '" + SpawnFodhelperElevatedSessionMacro.SET_ITEM_PROP_CMD_A + "fakestart.exe" + SpawnFodhelperElevatedSessionMacro.SET_ITEM_PROP_CMD_B + "'", outcome.getOutput().get(4));
+		assertEquals("Sent Command: '" + SpawnFodhelperElevatedSessionMacro.NEW_ITEM_CMD + "'",
+				outcome.getOutput().get(2));
+		assertEquals("Sent Command: '" + SpawnFodhelperElevatedSessionMacro.NEW_ITEM_PROP_CMD + "'",
+				outcome.getOutput().get(3));
+		assertEquals("Sent Command: '" + SpawnFodhelperElevatedSessionMacro.SET_ITEM_PROP_CMD_A + "fakestart.exe"
+				+ SpawnFodhelperElevatedSessionMacro.SET_ITEM_PROP_CMD_B + "'", outcome.getOutput().get(4));
 		assertEquals("Sent Command: 'fodhelper.exe'", outcome.getOutput().get(5));
-		assertEquals("Macro Executor: 'Fodhelper engaged, new elevated session should be available if current user has elevated privs'", outcome.getOutput().get(6));
+		assertEquals(
+				"Macro Executor: 'Fodhelper engaged, new elevated session should be available if current user has elevated privs'",
+				outcome.getOutput().get(6));
 	}
 
 }

@@ -25,6 +25,29 @@ public class PowershellSocketReader extends SocketReader {
 		return sb.toString();
 	}
 	
+	public boolean isElevated(OutputStreamWriter bw) throws IOException {
+		OutputStreamWriterHelper.writeAndSend(bw, "net session 2>&1" + WindowsSocketReader.WINDOWS_LINE_SEP);
+		String groupListing = readUnknownLinesFromSocketWithTimeout(500);
+		
+		if (groupListing.contains("Access is denied.")) {
+			return false;
+		} else {
+			if(groupListing.contains("There are no entries in the list.") ||
+					groupListing.contains("User name")) {
+				return true;
+			}else {
+				groupListing = readUnknownLinesFromSocketWithTimeout(500);
+				
+				if (groupListing.contains("Access is denied.")) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+			
+		}
+	}
+	
 	@Override
 	public String readUnknownLinesFromSocketWithTimeout(long timeout) throws IOException {
 		String command = super.readUnknownLinesFromSocketWithTimeout(timeout);

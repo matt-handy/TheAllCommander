@@ -236,7 +236,7 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 								daemonUID = args[4];
 								message = args[5];
 							}
-							sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, daemonUID);
+							sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, false, daemonUID);
 						} else {
 							Session thisSession = io.getSession(sessionKey);
 							if(thisSession == null) {

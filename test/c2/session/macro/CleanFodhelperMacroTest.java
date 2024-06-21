@@ -19,18 +19,15 @@ import c2.session.CommandLoader;
 import c2.session.IOManager;
 import c2.session.log.IOLogger;
 import util.test.ClientServerTest;
+import util.test.IOManagerUserTest;
 import util.test.TestConfiguration;
 import util.test.TestConfiguration.OS;
 
-class CleanFodhelperMacroTest {
-
-	IOManager io;
-	int sessionId;
+class CleanFodhelperMacroTest extends IOManagerUserTest{
 
 	@BeforeEach
 	void setUp() throws Exception {
-		io = ClientServerTest.setupDefaultIOManager();
-		sessionId = io.addSession("noone", "testHost", "protocol");
+		setUpManagerAndSession();
 	}
 	
 	@Test

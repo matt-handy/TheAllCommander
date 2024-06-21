@@ -219,7 +219,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 
 	@Test
 	void testBasicHarvestCommandsIssuedAgainstHarness() {
-		int id = io.addSession("user", "host", "protocol");
+		int id = io.determineAndGetCorrectSessionId("user", "host", "protocol", false, null);
 
 		// Flush the command buffer
 		String cmd = io.pollCommand(id);
@@ -263,7 +263,7 @@ class OutlookHarvesterMacroTest extends ClientServerTest {
 
 	@Test
 	void testDeepHarvestSearchAndHarvestExecutedAgainstHarness() {
-		int id = io.addSession("user", "host", "protocol");
+		int id = io.determineAndGetCorrectSessionId("user", "host", "protocol", false, null);
 
 		// Flush the command buffer
 		String cmd = io.pollCommand(id);

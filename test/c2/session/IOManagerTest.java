@@ -38,7 +38,7 @@ class IOManagerTest {
 		try {
 			IOManager ioManager = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
 			
-			int id = ioManager.addSession("fake", "fake", "fake");
+			int id = ioManager.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 
 			assertEquals(id, 2);
 			assertEquals(ioManager.getSessionId("fake:fake:fake"), 2);
@@ -55,7 +55,7 @@ class IOManagerTest {
 			
 			assertEquals(ioManager.pollIO(id), null);
 			
-			id = ioManager.addSession("afake", "afake", "afake");
+			id = ioManager.determineAndGetCorrectSessionId("afake", "afake", "afake", false, null);
 			assertEquals(id, 3);
 			assertEquals(ioManager.getSessionId("afake:afake:afake"), 3);
 			
@@ -75,7 +75,7 @@ class IOManagerTest {
 	@Test
 	void testAwaitMultilineCommands() {
 		IOManager ioManager = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-		int id = ioManager.addSession("fake", "otherfake", "moarfake");
+		int id = ioManager.determineAndGetCorrectSessionId("fake", "otherfake", "moarfake", false, null);
 		assertEquals(2, id);
 		String val = ioManager.awaitMultilineCommands(2);
 		assertEquals("", val);
@@ -100,7 +100,7 @@ class IOManagerTest {
 			ioManager.sendIO(3, "Stuff");
 		});
 
-		int id = ioManager.addSession("fake", "otherfake", "moarfake");
+		int id = ioManager.determineAndGetCorrectSessionId("fake", "otherfake", "moarfake", false, null);
 		assertEquals(id, 2);
 
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
@@ -120,7 +120,7 @@ class IOManagerTest {
 	@Test
 	void testPortForwardQueues() {
 		IOManager ioManager = new IOManager(new IOLogger(Paths.get("test", "log")), new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-		int id = ioManager.addSession("fake", "fake", "fake");
+		int id = ioManager.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 		ioManager.forwardTCPTraffic(id, REMOTE_FORWARD_NAME, "This is a test string");
 		String forwardedData = ioManager.grabForwardedTCPTraffic(id, REMOTE_FORWARD_NAME);
 		assertEquals("This is a test string", forwardedData);

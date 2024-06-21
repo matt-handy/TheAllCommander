@@ -24,6 +24,29 @@ public class WindowsSocketReader extends SocketReader {
 		super(socket, br, true);
 		super.usesDollarSigns = false;
 	}
+	
+	public boolean isElevated(OutputStreamWriter bw) throws IOException {
+		OutputStreamWriterHelper.writeAndSend(bw, "net session 2>&1");
+		String groupListing = readUnknownLinesFromSocketWithTimeout(500);
+		
+		if (groupListing.contains("Access is denied.")) {
+			return false;
+		} else {
+			if(groupListing.contains("There are no entries in the list.") ||
+					groupListing.contains("User name")) {
+				return true;
+			}else {
+				groupListing = readUnknownLinesFromSocketWithTimeout(500);
+				
+				if (groupListing.contains("Access is denied.")) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+			
+		}
+	}
 
 	private String processSocketRead(String command) throws IOException {
 		// System.out.println("Read: -" + command + "-");

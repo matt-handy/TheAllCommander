@@ -29,7 +29,7 @@ class LocalPortListenerTest {
 	void test() {
 		IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 				new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-		int testSessionId = io.addSession("fake", "fake", "fake");
+		int testSessionId = io.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 		LocalPortListener listener = new LocalPortListener(io, testSessionId, REMOTE_FORWARD_NAME, LOCAL_LISTEN_PORT);
 		ExecutorService service = Executors.newFixedThreadPool(2);
 		service.submit(listener);

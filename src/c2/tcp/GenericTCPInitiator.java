@@ -8,7 +8,6 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -74,6 +73,8 @@ public class GenericTCPInitiator extends C2Interface {
 		}
 	}
 	
+	
+	
 	@Override
 	public void run() {
 		try {
@@ -118,11 +119,13 @@ public class GenericTCPInitiator extends C2Interface {
 						lines = username.split(System.lineSeparator());
 						username = lines[0];
 
-						String sessionUID = hostname + ":" + username + ":Native" + os;
-						Integer sessionId = ioManager.getSessionId(sessionUID);
-						if (sessionId == null) {
-							sessionId = ioManager.addSession(username, hostname, "Native");
-						}
+						boolean isElevated = wsr.isElevated(bw);
+						
+						System.out.println("Elevated: " + isElevated);
+						
+						String sessionUID = hostname + ":" + username + ":Native" + os + ":" + isElevated;
+						int sessionId = ioManager.determineAndGetCorrectSessionId(hostname, username, "Native" + os, isElevated, sessionUID);
+						ioManager.updateSessionContactTime(sessionId);
 						TCPShellHandler shellHandler = new TCPShellHandler(ioManager, wsr, newSession, sessionId,
 								hostname, username, lz, OS.WINDOWS);
 						service.submit(shellHandler);
@@ -171,12 +174,11 @@ public class GenericTCPInitiator extends C2Interface {
 		username = username.replace(System.lineSeparator(), "");
 		username = username.replace(Constants.NEWLINE, "");
 		
+		boolean isElevated = lsr.isElevated(bw);
 		String osLabel = "PowershellWindows";
-		String sessionUID = hostname + ":" + username + ":" + osLabel;
-		Integer sessionId = ioManager.getSessionId(sessionUID);
-		if (sessionId == null) {
-			sessionId = ioManager.addSession(username, hostname, osLabel);
-		}
+		String sessionUID = hostname + ":" + username + ":" + osLabel + ":" + isElevated;
+		int sessionId = ioManager.determineAndGetCorrectSessionId(hostname, username, "Native" + os, isElevated, sessionUID);
+		ioManager.updateSessionContactTime(sessionId);
 		TCPShellHandler shellHandler = new TCPShellHandler(ioManager, lsr, s, sessionId, hostname, username, lz,
 				os);
 		service.submit(shellHandler);
@@ -205,10 +207,8 @@ public class GenericTCPInitiator extends C2Interface {
 		}
 		
 		String sessionUID = hostname + ":" + username + ":" + osLabel;
-		Integer sessionId = ioManager.getSessionId(sessionUID);
-		if (sessionId == null) {
-			sessionId = ioManager.addSession(username, hostname, osLabel);
-		}
+		int sessionId = ioManager.determineAndGetCorrectSessionId(hostname, username, "Native" + os, false, sessionUID);
+		ioManager.updateSessionContactTime(sessionId);
 		TCPShellHandler shellHandler = new TCPShellHandler(ioManager, lsr, s, sessionId, hostname, username, lz,
 				os);
 		service.submit(shellHandler);

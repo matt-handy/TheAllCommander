@@ -318,7 +318,7 @@ class UserEnumeratorTest {
 		CommandLoader cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
 		io = new IOManager(new IOLogger(Paths.get(properties.getProperty(Constants.HUBLOGGINGPATH))), cl);
 		TestCommons.cleanFileHarvesterDir();
-		id = io.addSession("user", "host", "protocol");
+		id = io.determineAndGetCorrectSessionId("user", "host", "protocol", false, null);
 
 		// Flush the command buffer
 		String cmd = io.pollCommand(id);

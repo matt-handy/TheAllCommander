@@ -13,11 +13,14 @@ import org.junit.jupiter.api.Test;
 import c2.session.IOManager;
 import util.Time;
 import util.test.ClientServerTest;
+import util.test.IOManagerUserTest;
 
-class WindowsLogDeleterMacroTest {
+class WindowsLogDeleterMacroTest extends IOManagerUserTest{
 
-	IOManager io;
-	int sessionId;
+	@BeforeEach
+	void setUp() throws Exception {
+		setUpManagerAndSession();
+	}
 
 	private class ClientElevatedResponseEmulator implements Runnable {
 
@@ -53,11 +56,8 @@ class WindowsLogDeleterMacroTest {
 
 	}
 
-	@BeforeEach
-	void setUp() throws Exception {
-		io = ClientServerTest.setupDefaultIOManager();
-		sessionId = io.addSession("noone", "testHost", "protocol");
-	}
+	
+	
 
 	@Test
 	void testMacroCmdStringMatch() {

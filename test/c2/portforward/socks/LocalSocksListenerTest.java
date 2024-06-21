@@ -28,7 +28,7 @@ class LocalSocksListenerTest {
 			// System.out.println("testHostnameSocksToDaemon");
 			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 					new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-			io.addSession("fake", "fake", "fake");
+			io.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 			ExecutorService service = Executors.newCachedThreadPool();
 
 			Random rnd = new Random();
@@ -117,7 +117,7 @@ class LocalSocksListenerTest {
 			// System.out.println("testStandardIpv4SocksToDaemon");
 			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 					new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-			io.addSession("fake", "fake", "fake");
+			io.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 			ExecutorService service = Executors.newCachedThreadPool();
 
 			Random rnd = new Random();
@@ -177,7 +177,7 @@ class LocalSocksListenerTest {
 			// System.out.println("testDaemonConnectionBrokenWithServer");
 			IOManager io = new IOManager(new IOLogger(Paths.get("test", "log")),
 					new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>()));
-			io.addSession("fake", "fake", "fake");
+			io.determineAndGetCorrectSessionId("fake", "fake", "fake", false, null);
 			ExecutorService service = Executors.newCachedThreadPool();
 
 			Random rnd = new Random();

@@ -1,9 +1,6 @@
 package c2.session.macro;
 
-import java.util.Properties;
-
 import c2.HarvestProcessor;
-import c2.KeyloggerProcessor;
 import c2.session.IOManager;
 
 public abstract class AbstractCommandMacro {

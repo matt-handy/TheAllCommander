@@ -70,3 +70,7 @@ Support for client telemetry gathering
 Windows 11 Test suite support
 
 PyInstaller and Windows service installation for Python daemons - Alpha Release
+
+# Release 2.1.1 - June 2024
+
+Add CMSTP UAC bypass macro and Winlogon persistence macro

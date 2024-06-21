@@ -29,6 +29,7 @@ public class TestConfiguration {
 	private String serverConfigFile = "test.properties";
 	private boolean isRemote = false;
 
+
 	public boolean isExecInRoot() {
 		return execInRoot;
 	}

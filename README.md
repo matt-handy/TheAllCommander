@@ -237,6 +237,14 @@ add_hidden_user <optional - username> <optional - password>
 
 	This command, with no arguments, will generate a random user string and password, with the final character being '$' and creates the account via the Win32 API and with the UF_WORKSTATION_TRUST_ACCOUNT flag. This makes the user account unseen by "net user", so it is more stealthy and the baseline user creation techniques. If invoked with one argument, it will use the argument as the password. The user can also specify a username without the trailing '$'. TheAllCommander will honor that username, however it will post a warning. This feature is inspired by https://github.com/Ben0xA/DoUCMe  
 	
+cmstp_uac <optional - executable name>
+
+	This macro will place a .inf file in the C:\\Windows\\Tasks directory that, when passed as an argument to CMSTP, will invoke a copy of the daemon running with Administrator privs. There is a user prompt, and TheAllCommander will detect when this prompt launches and order it to complete without further user interaction.
+
+winlogon_persist
+
+	Amendment of the Winlogon registry key will result in Windows starting an instance of the daemon every time a user logs in, in addition to the default shell (explorer.exe).
+	
 ### Enumeration
 
 enum_av
