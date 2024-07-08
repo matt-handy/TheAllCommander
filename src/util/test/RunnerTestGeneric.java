@@ -1,6 +1,8 @@
 package util.test;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -220,15 +222,15 @@ public class RunnerTestGeneric {
 		bw.write("dir" + System.lineSeparator());
 		bw.flush();
 		String output = br.readLine();
-		assertEquals(output, " Volume in drive C is OS");
+		assertEquals(" Volume in drive C is OS", output);
 		output = br.readLine();
 		assertTrue(output.startsWith(" Volume Serial Number is "));
 		output = br.readLine();
-		assertEquals(output, "");
+		assertEquals("", output);
 		output = br.readLine();
-		assertEquals(output, " Directory of " + Paths.get("").toAbsolutePath().toString());
+		assertEquals(" Directory of " + Paths.get("").toAbsolutePath().toString(), output);
 		output = br.readLine();
-		assertEquals(output, "");
+		assertEquals("", output);
 		output = br.readLine();
 		assertTrue(output.contains("<DIR>          ."));
 		output = br.readLine();
@@ -248,7 +250,7 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		assertTrue(output.contains("bytes free"));
 		output = br.readLine();
-		assertEquals(output, "");
+		assertEquals("", output);
 	}
 
 	static void testAddHiddenUsersError(BufferedReader br, OutputStreamWriter bw, String lang) throws IOException {
@@ -386,6 +388,14 @@ public class RunnerTestGeneric {
 				assertEquals(output, "Daemon alive");
 			}
 
+			//These functions are meant to support service based testing, which is not a goal of Java support
+			if(!config.lang.equals("Java")) {
+				testCpMv(br, bw, config);
+				testLs(br, bw, config);
+				testMkdirRmdir(br, bw, config);
+				testRmDel(br, bw, config);
+			}
+			
 			if (config.isExecInRoot()) {
 				System.out.println("cd test");
 				bw.write("cd test" + System.lineSeparator());
@@ -720,14 +730,9 @@ public class RunnerTestGeneric {
 		output = br.readLine();
 		assertEquals(
 				"<control> uplinked test_uplink PFByb2plY3QgVG9vbHNWZXJzaW9uPSI0LjAiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2RldmVsb3Blci9tc2J1aWxkLzIwMDMiPgogIDxUYXJnZXQgTmFtZT0iSGVsbG8iPgogICAgPFNpbXBsZVRhc2sxIE15UHJvcGVydHk9IkhlbGxvISIgLz4KICA8L1RhcmdldD4KICA8VXNpbmdUYXNrCiAgICBUYXNrTmFtZT0iU2ltcGxlVGFzazEuU2ltcGxlVGFzazEiCiAgICBBc3NlbWJseUZpbGU9Im15X3Rhc2suZGxsIiAvPgo8L1Byb2plY3Q+", output);
-		if (config.os == OS.WINDOWS) {
-			OutputStreamWriterHelper.writeAndSend(bw, "del test_uplink");
-		} else {
-			OutputStreamWriterHelper.writeAndSend(bw, "rm test_uplink");
-		}
-		if (!config.lang.equals("Native") && !config.lang.equals("PowershellWindows")) {
-			System.out.println("Reading blank confirmation");
-			output = br.readLine();// Blank line
+		OutputStreamWriterHelper.writeAndSend(bw, "rm test_uplink");
+		if(config.lang.equalsIgnoreCase("Java")) {
+			br.readLine();//Flush line ending
 		}
 	}
 
@@ -933,7 +938,8 @@ public class RunnerTestGeneric {
 				bw.write("rm 'test file'" + System.lineSeparator());
 			}
 			bw.flush();
-			if (!config.lang.equals("Native") && !config.lang.equals("PowershellWindows")) {
+			//TODO eliminate line flush from Python implementation
+			if (!config.lang.equals("Native") && !config.lang.equals("PowershellWindows") && !config.lang.equals("C++")) {
 				output = br.readLine();// Blank line
 			}
 
@@ -1088,6 +1094,151 @@ public class RunnerTestGeneric {
 			}
 		}
 	}
+	
+	static void testCpMv(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		//If this doesn't work, it can be validated in a local test. Or someone can enhance it for remote testing
+		if(!config.isRemote()) {
+			System.out.println("Testing cp and mv");
+			OutputStreamWriterHelper.writeAndSend(bw, "cat >narf.txt");
+			OutputStreamWriterHelper.writeAndSend(bw, "test");
+			OutputStreamWriterHelper.writeAndSend(bw, "<done>");
+			assertEquals("Data written", br.readLine(), "Did not get positive response for writing sample data, cp and mv test");
+			assertTrue(Files.exists(Paths.get("narf.txt")), "Narf is not written");
+		
+			OutputStreamWriterHelper.writeAndSend(bw, "mv narf.txt barf.txt");
+			Time.sleepWrapped(2500);//mv provides no return data
+			assertFalse(Files.exists(Paths.get("narf.txt")), "Original test file still there");
+			assertTrue(Files.exists(Paths.get("barf.txt")), "Renamed test file not present");
+			if(config.lang.equals("Native") && config.os == OS.WINDOWS) {
+				assertTrue(br.readLine().contains("1 file(s) moved"), "Windows shell 'MOVE' not returned");
+			}
+			
+			OutputStreamWriterHelper.writeAndSend(bw, "cp barf.txt narf.txt");
+			Time.sleepWrapped(2500);//mv provides no return data
+			assertTrue(Files.exists(Paths.get("narf.txt")), "Copied file not present");
+			assertTrue(Files.exists(Paths.get("barf.txt")), "Original file for copy operation not present");
+			if(config.lang.equals("Native") && config.os == OS.WINDOWS) {
+				assertTrue(br.readLine().contains("1 file(s) copied"), "Windows shell 'MOVE' not returned");
+			}
+			
+			assertDoesNotThrow(() -> Files.delete(Paths.get("narf.txt")));
+			assertDoesNotThrow(() -> Files.delete(Paths.get("barf.txt")));
+		}
+	}
+	
+	static void testRmDel(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		System.out.println("Testing del and rm");
+		OutputStreamWriterHelper.writeAndSend(bw, "cat >narf.txt");
+		OutputStreamWriterHelper.writeAndSend(bw, "test");
+		OutputStreamWriterHelper.writeAndSend(bw, "<done>");
+		assertEquals("Data written", br.readLine());
+		assertTrue(Files.exists(Paths.get("narf.txt")), "Narf is not written");
+		OutputStreamWriterHelper.writeAndSend(bw, "rm narf.txt");
+		
+		int idx = 0;
+		//Wait for 30 seconds max
+		while((idx < 300) && Files.exists(Paths.get("narf.txt"))){
+			Time.sleepWrapped(100);//rm provides no return data
+			idx++;
+		}	
+		
+		assertFalse(Files.exists(Paths.get("narf.txt")), "Narf is not deleted");
+		OutputStreamWriterHelper.writeAndSend(bw, "cat >narf.txt");
+		OutputStreamWriterHelper.writeAndSend(bw, "test");
+		OutputStreamWriterHelper.writeAndSend(bw, "<done>");
+		assertEquals("Data written", br.readLine());
+		assertTrue(Files.exists(Paths.get("narf.txt")), "Narf is not written");
+		OutputStreamWriterHelper.writeAndSend(bw, "del narf.txt");
+		idx = 0;
+		//Wait for 30 seconds max
+		while((idx < 300) && Files.exists(Paths.get("narf.txt"))){
+			Time.sleepWrapped(100);//rm provides no return data
+			idx++;
+		}	
+		assertFalse(Files.exists(Paths.get("narf.txt")), "Narf is not deleted");
+		
+		//Native shells don't always reflect std:err
+		if(!config.lang.equals("Native")) {
+			OutputStreamWriterHelper.writeAndSend(bw, "del i_dont_exist");
+			String output = br.readLine();
+			assertTrue(output.contains("Error") || output.contains("error") || output.contains("Could Not Find") || output.contains("File does not exist, cannot remove"), "Did not receive correct file deletion error message");
+			OutputStreamWriterHelper.writeAndSend(bw, "rm i_dont_exist");
+			output = br.readLine();
+			assertTrue(output.contains("Error") || output.contains("error") || output.contains("Could Not Find") || output.contains("File does not exist, cannot remove"), "Did not receive correct file deletion error message");
+		}
+	}
+	
+	static void testLs(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		if(!config.lang.equals("Native") && !config.lang.equals("PowershellNative")) {
+			System.out.println("Testing standardized ls");
+			DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			//OutputStreamWriterHelper.writeAndSend(bw, "cd agents");
+			//br.readLine();//Flush pwd return
+			OutputStreamWriterHelper.writeAndSend(bw, "ls config");
+			String headerStr = br.readLine().replaceAll("\\s+", " ");
+			String[] headers = headerStr.split(" ");
+			assertEquals(6, headers.length, "Incorrect header length: '" + headerStr + "'");
+			assertEquals("Mode", headers[0]);
+			assertEquals("Last", headers[1]);
+			assertEquals("Write", headers[2]);
+			assertEquals("Time", headers[3]);
+			assertEquals("Length", headers[4]);
+			assertEquals("Name", headers[5]);
+			
+			boolean moreLinesExist = true;
+			while(moreLinesExist) {
+				String nextLine = br.readLine().replaceAll("\\s+", " ");
+				if(nextLine.equals("")) {
+					moreLinesExist = false;
+				}else {
+					String[] contents = nextLine.split(" ");
+					if(contents[0].equals("d")) {
+						assertEquals(4, contents.length, "Did not observe 4 elements in: '" + nextLine + "'");
+					}else {
+						assertEquals(5, contents.length, "Did not observe 5 elements in: '" + nextLine + "'");
+						assertDoesNotThrow(() -> Integer.parseInt(contents[3]));
+					}
+					assertTrue(contents[0].equals("d") || contents[0].equals("-"));
+					assertDoesNotThrow(() -> f.parse(contents[1] + " " + contents[2]));
+				}
+			}
+			
+		}
+	}
+	
+	static void testMkdirRmdir(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
+		System.out.println("Testing rm/mk dir");
+		OutputStreamWriterHelper.writeAndSend(bw, "mkdir narf");
+		
+		int idx = 0;
+		//Wait for 30 seconds max
+		while((idx < 300) && !Files.exists(Paths.get("narf"))){
+			Time.sleepWrapped(100);//mkdir provides no return data
+			idx++;
+		}
+		
+		assertTrue(Files.exists(Paths.get("narf")), "Test dir not created");
+		if(!config.lang.equals("Native")) {
+			OutputStreamWriterHelper.writeAndSend(bw, "mkdir narf");
+			String output = br.readLine();
+			assertTrue(output.contains("error") || output.contains("Error") || output.contains("already exists") || output.contains("Unable to create directory"), "Did not receive error message from mkdir command");
+		}
+		OutputStreamWriterHelper.writeAndSend(bw, "rmdir narf");
+		
+		idx = 0;
+		//Wait for 30 seconds max
+		while((idx < 300) && Files.exists(Paths.get("narf"))){
+			Time.sleepWrapped(100);//rkdir provides no return data
+			idx++;
+		}
+		
+		assertFalse(Files.exists(Paths.get("narf")), "Test dir not removed");
+		if(!config.lang.equals("Native")) {
+			OutputStreamWriterHelper.writeAndSend(bw, "rmdir narf");
+			String output = br.readLine();
+			assertTrue(output.contains("error") || output.contains("Error") || output.contains("cannot find") || output.contains("Directory does not exist, cannot remove"), "Did not receive error message from rmdir command");
+		}
+	}
 
 	static void testCat(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException {
 		// Test simple CAT reading a file
@@ -1150,6 +1301,7 @@ public class RunnerTestGeneric {
 
 			// Minimum beacon time
 			try {
+				//TODO Evaluate if this beacon time can be deprecated
 				Thread.sleep(2500);
 			} catch (InterruptedException ex) {
 				// ignore

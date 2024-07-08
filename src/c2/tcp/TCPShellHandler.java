@@ -321,6 +321,21 @@ public class TCPShellHandler implements Runnable {
 					ioManager.sendIO(sessionId, "Invalid download directive" + System.lineSeparator());
 				}
 			}
+		}else if(nextCommand.startsWith(Commands.CLIENT_CMD_RM)) {
+			String cmdMod = nextCommand.replaceFirst(Commands.CLIENT_CMD_RM + " ", Commands.CLIENT_CMD_DEL + " ");
+			bw.write(cmdMod);
+			bw.write(WindowsSocketReader.WINDOWS_LINE_SEP);
+			bw.flush();
+		}else if(nextCommand.startsWith(Commands.CLIENT_CMD_COPY + " ")) {
+			String cmdMod = nextCommand.replaceFirst(Commands.CLIENT_CMD_COPY + " ", "copy ");
+			bw.write(cmdMod);
+			bw.write(WindowsSocketReader.WINDOWS_LINE_SEP);
+			bw.flush();
+		}else if(nextCommand.startsWith(Commands.CLIENT_CMD_MOVE + " ")) {
+			String cmdMod = nextCommand.replaceFirst(Commands.CLIENT_CMD_MOVE + " ", "move ");
+			bw.write(cmdMod);
+			bw.write(WindowsSocketReader.WINDOWS_LINE_SEP);
+			bw.flush();
 		}else if(nextCommand.equals(Commands.CLIENT_CMD_HARVEST_CURRENT_DIRECTORY)) {
 			String pwd = lsr.getPwd(bw, sessionId);
 			harvest.harvestPwd(pwd);

