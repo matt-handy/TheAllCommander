@@ -16,7 +16,6 @@ from datetime import timezone
 import queue
 import shlex
 import ctypes
-import shlex
 import shutil
 
 import pyautogui
