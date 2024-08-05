@@ -21,6 +21,13 @@ Since this UAC bypass presents a visible "blip" on the screen, many defensive so
 
 Recommendation: cmstp.exe will not usually run on end-user systems. MITRE recommends disabling it on endpoints if possible. If it cannot be removed, your SIEM should be set up to monitor if it is invoked, and what arguments are selected. (https://attack.mitre.org/techniques/T1218/003/). In addition to recommending comparison of cmstp invocation against prior logs like MITRE does, I would suggest explicit whitelisting of known good configurations for cmstp to be using. Since the purpose of cmstp is to push configurations out, theoretically those configurations have gone through configuration management review and are baselined to be used in a production environment. 
 
+## SDCLT Registry Key UAC Bypass
+This UAC bypass utilizes the HKCU\\Software\\Classes\\Folder\\shell\\open\\command registry key by writing a an executable command which is launched in place of sdclt as high integrity. Windows Defender monitors this registry key, and as of Windows 11 any commands that include cmd.exe or python will be blocked. However, testing has shown that other executables like calc.exe are flagged as potentially harmful, and yet Defender lets them through.
+
+Recommendation: In addition to paying attention to Windows Defender's own events, a SIEM should monitor any writes to this registry key and flag any modifications as a strong IOC. 
+
+Reference: http://blog.sevagas.com/?Yet-another-sdclt-UAC-bypass
+
 ## Cookie Harvest - "harvest_cookies" - macro
 Two Windows events are helpful for detecting access for cookies. 4656 is generated when a process requests access to an object, and 4663 is generated when the process actually accesses the object. Turning on this sort of auditing is excessively noisy unless very finely calibrated, as there is the potential to log every time that any process accesses any file or object. This will overwhelm most storage systems quickly, and SIEM license caps can be exceeded quickly. These instructions are calibrated to audit only the files specifically used for cookies.
 

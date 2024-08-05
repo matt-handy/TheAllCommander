@@ -111,7 +111,6 @@ public class CmstpUacBypasserMacro extends AbstractCommandMacro{
 		String clientCmd = null;
 		if(cmd.startsWith(CMD) && !cmd.equals(CMD)) {
 			clientCmd = cmd.substring(CMD.length() + 1);
-			System.out.println("Processing with cmd: " + clientCmd);
 		}else {
 			sendCommand(Commands.CLIENT_CMD_GET_EXE, sessionId, outcome);
 			clientCmd = awaitResponse(sessionId, outcome);
