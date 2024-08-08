@@ -7,7 +7,7 @@ TheAllCommander 2.0 released January 2024 contains major new features, see [Chan
 
 TheAllCommander 2.1 (April 2024) includes support for logging telemetry data gathered from test daemons, as well as alpha support for PyInstaller deployment and installation as a Windows service (see below)
 
-Featured in DEFCON Demolabs 2022!!!!
+Featured in: DEFCON Demolabs 2022 and 2024, Black Hat USA Arsenal 2024
 
 Development blog: http://matthandy.net/TAC-development.html
 
