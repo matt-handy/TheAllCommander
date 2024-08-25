@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
@@ -14,6 +13,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,57 @@ import util.test.TestConstants;
 
 class WindowsPrivescCVETest extends ClientServerTest {
 
+	private static final String NO_CVE_SYSTEMINFO= "Host Name:                 ANDURIL\r\n"
+			+ "OS Name:                   Microsoft Windows 11 Home\r\n"
+			+ "OS Version:                10.0.22631 N/A Build 22631\r\n"
+			+ "OS Manufacturer:           Microsoft Corporation\r\n"
+			+ "OS Configuration:          Standalone Workstation\r\n"
+			+ "OS Build Type:             Multiprocessor Free\r\n"
+			+ "Registered Owner:          noone@gmail.com\r\n"
+			+ "Registered Organization:   N/A\r\n"
+			+ "Product ID:                00342-21134-16801-AAOEM\r\n"
+			+ "Original Install Date:     3/10/2024, 4:27:10 PM\r\n"
+			+ "System Boot Time:          8/23/2024, 11:24:10 PM\r\n"
+			+ "System Manufacturer:       Alienware\r\n"
+			+ "System Model:              Alienware m18 R1 AMD\r\n"
+			+ "System Type:               x64-based PC\r\n"
+			+ "Processor(s):              1 Processor(s) Installed.\r\n"
+			+ "                           [01]: AMD64 Family 25 Model 97 Stepping 2 AuthenticAMD ~2501 Mhz\r\n"
+			+ "BIOS Version:              Alienware 1.13.1, 4/23/2024\r\n"
+			+ "Windows Directory:         C:\\Windows\r\n"
+			+ "System Directory:          C:\\Windows\\system32\r\n"
+			+ "Boot Device:               \\Device\\HarddiskVolume1\r\n"
+			+ "System Locale:             en-us;English (United States)\r\n"
+			+ "Input Locale:              en-us;English (United States)\r\n"
+			+ "Time Zone:                 (UTC-05:00) Eastern Time (US & Canada)\r\n"
+			+ "Total Physical Memory:     31,937 MB\r\n"
+			+ "Available Physical Memory: 15,622 MB\r\n"
+			+ "Virtual Memory: Max Size:  37,057 MB\r\n"
+			+ "Virtual Memory: Available: 10,473 MB\r\n"
+			+ "Virtual Memory: In Use:    26,584 MB\r\n"
+			+ "Page File Location(s):     C:\\pagefile.sys\r\n"
+			+ "Domain:                    WORKGROUP\r\n"
+			+ "Logon Server:              \\\\HOSTNAME\r\n"
+			+ "Hotfix(s):                 6 Hotfix(s) Installed.\r\n"
+			+ "                           [01]: KB5042099\r\n"
+			+ "                           [02]: KB5027397\r\n"
+			+ "                           [03]: KB5031274\r\n"
+			+ "                           [04]: KB5036212\r\n"
+			+ "                           [05]: KB5041585\r\n"
+			+ "                           [06]: KB5041584\r\n"
+			+ "Network Card(s):           2 NIC(s) Installed.\r\n"
+			+ "                           [01]: Realtek Gaming 2.5GbE Family Controller\r\n"
+			+ "                                 Connection Name: Ethernet\r\n"
+			+ "                                 Status:          Media disconnected\r\n"
+			+ "                           [02]: VirtualBox Host-Only Ethernet Adapter\r\n"
+			+ "                                 Connection Name: Ethernet 2\r\n"
+			+ "                                 DHCP Enabled:    No\r\n"
+			+ "                                 IP address(es)\r\n"
+			+ "                                 [01]: 192.168.56.1\r\n"
+			+ "                                 [02]: fe80::d5b9:7bc6:87ef:1271\r\n"
+			+ "Hyper-V Requirements:      A hypervisor has been detected. Features required for Hyper-V will not be displayed.\r\n"
+			+ "";
+	
 	IOManager io;
 	int sessionId;
 
@@ -55,6 +107,56 @@ class WindowsPrivescCVETest extends ClientServerTest {
 		teardown();
 	}
 
+	private class ClientStartCmdEmulator implements Runnable {
+
+		private IOManager session;
+		private int sessionId;
+		private boolean alive = true;
+		private boolean giveMSValues;
+
+		public ClientStartCmdEmulator(int sessionid, IOManager session, boolean giveMSValues) {
+			this.session = session;
+			this.sessionId = sessionid;
+			this.giveMSValues = giveMSValues;
+		}
+
+		public void run() {
+			while (alive) {
+				String command = session.pollCommand(sessionId);
+				if (command == null) {
+					// continue
+					Time.sleepWrapped(10);
+				}else if(command.equalsIgnoreCase(WindowsConstants.SYSTEMINFO_CMD)) {
+					if(giveMSValues) {
+						session.sendIO(sessionId, NO_CVE_SYSTEMINFO);
+					}else {
+						session.sendIO(sessionId, WindowsPatchLevelCVECheckerTest.SAMPLE_SYSTEMINFO_CVE_2019_0836);
+					}
+				} else {
+					//We got the command for the first FileInfoCall. We can close now after sending results.
+					if(giveMSValues) {
+						//We want to trigger the warning for MS10-092 and MS14-058
+						session.sendIO(sessionId, "7600\r\n");
+						session.sendIO(sessionId, "18000\r\n");
+						session.sendIO(sessionId, "7600\r\n");
+						session.sendIO(sessionId, "18000\r\n");
+						session.sendIO(sessionId, "Pretend powershell error\r\n");
+					}else {
+						//These numbers don't really matter when we aren't trying to trigger the vuln detection
+						session.sendIO(sessionId, "22631\r\n");
+						session.sendIO(sessionId, "22631\r\n");
+						session.sendIO(sessionId, "22631\r\n");
+						session.sendIO(sessionId, "22631\r\n");
+						session.sendIO(sessionId, "Pretend powershell error\r\n");
+					}
+					
+					alive = false;
+				}
+			}
+		}
+
+	}
+	
 	@Test
 	void testDetectsCommand() {
 		WindowsPrivescCVE macro = new WindowsPrivescCVE();
@@ -65,7 +167,10 @@ class WindowsPrivescCVETest extends ClientServerTest {
 
 	@Test
 	void testGivesCorrectCVEAudit() {
-		io.sendIO(sessionId, WindowsPatchLevelCVECheckerTest.SAMPLE_SYSTEMINFO_CVE_2019_0836);
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, false);
+		exec.submit(em);
+		
 		WindowsPrivescCVE macro = new WindowsPrivescCVE();
 		macro.initialize(io, null);
 
@@ -73,7 +178,27 @@ class WindowsPrivescCVETest extends ClientServerTest {
 		assertEquals(1, outcome.getAuditFindings().size());
 		assertEquals("Audit Finding: 'Applicable CVE: CVE-2019-0836'", outcome.getAuditFindings().get(0));
 		assertEquals(1, outcome.getOutput().size());
-		assertEquals("Audit Finding: 'Applicable CVE: CVE-2019-0836'", outcome.getAuditFindings().get(0));
+		assertEquals("Audit Finding: 'Applicable CVE: CVE-2019-0836'", outcome.getOutput().get(0));
+	}
+	
+	@Test
+	void testGivesCorrectMSAudit() {
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true);
+		exec.submit(em);
+		
+		WindowsPrivescCVE macro = new WindowsPrivescCVE();
+		macro.initialize(io, null);
+
+		MacroOutcome outcome = macro.processCmd(WindowsPrivescCVE.CMD, sessionId, "ignored");
+		assertEquals(3, outcome.getAuditFindings().size());
+		assertEquals("Audit Finding: 'Applicable Vulnerability: MS10-092'", outcome.getAuditFindings().get(0));
+		assertEquals("Audit Finding: 'Applicable Vulnerability: MS14-058'", outcome.getAuditFindings().get(1));
+		assertEquals("Audit Finding: 'Applicable Vulnerability: MS15-051'", outcome.getAuditFindings().get(2));
+		assertEquals(3, outcome.getOutput().size());
+		assertEquals("Audit Finding: 'Applicable Vulnerability: MS10-092'", outcome.getOutput().get(0));
+		assertEquals("Audit Finding: 'Applicable Vulnerability: MS14-058'", outcome.getOutput().get(1));
+		assertEquals("Audit Finding: 'Applicable Vulnerability: MS15-051'", outcome.getOutput().get(2));
 	}
 
 	@Test
