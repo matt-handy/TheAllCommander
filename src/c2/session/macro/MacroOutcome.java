@@ -7,6 +7,7 @@ public class MacroOutcome {
 	
 	private List<String> errors = new ArrayList<>();
 	private List<String> outputLines = new ArrayList<>();
+	private List<String> auditFindings = new ArrayList<>();
 	
 	/**
 	* This method returns true if the MacroOutcome contains any errors. 
@@ -36,6 +37,15 @@ public class MacroOutcome {
 		return outputLines;
 	}
 
+	/**
+	 * This method returns a list of all audit findings.
+	 * 
+	 * @return List of strings of audit findings
+	 */
+	public List<String> getAuditFindings(){
+		return auditFindings;
+	}
+	
 	/**
 	* This adds an error message to the list of errors and the overall set of consolidated IO  
 	*
@@ -71,5 +81,16 @@ public class MacroOutcome {
 	*/
 	public void addMacroMessage(String message) {
 		outputLines.add("Macro Executor: '" + message + "'");
+	}
+	
+	/**
+	* This adds a message from the AbstractCommandMacro to the user informing them of an audit finding  
+	*
+	* @param message The message to log
+	*/
+	public void addAuditFinding(String message) {
+		String formattedMessage = "Audit Finding: '" + message + "'";
+		outputLines.add(formattedMessage);
+		auditFindings.add(formattedMessage);
 	}
 }

@@ -1,9 +1,14 @@
 package c2.session.macro.enumeration.cve;
 
-import c2.session.macro.AbstractCommandMacro;
-import c2.session.macro.MacroOutcome;
+import java.util.List;
 
-public class WindowsPrivescCVE extends AbstractCommandMacro {
+import c2.WindowsConstants;
+import c2.session.macro.AbstractAuditMacro;
+import c2.session.macro.MacroOutcome;
+import c2.win.WindowsPatchLevelCVEChecker;
+import c2.win.WindowsSystemInfoParser;
+
+public class WindowsPrivescCVE extends AbstractAuditMacro {
 
 	public static final String CMD = "win_privesc_cve_check";
 	
@@ -29,8 +34,22 @@ public class WindowsPrivescCVE extends AbstractCommandMacro {
 
 	@Override
 	public MacroOutcome processCmd(String cmd, int sessionId, String sessionStr) {
-		// TODO Auto-generated method stub
-		return null;
+		MacroOutcome macro = new MacroOutcome();
+		sendCommand(WindowsConstants.SYSTEMINFO_CMD, sessionId, macro);
+		String info = awaitResponse(sessionId, macro);
+		try {
+			WindowsSystemInfoParser parser = new WindowsSystemInfoParser(info);
+			List<String> cves = WindowsPatchLevelCVEChecker.getApplicableCVEs(parser);		
+			for(String cve : cves) {
+				macro.addAuditFinding("Applicable CVE: " + cve);
+			}
+			if(cves.size() == 0) {
+				macro.addMacroMessage("No findings");
+			}
+		}catch(Exception ex) {
+			macro.addError("Cannot process Windows Privesc CVE Audit Data: " + ex.getMessage());
+		}
+		return macro;
 	}
 
 }

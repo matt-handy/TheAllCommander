@@ -11,6 +11,7 @@ import c2.rdp.RDPSessionInfo;
 import c2.rdp.WindowsRDPManager;
 import c2.session.macro.AbstractCommandMacro;
 import c2.session.macro.MacroOutcome;
+import c2.session.macro.enumeration.cve.WindowsPrivescCVE;
 
 /** This class processes commands received from commanding sessions before
  * they are passed to a daemon. Some commands are implemented on the server
@@ -53,6 +54,10 @@ public class CommandMacroManager {
 			}
 		}
 		
+		//Add built in Audit Macros
+		WindowsPrivescCVE windowsPrivescCVEMacro = new WindowsPrivescCVE();
+		windowsPrivescCVEMacro.initialize(io, harvestProcessor);
+		macros.add(windowsPrivescCVEMacro);
 	}
 	
 	public String getListOfMacros() {
