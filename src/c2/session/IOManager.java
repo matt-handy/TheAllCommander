@@ -394,6 +394,25 @@ public class IOManager {
 		}
 		return nextIo;
 	}
+	
+	/**
+	 * Command macro implementations can use this method wait up to the configurable
+	 * Max Response Wait interval for input from the client. Only returns the first discrete
+	 * output from the client 
+	 *
+	 * @param sessionId The sessionID to query
+	 * @return The assembled sum of all return IO.
+	 */
+	public String awaitDiscreteCommandResponse(int sessionId) {
+		String nextIo = pollIO(sessionId);
+		int counter = 0;
+		while (nextIo== null && counter < Constants.getConstants().getMaxResponseWait()) {
+			nextIo = pollIO(sessionId);
+			counter += Constants.getConstants().getRepollForResponseInterval();
+			Time.sleepWrapped(Constants.getConstants().getRepollForResponseInterval());
+		}
+		return nextIo;
+	}
 
 	/**
 	 * Command macro implementations can use this method wait up to the configurable
