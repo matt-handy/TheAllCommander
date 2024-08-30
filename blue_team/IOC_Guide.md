@@ -22,11 +22,27 @@ Since this UAC bypass presents a visible "blip" on the screen, many defensive so
 Recommendation: cmstp.exe will not usually run on end-user systems. MITRE recommends disabling it on endpoints if possible. If it cannot be removed, your SIEM should be set up to monitor if it is invoked, and what arguments are selected. (https://attack.mitre.org/techniques/T1218/003/). In addition to recommending comparison of cmstp invocation against prior logs like MITRE does, I would suggest explicit whitelisting of known good configurations for cmstp to be using. Since the purpose of cmstp is to push configurations out, theoretically those configurations have gone through configuration management review and are baselined to be used in a production environment. 
 
 ## SDCLT Registry Key UAC Bypass
-This UAC bypass utilizes the HKCU\\Software\\Classes\\Folder\\shell\\open\\command registry key by writing a an executable command which is launched in place of sdclt as high integrity. Windows Defender monitors this registry key, and as of Windows 11 any commands that include cmd.exe or python will be blocked. However, testing has shown that other executables like calc.exe are flagged as potentially harmful, and yet Defender lets them through.
+This UAC bypass utilizes the HKCU\Software\Classes\Folder\shell\opens\command registry key by writing a an executable command which is launched in place of sdclt as high integrity. Windows Defender monitors this registry key, and as of Windows 11 any commands that include cmd.exe or python will be blocked. However, testing has shown that other executables like calc.exe are flagged as potentially harmful, and yet Defender lets them through. However, Defender (as of August 2024) will then quickly stop a spawned new process. Yet, if that process, before Defender stops it, spawns another process, that child process is allowed to roam free without any prevention. This was reported to Microsft (MSRC Case 90284), and their response was "After careful investigation, this case does not meet MSRCs current bar for immediate servicing because the reported behavior does not cross any recognized MSRC security boundaries." While hopefully there will be a patch to address this at some point, in the meantime defenders should be vigilant and monitor for abuse of this registry key. 
 
-Recommendation: In addition to paying attention to Windows Defender's own events, a SIEM should monitor any writes to this registry key and flag any modifications as a strong IOC. 
+Therefore, the attack chain that we want to monitor looks like this: First, and attacker will write an executable to the registry key shown above. sdclt is then invoked, and the malicious process is opened. The malicious process then immediately spawns another copy of itself and is allowed to proceed. 
+
+Recommendation: In addition to paying attention to Windows Defender's own events, a SIEM should monitor any writes to this registry key and flag any modifications as a strong IOC. If possible, endpoint protection software should be configured to automatically shutdown any processes spawned by sdclt invocation after this registry key write, as well as any child processes that result. 
 
 Reference: http://blog.sevagas.com/?Yet-another-sdclt-UAC-bypass
+
+## Event Viewer Registry UAC Bypass
+
+The registry key HKCU\software\classes\mscfile\shell\open\command can be written to spawn a different process when a user attempts to load Event Viewer. In Windows 10, this resulted in a process with elevated integrity. Testing on Windows 11 indicates that a process will not inherit elevated integrity, however this registry key should still be monitored, as attempted writes are an indicator that someone is up to no good. 
+
+1) Enable Audit object access "Success and Failure" for the system under the group policy
+
+2) Enable Auditing of "Set Value" on the key directly or one of its parent keys
+
+3) Filter for
+
+	Windows Event ID == 4657 AND
+	
+	Object Name LIKE software\classes\mscfile\shell\open\command
 
 ## Cookie Harvest - "harvest_cookies" - macro
 Two Windows events are helpful for detecting access for cookies. 4656 is generated when a process requests access to an object, and 4663 is generated when the process actually accesses the object. Turning on this sort of auditing is excessively noisy unless very finely calibrated, as there is the potential to log every time that any process accesses any file or object. This will overwhelm most storage systems quickly, and SIEM license caps can be exceeded quickly. These instructions are calibrated to audit only the files specifically used for cookies.
