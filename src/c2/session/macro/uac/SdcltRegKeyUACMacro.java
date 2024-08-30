@@ -62,13 +62,11 @@ public class SdcltRegKeyUACMacro extends AbstractCommandMacro{
 		String addRegKeyCommand = ADD_REG_KEY_TEMPLATE.replace(INVOCATION_CMD, clientCmd + " immediate_respawn");
 		sendCommand(addRegKeyCommand, sessionId, outcome);
 		String cmdOutcome = awaitResponse(sessionId, outcome);
-		Time.sleepWrapped(10000);
 		if(!cmdOutcome.contains(WindowsConstants.WINDOWS_SYSTEM_OPERATION_COMPLETE_MSG)) {
 			outcome.addError("Could not write to registry, aborting");
 		}else {
 			sendCommand(DELEGATE_CMD, sessionId, outcome);
 			cmdOutcome = awaitResponse(sessionId, outcome);
-			Time.sleepWrapped(10000);
 			if(!cmdOutcome.contains(WindowsConstants.WINDOWS_SYSTEM_OPERATION_COMPLETE_MSG)) {
 				outcome.addError("Could not write to registry, aborting");
 			}else {
