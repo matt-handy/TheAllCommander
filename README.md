@@ -479,3 +479,6 @@ This wizard is currently in an Alpha state and will be declared operational/reli
 
 Please note, all of the scripts and tools that this wizard creates or modifies are caught immediately by Windows Defender if used on a modern, patched version of Windows. They are study tools only and should not/cannot be used in an actual pen test. TheAllCommander remains a research and support tool, not an tool of Red Team engagement.
 
+# Bugs and Disclosures
+
+Every once in a while, work on this project leads to the discovery of a bug or disclosure in a 3rd party tool. [Bugs and Disclosures](blue_team/Bugs.md)
