@@ -11,11 +11,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import c2.Commands;
 import c2.Constants;
 import c2.file.CommandLoadParser;
 import c2.session.log.IOLogger;
@@ -28,7 +31,7 @@ class DefaultCommandsTest {
 	
 	@AfterEach
 	void tearDown() throws Exception {
-		Files.delete(defaultsFile);
+		Files.deleteIfExists(defaultsFile);
 	}
 
 	@Test
@@ -62,6 +65,39 @@ class DefaultCommandsTest {
 			assertEquals("Sent Command: '" + CleanFodhelperMacro.CLIENT_COMMAND + "'" + System.lineSeparator(), io.pollIO(id));
 			assertEquals("Macro Executor: 'Fodhelper registry cleaned up'" + System.lineSeparator(), io.pollIO(id));
 
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail();
+		}
+	}
+	
+	@Test
+	void testOneOffCommands() {
+		try {
+			CommandLoader cl = new CommandLoader();
+			SessionAttributeDescriptor def = new SessionAttributeDescriptor("targetHostname", "targetUsername", null, true);
+			List<String> defCommands = new ArrayList<>();
+			defCommands.add(Commands.CLIENT_CMD_PWD);
+			cl.addOneTimeSessionInitiationCommands(def, defCommands);
+			
+			Properties prop = ClientServerTest.getDefaultSystemTestProperties();
+			IOManager io = new IOManager(new IOLogger(Paths.get(prop.getProperty(Constants.HUBLOGGINGPATH))), cl);
+			CommandMacroManager cmm = new CommandMacroManager(null, io, "nostring");
+			cmm.initializeMacros(prop);
+			io.setCommandMacroManager(cmm);
+			int id = io.determineAndGetCorrectSessionId("targetHostname", "targetUsername", "HTTPS", false, "GUID1");
+			assertEquals(2, id);
+			assertEquals(null, io.pollCommand(id));//Since the session is not elevated, it should not get the default command
+			
+			id = io.determineAndGetCorrectSessionId("targetHostname", "targetUsername", "HTTPS", true, "GUID2");
+			assertEquals(3, id);
+			assertEquals(Commands.CLIENT_CMD_PWD, io.pollCommand(id));//Since the session is not elevated, it should not get the default command
+			assertEquals(null, io.pollCommand(id));
+			
+			id = io.determineAndGetCorrectSessionId("targetHostname", "targetUsername", "HTTPS", true, "GUID3");
+			assertEquals(4, id);
+			assertEquals(null, io.pollCommand(id));//Since we already returned the command, there shouldn't be another one sent to the next instance
+			
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail();

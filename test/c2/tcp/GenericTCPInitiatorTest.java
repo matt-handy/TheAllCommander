@@ -1,6 +1,8 @@
 package c2.tcp;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,7 +20,6 @@ import org.junit.jupiter.api.Test;
 
 import c2.Constants;
 import c2.session.IOManager;
-import c2.session.Session;
 import c2.session.log.IOLogger;
 import util.Time;
 import util.test.RunnerTestGeneric;
@@ -88,20 +89,22 @@ class GenericTCPInitiatorTest {
 			out.write(usernameResponse);
 			out.flush();
 			// Contact and send header
+			
+			assertEquals("net session 2>&1", in.readLine());
+			out.write("net session 2>&1\r\nAccess is denied.\r\n\r\n" + "C:\\Users\\fake_user\\OneDrive\\Documents\\Software\\TheAllCommander\\agents\\python>");
+			out.flush();
 
-			Session session = io.getSession(2);
 			int counter = 0;
-			while (session == null && counter < 10) {
-				session = io.getSession(2);
+			while (!io.hasSession(2) && counter < 10) {
 				Time.sleepWrapped(100);
 				counter++;
 			}
-			assertTrue(session != null);
+			assertTrue(io.hasSession(2));
 
-			testWindowsCd(in, out, session);
-			testWindowsArbitraryCmd(in, out, session);
-			testWindowsCatBasic(in, out, session);
-			testWindowsBuilderCat(in, out, session);
+			testWindowsCd(in, out, io, 2);
+			testWindowsArbitraryCmd(in, out, io, 2);
+			testWindowsCatBasic(in, out, io, 2);
+			testWindowsBuilderCat(in, out, io, 2);
 
 			in.close();
 			out.close();
@@ -149,18 +152,16 @@ class GenericTCPInitiatorTest {
 			out.flush();
 			// Contact and send header
 
-			Session session = io.getSession(2);
 			int counter = 0;
-			while (session == null && counter < 10) {
-				session = io.getSession(2);
+			while (!io.hasSession(2) && counter < 10) {
 				Time.sleepWrapped(100);
 				counter++;
 			}
-			assertTrue(session != null);
+			assertTrue(io.hasSession(2));
 
-			testLinuxDieTranslation(in, out, session);
-			testLinuxUnalteredCmd(in, out, session);
-			testLinuxCd(in, out, session);
+			testLinuxDieTranslation(in, out, io, 2);
+			testLinuxUnalteredCmd(in, out, io, 2);
+			testLinuxCd(in, out, io, 2);
 
 			in.close();
 			out.close();
@@ -171,8 +172,8 @@ class GenericTCPInitiatorTest {
 		stopGenericTCPInitiator();
 	}
 
-	private void testLinuxUnalteredCmd(BufferedReader in, PrintWriter out, Session session) throws IOException {
-		session.sendCommand("ls");
+	private void testLinuxUnalteredCmd(BufferedReader in, PrintWriter out, IOManager session, int sessionId) throws IOException {
+		session.sendCommand(sessionId, "ls");
 		String cmd = in.readLine();
 		assertEquals("ls", cmd);
 		out.write("total 6936\n"
@@ -182,10 +183,10 @@ class GenericTCPInitiatorTest {
 				+ "");
 		out.flush();
 		
-		String response = session.pollIO();
+		String response = session.pollIO(sessionId);
 		int counter = 0;
 		while (response == null && counter < 15) {
-			response = session.pollIO();
+			response = session.pollIO(sessionId);
 			counter++;
 			Time.sleepWrapped(100);
 		}
@@ -197,14 +198,14 @@ class GenericTCPInitiatorTest {
 				+ "", response);
 	}
 	
-	private void testLinuxDieTranslation(BufferedReader in, PrintWriter out, Session session) throws IOException {
-		session.sendCommand("die");
+	private void testLinuxDieTranslation(BufferedReader in, PrintWriter out, IOManager session, int sessionId) throws IOException {
+		session.sendCommand(sessionId, "die");
 		String cmd = in.readLine();
 		assertEquals("exit", cmd);
 	}
 	
-	private void testLinuxCd(BufferedReader in, PrintWriter out, Session session) throws IOException {
-		session.sendCommand("cd ..");
+	private void testLinuxCd(BufferedReader in, PrintWriter out, IOManager session, int sessionId) throws IOException {
+		session.sendCommand(sessionId, "cd ..");
 		String cmd = in.readLine();
 		assertEquals("cd ..", cmd);
 		cmd = in.readLine();
@@ -214,27 +215,27 @@ class GenericTCPInitiatorTest {
 		out.write(cdResponse);
 		out.flush();
 
-		String response = session.pollIO();
+		String response = session.pollIO(sessionId);
 		int counter = 0;
 		while (response == null && counter < 15) {
-			response = session.pollIO();
+			response = session.pollIO(sessionId);
 			counter++;
 			Time.sleepWrapped(100);
 		}
 		assertEquals("/home/kali/test", response);
 	}
 
-	private void testWindowsCatBasic(BufferedReader in, PrintWriter out, Session session) throws IOException {
-		session.sendCommand("cat a_file");
+	private void testWindowsCatBasic(BufferedReader in, PrintWriter out, IOManager session, int sessionId) throws IOException {
+		session.sendCommand(sessionId, "cat a_file");
 		String cmd = in.readLine();
 		assertEquals("type \"a_file\"", cmd);
 	}
 
-	private void testWindowsBuilderCat(BufferedReader in, PrintWriter out, Session session) throws IOException {
-		session.sendCommand("cat >>a_file");
-		session.sendCommand("content");
-		session.sendCommand("more content");
-		session.sendCommand("<done>");
+	private void testWindowsBuilderCat(BufferedReader in, PrintWriter out, IOManager session, int sessionId) throws IOException {
+		session.sendCommand(sessionId, "cat >>a_file");
+		session.sendCommand(sessionId, "content");
+		session.sendCommand(sessionId, "more content");
+		session.sendCommand(sessionId, "<done>");
 
 
 		String cmd = in.readLine();
@@ -243,8 +244,8 @@ class GenericTCPInitiatorTest {
 		assertEquals("powershell -c \"add-content a_file 'more content' \"", cmd);
 	}
 
-	private void testWindowsCd(BufferedReader in, PrintWriter out, Session session) throws IOException {
-		session.sendCommand("cd ..");
+	private void testWindowsCd(BufferedReader in, PrintWriter out, IOManager session, int sessionId) throws IOException {
+		session.sendCommand(sessionId, "cd ..");
 		String cmd = in.readLine();
 		assertEquals("cd ..", cmd);
 
@@ -261,10 +262,10 @@ class GenericTCPInitiatorTest {
 		out.write(shadowPwdResponse);
 		out.flush();
 
-		String response = session.pollIO();
+		String response = session.pollIO(sessionId);
 		int counter = 0;
 		while (response == null && counter < 10) {
-			response = session.pollIO();
+			response = session.pollIO(sessionId);
 			counter++;
 			Time.sleepWrapped(100);
 		}
@@ -272,8 +273,8 @@ class GenericTCPInitiatorTest {
 				response);
 	}
 
-	private void testWindowsArbitraryCmd(BufferedReader in, PrintWriter out, Session session) throws IOException {
-		session.sendCommand("dir");
+	private void testWindowsArbitraryCmd(BufferedReader in, PrintWriter out, IOManager session, int sessionId) throws IOException {
+		session.sendCommand(sessionId, "dir");
 		String cmd = in.readLine();
 		assertEquals("dir", cmd);
 
@@ -296,10 +297,10 @@ class GenericTCPInitiatorTest {
 		out.write(dirResponse);
 		out.flush();
 
-		String response = session.pollIO();
+		String response = session.pollIO(sessionId);
 		int counter = 0;
 		while (response == null && counter < 15) {
-			response = session.pollIO();
+			response = session.pollIO(sessionId);
 			counter++;
 			Time.sleepWrapped(100);
 		}

@@ -129,7 +129,7 @@ public class Runner {
 		} catch (Exception e) {
 			System.out.println("Unable to start with specified defaults file: "
 					+ properties.getProperty(Constants.HUBCMDDEFAULTS));
-			cl = new CommandLoader(new HashMap<>(), new HashMap<>(), new ArrayList<>());
+			cl = new CommandLoader();
 		}
 
 		FileReceiverSessionReceiver receiver = new FileReceiverSessionReceiver(

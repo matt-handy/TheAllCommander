@@ -61,7 +61,7 @@ public class SessionHandler implements Runnable {
 						String[] elements = command.split(" ");
 						try {
 							int candidateSession = Integer.parseInt(elements[1]);
-							if(ioManager.getSession(candidateSession) != null) {
+							if(ioManager.hasSession(candidateSession)) {
 								ioManager.removeSession(candidateSession);
 							}else {
 								bw.write("Invalid session id." + System.lineSeparator());

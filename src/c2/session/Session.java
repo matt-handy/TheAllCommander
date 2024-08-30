@@ -20,6 +20,7 @@ public class Session implements Comparable<Session>{
 	public final String hostname;
 	public final String username;
 	public final String protocol;
+	public final boolean isElevated;
 	
 	private String daemonUID = null;
 	private Date lastContactTime = new Date();//Assumption is valid, session created on new contact.
@@ -30,6 +31,7 @@ public class Session implements Comparable<Session>{
 		this.hostname = hostname;
 		this.username = username;
 		this.protocol = protocol;
+		this.isElevated = isElevated;
 	}
 	
 	public Session(int id, String hostname, String username, String protocol, String daemonUID, boolean isElevated) {
@@ -39,6 +41,7 @@ public class Session implements Comparable<Session>{
 		this.username = username;
 		this.protocol = protocol;
 		this.daemonUID = daemonUID;
+		this.isElevated = isElevated;
 	}
 	
 	public static String buildSessionUID(String hostname, String username, String protocol, String daemonUID, boolean isElevated) {

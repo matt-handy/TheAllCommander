@@ -28,6 +28,7 @@ import c2.crypto.NullEncryptor;
 import c2.file.ScreenshotHelper;
 import c2.session.IOManager;
 import c2.session.Session;
+import c2.session.SessionAttributeDescriptor;
 import c2.session.filereceiver.FileReceiverDatagramHandler;
 
 public class DNSEmulatorSubdomainComms extends C2Interface {
@@ -238,13 +239,13 @@ public class DNSEmulatorSubdomainComms extends C2Interface {
 							}
 							sessionId = io.determineAndGetCorrectSessionId(hostname, username, protocol, false, daemonUID);
 						} else {
-							Session thisSession = io.getSession(sessionKey);
-							if(thisSession == null) {
+							if(!io.hasSession(sessionKey)) {
 								continue;//Someone spamming, ignore and continue
 							}else {
 								message = data;
-								hostname = thisSession.hostname;
-								username = thisSession.username;
+								SessionAttributeDescriptor attr = io.getSessionDescriptor(sessionKey);
+								hostname = attr.hostname;
+								username = attr.username;
 							}
 						}
 						io.updateSessionContactTime(sessionId);

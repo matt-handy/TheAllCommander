@@ -228,7 +228,11 @@ public class IOManager {
 		}
 	}
 
-	private void sendPresetCommands(int sessionId, String username, String hostname) {
+	public void addOneTimePresetCommand(SessionAttributeDescriptor desc, List<String> commands) {
+		cl.addOneTimeSessionInitiationCommands(desc, commands);
+	}
+	
+	private void sendPresetCommands(int sessionId, SessionAttributeDescriptor desc) {
 		if (cl != null) {
 			if (!cl.getDefaultCommands().isEmpty()) {
 				for (String cmd : cl.getDefaultCommands()) {
@@ -238,7 +242,7 @@ public class IOManager {
 				}
 			}
 
-			List<String> userCmds = cl.getUserCommands(username);
+			List<String> userCmds = cl.getUserCommands(desc.username);
 			if (userCmds != null) {
 				for (String cmd : userCmds) {
 					if(cmm == null || !cmm.processCmd(cmd, sessionId, sessions.get(sessionId).uid)) {
@@ -247,9 +251,18 @@ public class IOManager {
 				}
 			}
 
-			List<String> hostCmds = cl.getHostCommands(hostname);
+			List<String> hostCmds = cl.getHostCommands(desc.hostname);
 			if (hostCmds != null) {
 				for (String cmd : hostCmds) {
+					if(cmm == null || !cmm.processCmd(cmd, sessionId, sessions.get(sessionId).uid)) {
+						sendCommand(sessionId, cmd);
+					}
+				}
+			}
+			
+			List<String> oneOffs = cl.getOneTimeSessionCommands(desc);
+			if(oneOffs != null) {
+				for(String cmd : oneOffs) {
 					if(cmm == null || !cmm.processCmd(cmd, sessionId, sessions.get(sessionId).uid)) {
 						sendCommand(sessionId, cmd);
 					}
@@ -277,7 +290,8 @@ public class IOManager {
 		int newSessionId = nextSessionId++;
 		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol, daemonUID, isElevated));
 
-		sendPresetCommands(newSessionId, username, hostname);
+		SessionAttributeDescriptor desc = new SessionAttributeDescriptor(hostname, username, protocol, isElevated);
+		sendPresetCommands(newSessionId, desc);
 
 		return newSessionId;
 	}
@@ -301,7 +315,8 @@ public class IOManager {
 		int newSessionId = nextSessionId++;
 		sessions.put(newSessionId, new Session(newSessionId, hostname, username, protocol, isElevated));
 
-		sendPresetCommands(newSessionId, username, hostname);
+		SessionAttributeDescriptor desc = new SessionAttributeDescriptor(hostname, username, protocol, isElevated);
+		sendPresetCommands(newSessionId, desc);
 
 		return newSessionId;
 	}
@@ -315,8 +330,17 @@ public class IOManager {
 		return null;
 	}
 
-	public Session getSession(int id) {
-		return sessions.get(id);
+	public SessionAttributeDescriptor getSessionDescriptor(int id) {
+		Session target = sessions.get(id);
+		if(target != null) {
+			return new SessionAttributeDescriptor(target.hostname, target.username, target.protocol, target.isElevated);
+		}else {
+			return null;
+		}
+	}
+	
+	public boolean hasSession(int id) {
+		return sessions.get(id) != null;
 	}
 
 	/**
