@@ -588,7 +588,7 @@ public class RunnerTestGeneric {
 	
 	private static void testWindowsPowershellPromptObfuscation(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) throws IOException
 	{
-		if(config.os == OS.WINDOWS && !config.lang.equalsIgnoreCase("PowershellWindows")) {
+		if(config.os == OS.WINDOWS && !config.lang.equalsIgnoreCase("PowershellWindows") && !config.lang.equalsIgnoreCase("Native")) {
 			System.out.println("Testing obfuscated 'powershell' command");
 			OutputStreamWriterHelper.writeAndSend(bw, Commands.SESSION_START_OBFUSCATED_POWERSHELL_MODE);
 			OutputStreamWriterHelper.writeAndSend(bw, "Get-Date -Format \"MM/dd/yyyy\"");
@@ -689,6 +689,8 @@ public class RunnerTestGeneric {
 			OutputStreamWriterHelper.writeAndSend(bw, "where /r " + blueTeamDataDir + " *.md");
 			output = br.readLine();
 			assertEquals("Attempting search with 10 minute timeout", output);
+			output = br.readLine();
+			assertEquals(blueTeamDataDir + File.separator + "Bugs.md", output);
 			output = br.readLine();
 			assertEquals(blueTeamDataDir + File.separator + "IOC_Guide.md", output);
 			output = br.readLine();
