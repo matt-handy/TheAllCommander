@@ -47,25 +47,25 @@ public class CtsmpTestHelper extends ClientServerTest {
 			// Iterate over outcome comments
 			if (invoke == null) {
 				assertEquals("Sent Command: '" + Commands.CLIENT_CMD_GET_EXE + "'", br.readLine());
-				assertTrue(br.readLine().startsWith("Received response: '"));
+				assertTrue(br.readLine().startsWith("Received response: '"), "Missed initial response header for command query");
 				assertEquals("", br.readLine());
 				assertEquals("'", br.readLine());
 			}
 			String line = br.readLine();
-			assertTrue(line.startsWith("Sent Command: '<control> download C:\\Windows\\Tasks\\"));
-			assertTrue(br.readLine().startsWith("Received response: 'File written: C:\\Windows\\Tasks\\"));
+			assertTrue(line.startsWith("Sent Command: '<control> download C:\\Windows\\Tasks\\"), "Missed first download command");
+			assertTrue(br.readLine().startsWith("Received response: 'File written: C:\\Windows\\Tasks\\"), "Missed first download ack");
 			assertEquals("", br.readLine());
 			assertEquals("'", br.readLine());
-			assertTrue(br.readLine().startsWith("Sent Command: '<control> download C:\\Windows\\Tasks\\"));
-			assertTrue(br.readLine().startsWith("Received response: 'File written: C:\\Windows\\Tasks\\"));
+			assertTrue(br.readLine().startsWith("Sent Command: '<control> download C:\\Windows\\Tasks\\"), "Missed second download command");
+			assertTrue(br.readLine().startsWith("Received response: 'File written: C:\\Windows\\Tasks\\"), "Missed second download ack");
 			assertEquals("", br.readLine());
 			assertEquals("'", br.readLine());
-			assertTrue(br.readLine().startsWith("Sent Command: 'powershell C:\\Windows\\Tasks\\"));
+			assertTrue(br.readLine().startsWith("Sent Command: 'powershell C:\\Windows\\Tasks\\"), "Missed powershell command invocation");
 			assertEquals("Macro Executor: 'New elevated session available: 3'", br.readLine());
 			line = br.readLine();
-			assertTrue(line.startsWith("Sent Command: 'del C:\\Windows\\Tasks\\"));
+			assertTrue(line.startsWith("Sent Command: 'del C:\\Windows\\Tasks\\"), "Missed first delete confirmation");
 			line = br.readLine();
-			assertTrue(line.startsWith("Sent Command: 'del C:\\Windows\\Tasks\\"));
+			assertTrue(line.startsWith("Sent Command: 'del C:\\Windows\\Tasks\\"), "Missed second delete confirmation");
 			assertEquals("Received response: ''", br.readLine());
 			OutputStreamWriterHelper.writeAndSend(bw, Commands.CLIENT_CMD_SHUTDOWN_DAEMON);
 

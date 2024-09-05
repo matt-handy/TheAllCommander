@@ -11,6 +11,7 @@ import c2.rdp.RDPSessionInfo;
 import c2.rdp.WindowsRDPManager;
 import c2.session.macro.AbstractCommandMacro;
 import c2.session.macro.MacroOutcome;
+import c2.session.macro.enumeration.WindowsPrivescMisconfigurationAuditMacro;
 import c2.session.macro.enumeration.cve.WindowsPrivescCVE;
 
 /** This class processes commands received from commanding sessions before
@@ -58,6 +59,9 @@ public class CommandMacroManager {
 		WindowsPrivescCVE windowsPrivescCVEMacro = new WindowsPrivescCVE();
 		windowsPrivescCVEMacro.initialize(io, harvestProcessor);
 		macros.add(windowsPrivescCVEMacro);
+		WindowsPrivescMisconfigurationAuditMacro privescAudit = new WindowsPrivescMisconfigurationAuditMacro();
+		privescAudit.initialize(io, harvestProcessor);
+		macros.add(privescAudit);
 	}
 	
 	public String getListOfMacros() {

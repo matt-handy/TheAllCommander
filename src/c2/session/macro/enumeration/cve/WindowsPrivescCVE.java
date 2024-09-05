@@ -12,7 +12,7 @@ import c2.win.remotefiles.WindowsRemoteFileInfo;
 
 public class WindowsPrivescCVE extends AbstractAuditMacro {
 
-	public static final String CMD = "win_privesc_cve_check";
+	public static final String CMD = "audit_win_privesc_cve";
 
 	@Override
 	public String getReadableName() {

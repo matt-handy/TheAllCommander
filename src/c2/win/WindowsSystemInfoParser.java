@@ -10,7 +10,7 @@ public class WindowsSystemInfoParser {
 	private Integer buildNumber = null;
 	private List<String> hotfixes = new ArrayList<>();
 	
-	public WindowsSystemInfoParser(String info) throws Exception{
+	public WindowsSystemInfoParser(String info) throws WindowsToolOutputParseException{
 		String lines[] = info.split("\r\n");
 		for(String line : lines) {
 			if(line.startsWith("OS Version:")) {
@@ -20,12 +20,12 @@ public class WindowsSystemInfoParser {
 				try {
 					buildNumber = Integer.parseInt(buildNumberStr);
 				}catch(NumberFormatException ex) {
-					throw new Exception("Invalid systeminfo - windows build number cannot be parsed");
+					throw new WindowsToolOutputParseException("Invalid systeminfo - windows build number cannot be parsed");
 				}
 			}
 		}
 		if(buildNumber == null) {
-			throw new Exception("Invalid systeminfo - OS Version data not found");
+			throw new WindowsToolOutputParseException("Invalid systeminfo - OS Version data not found");
 		}
 		
 		Pattern p = Pattern.compile("KB[0-9]{7}", Pattern.CASE_INSENSITIVE);

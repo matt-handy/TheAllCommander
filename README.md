@@ -3,9 +3,7 @@
 # TheAllCommander
 Framework for modeling and researching C2 communications for developing efficient filtering and detection logic.
 
-TheAllCommander 2.0 released January 2024 contains major new features, see [Change Log](Changelog.md)
-
-TheAllCommander 2.1 (April 2024) includes support for logging telemetry data gathered from test daemons, as well as alpha support for PyInstaller deployment and installation as a Windows service (see below)
+New with TheAllCommander 2.1.2 -> Additional UAC bypass macros and alpha release of Audits
 
 Featured in: DEFCON Demolabs 2022 and 2024, Black Hat USA Arsenal 2024
 
@@ -171,6 +169,18 @@ shell_kill
 shell_kill <integer ID>
 
 	Destroys the child shell indicated					 	
+
+## Audits - Alpha Feature
+
+TheAllCommander implements two audits commands at present
+
+audit_win_privesc_misconfig
+
+	This command audits for configurations/misconfigurations that leave a system vulnerable to privilege escalation and provides suggestions on fixes.
+
+audit_win_privesc_cve
+
+	This command audits for incorrect patch levels that an adversary might exploit for privilege escalation.
 
 ## Server based macro commands
 The following commands are implemented serverside, where the server translates the instructions into

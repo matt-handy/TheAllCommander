@@ -74,3 +74,11 @@ PyInstaller and Windows service installation for Python daemons - Alpha Release
 # Release 2.1.1 - June 2024
 
 Add CMSTP UAC bypass macro and Winlogon persistence macro
+
+# Release 2.1.2 - September 2024
+
+Add SDCLT UAC bypass macro
+Add Event Viewer registry key UAC bypass macro
+Add support for one-time commands to be added by macros
+Alpha feature - adds audit commands
+Alpha feature - improved support for Python service testing
