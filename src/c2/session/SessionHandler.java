@@ -109,7 +109,7 @@ public class SessionHandler implements Runnable {
 				//}
 				
 				String latestOutput = ioManager.pollIO(sessionId);
-				if (latestOutput != null) {
+				while (latestOutput != null) {
 					if(latestOutput.equals("qSession")){
 						stayAlive = false;
 						socket.close();
@@ -120,6 +120,7 @@ public class SessionHandler implements Runnable {
 						bw.write(latestOutput);
 						bw.flush();
 					}
+					latestOutput = ioManager.pollIO(sessionId);
 				}
 				
 				try{

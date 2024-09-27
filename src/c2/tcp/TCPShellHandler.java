@@ -85,6 +85,10 @@ public class TCPShellHandler implements Runnable {
 				response = lsr.readUnknownLinesFromSocketWithTimeout(1000);
 
 				if (response.length() != 0) {
+					//Windows will sometimes double up carriage return feeds when command prompt executes native binaries
+					if(myOS == OS.WINDOWS) {
+						response = response.replace("\r\r", "\r");
+					}
 					ioManager.sendIO(sessionId, response);
 				}
 				Time.sleepWrapped(Constants.getConstants().getRepollForResponseInterval());

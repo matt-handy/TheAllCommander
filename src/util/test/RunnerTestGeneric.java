@@ -43,6 +43,7 @@ import c2.admin.LocalConnection;
 import c2.session.SessionHandler;
 import c2.session.SessionInitiator;
 import c2.session.macro.persistence.WindowsHiddenUserMacro;
+import c2.win.WindowsFileSystemTraverser;
 import util.Time;
 import util.test.TestConfiguration.OS;
 
@@ -388,6 +389,8 @@ public class RunnerTestGeneric {
 				assertEquals(output, "Daemon alive");
 			}
 
+			testWindowsNoExtraSpacesOnNativeExecutableOutput(br, bw, config);
+			
 			//These functions are meant to support service based testing, which is not a goal of Java support
 			if(!config.lang.equals("Java")) {
 				testCpMv(br, bw, config);
@@ -979,6 +982,29 @@ public class RunnerTestGeneric {
 		}
 	}
 
+	private static void testWindowsNoExtraSpacesOnNativeExecutableOutput(BufferedReader br, OutputStreamWriter bw, TestConfiguration config) {
+		if(config.os == OS.WINDOWS) {
+		try {
+			OutputStreamWriterHelper.writeAndSend(bw, WindowsFileSystemTraverser.getCommandForDriveLetterDiscovery());
+			//This test makes sure that our output for native Windows executables is not messed up by bad formatting
+			String output=br.readLine();
+			assertTrue(output.startsWith("DeviceID"), "Something inserted before DeviceId: \"" + output + "\"");
+			output=br.readLine();
+			assertTrue(output.length() > 2 && output.charAt(1) == ':', "At least one drive latter should be returned, starting from the second line: '" + output + "'");
+			output=br.readLine();
+			while(output.length() > 2 && output.charAt(1) == ':') {
+				output=br.readLine();
+			}
+			//Flush one extra line feed
+			if(!config.lang.equals("Native")) {
+				output=br.readLine();
+			}
+		}catch(Exception ex) {
+			fail("Could not parse windows executable output" + ex.getMessage());
+		}
+		}
+	}
+	
 	public static void cleanLogs() {
 		Path logPath = Paths.get("test", "log");
 		try {

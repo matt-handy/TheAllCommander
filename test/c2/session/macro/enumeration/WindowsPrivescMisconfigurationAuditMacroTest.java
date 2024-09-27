@@ -22,14 +22,16 @@ import org.junit.jupiter.api.Test;
 
 import c2.Commands;
 import c2.Constants;
+import c2.WindowsConstants;
 import c2.admin.LocalConnection;
 import c2.session.CommandLoader;
 import c2.session.IOManager;
 import c2.session.log.IOLogger;
 import c2.session.macro.MacroOutcome;
-import c2.win.WindowsQuotedServiceChecker;
 import c2.win.WindowsQuotedServiceCheckerTest;
+import c2.win.WindowsUserPriviledgeParser;
 import c2.win.WindowsUserPriviledgeParserTest;
+import c2.win.services.WindowsServiceParser;
 import util.Time;
 import util.test.ClientServerTest;
 import util.test.OutputStreamWriterHelper;
@@ -39,6 +41,39 @@ import util.test.TestConstants;
 
 class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 
+	private static final String LM_KEY= "\r\n"
+			+ "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\r\n"
+			+ "    AlwaysInstallElevated    REG_DWORD    0x1\r\n"
+			+ "\r\n"
+			+ "";
+	
+	private static final String CU_KEY= "\r\n"
+			+ "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\r\n"
+			+ "    AlwaysInstallElevated    REG_DWORD    0x1\r\n"
+			+ "\r\n"
+			+ "";
+	
+	private static final String HARD_ICACLS = "myexe.exe NT AUTHORITY\\SYSTEM:(I)(F)\r\n"
+			+ "                BUILTIN\\Administrators:(I)(F)\r\n"
+			+ "\r\n"
+			+ "Successfully processed 1 files; Failed processing 0 files\r\n"
+			+ "";
+	
+	private static final String WEAK_ICACLS = "C:\\Program Files\\Dell\\DellDataVault\\DDVCollectorSvcApi.exe NT AUTHORITY\\SYSTEM:(I)(F)\r\n"
+			+ "                BUILTIN\\Administrators:(I)(F)\r\n"
+			+ "                BUILTIN\\Everyone:(I)(F)\r\n"
+			+ "\r\n"
+			+ "Successfully processed 1 files; Failed processing 0 files\r\n"
+			+ "";
+	
+	private static final String EXPECTED_BAD_ICACLS_MSG = "Audit Finding: 'Warning: Service DDVCollectorSvcApi has potentially insecure permissions, please review: C:\\Program Files\\Dell\\DellDataVault\\DDVCollectorSvcApi.exe NT AUTHORITY\\SYSTEM:(I)(F)\r\n"
+			+ "                BUILTIN\\Administrators:(I)(F)\r\n"
+			+ "                BUILTIN\\Everyone:(I)(F)\r\n"
+			+ "\r\n"
+			+ "Successfully processed 1 files; Failed processing 0 files\r\n"
+			+ "'";
+	
+	
 	IOManager io;
 	int sessionId;
 
@@ -64,13 +99,19 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 		private boolean alive = true;
 		private boolean giveCleanServices;
 		private boolean giveCleanPrivs;
+		private boolean giveNoRegCu;
+		private boolean giveNoRegLm;
+		private boolean giveOneWeakServiceACL;
 
 		public ClientStartCmdEmulator(int sessionid, IOManager session, boolean giveCleanServices,
-				boolean giveCleanPrivs) {
+				boolean giveCleanPrivs, boolean giveNoRegCu, boolean giveNoRegLm, boolean giveOneWeakServiceACL) {
 			this.session = session;
 			this.sessionId = sessionid;
 			this.giveCleanServices = giveCleanServices;
 			this.giveCleanPrivs = giveCleanPrivs;
+			this.giveNoRegCu = giveNoRegCu;
+			this.giveNoRegLm = giveNoRegLm;
+			this.giveOneWeakServiceACL = giveOneWeakServiceACL;
 		}
 
 		public void kill() {
@@ -83,15 +124,19 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 				if (command == null) {
 					// continue
 					Time.sleepWrapped(10);
-				} else if (command.equalsIgnoreCase(WindowsQuotedServiceChecker.SERVICE_PATH_QUERY)) {
+				} else if (command.equalsIgnoreCase(WindowsServiceParser.SERVICE_PATH_QUERY)) {
 					if (giveCleanServices) {
 						session.sendIO(sessionId, WindowsQuotedServiceCheckerTest.ALL_QUOTED_SVCS);
 					} else {
 						session.sendIO(sessionId, WindowsQuotedServiceCheckerTest.MISSING_QUOTED_SVCS);
 					}
-				} else {
-					// We got the command for the first FileInfoCall. We can close now after sending
-					// results.
+				}else if (command.equalsIgnoreCase(WindowsServiceParser.CAT_CSV)) {
+					if (giveCleanServices) {
+						session.sendIO(sessionId, WindowsQuotedServiceCheckerTest.ALL_QUOTED_SVCS_CSV);
+					} else {
+						session.sendIO(sessionId, WindowsQuotedServiceCheckerTest.MISSING_QUOTED_SVCS_CSV);
+					}
+				} else if (command.equalsIgnoreCase(WindowsUserPriviledgeParser.QUERY)){
 					if (giveCleanPrivs) {
 						// We want to trigger the warning for MS10-092 and MS14-058
 						session.sendIO(sessionId, WindowsUserPriviledgeParserTest.NO_PRIV);
@@ -101,6 +146,34 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 						session.sendIO(sessionId, WindowsUserPriviledgeParserTest.WITH_PRIV);
 					}
 
+				}else if(command.equalsIgnoreCase(WindowsPrivescMisconfigurationAuditMacro.CHECK_AUTO_ELEVATE_INSTALLER_CU)) {
+					if(giveNoRegCu) {
+						session.sendIO(sessionId, WindowsConstants.WINDOWS_NO_REGISTRY_KEY + "\r\n");
+					}else {
+						session.sendIO(sessionId, CU_KEY);
+					}
+				}else if(command.equalsIgnoreCase(WindowsPrivescMisconfigurationAuditMacro.CHECK_AUTO_ELEVATE_INSTALLER_LM)) {
+					if(giveNoRegLm) {
+						session.sendIO(sessionId, WindowsConstants.WINDOWS_NO_REGISTRY_KEY + "\r\n");
+					}else {
+						session.sendIO(sessionId, LM_KEY);
+					}
+				}else if(command.startsWith("icacls")) {
+					if(command.contains("DDVCollectorSvcApi") && giveOneWeakServiceACL) {
+						session.sendIO(sessionId, WEAK_ICACLS);
+					}else {
+						session.sendIO(sessionId, HARD_ICACLS);
+					}
+				}else if(command.startsWith(Commands.CLIENT_CMD_PWD)) {
+					session.sendIO(sessionId, Paths.get("").toString());
+				}else if(command.startsWith("echo %SYSTEMDRIVE%")) {
+					session.sendIO(sessionId, "C:\r\n\r\n");
+				}else if(command.startsWith("cd C:\\Windows")) {
+					session.sendIO(sessionId, "C:\\Windows\r\n\r\n");
+				}else if(command.startsWith(WindowsPrivescMisconfigurationAuditMacro.CHECK_FOR_GPP_HISTORY_FILES)) {
+					session.sendIO(sessionId, "File Not Found");
+				}else if(command.startsWith("cd ")) {//This will catch the return to original working directory, not the CD to windows
+					session.sendIO(sessionId, "cd " + Paths.get("").toString());
 				}
 			}
 		}
@@ -118,7 +191,7 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 	@Test
 	void testFindsMisquotedService() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, false, true);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, false, true, true, true, false);
 		exec.submit(em);
 
 		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
@@ -126,15 +199,16 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 
 		MacroOutcome outcome = macro.processCmd(WindowsPrivescMisconfigurationAuditMacro.CMD, sessionId, "ignored");
 		assertEquals(1, outcome.getAuditFindings().size());
-		assertEquals("Audit Finding: 'Warning, service path is unquoted and may be used for priviledge escalation: DellClientManagementService               C:\\Program Files (x86)\\Dell\\UpdateService\\ServiceShell.exe'", outcome.getAuditFindings().get(0));
+		assertEquals("Audit Finding: 'Warning, service path is unquoted and may be used for priviledge escalation: \"DDVCollectorSvcApi\",\"C:\\Program Files\\Dell\\DellDataVault\\DDVCollectorSvcApi.exe\"'", outcome.getAuditFindings().get(0));
 		assertEquals(1, outcome.getOutput().size());
-		assertEquals("Audit Finding: 'Warning, service path is unquoted and may be used for priviledge escalation: DellClientManagementService               C:\\Program Files (x86)\\Dell\\UpdateService\\ServiceShell.exe'", outcome.getOutput().get(0));
+		assertEquals("Audit Finding: 'Warning, service path is unquoted and may be used for priviledge escalation: \"DDVCollectorSvcApi\",\"C:\\Program Files\\Dell\\DellDataVault\\DDVCollectorSvcApi.exe\"'", outcome.getOutput().get(0));
+		em.kill();
 	}
 
 	@Test
 	void testFindsSeImpersonate() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, false);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, false, true, true, false);
 		exec.submit(em);
 
 		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
@@ -145,37 +219,100 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 		assertEquals("Audit Finding: 'Warning: user has SeImpersonatePriviledge. This may be used to hijack the identity of another user that authenticates to a process controlled by this user.'", outcome.getAuditFindings().get(0));
 		assertEquals(1, outcome.getOutput().size());
 		assertEquals("Audit Finding: 'Warning: user has SeImpersonatePriviledge. This may be used to hijack the identity of another user that authenticates to a process controlled by this user.'", outcome.getOutput().get(0));
+		em.kill();
+	}
+	
+	@Test
+	void testFindsCuAutoElevate() {
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, false, true, false);
+		exec.submit(em);
+
+		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
+		macro.initialize(io, null);
+
+		MacroOutcome outcome = macro.processCmd(WindowsPrivescMisconfigurationAuditMacro.CMD, sessionId, "ignored");
+		assertEquals(1, outcome.getAuditFindings().size());
+		assertEquals("Audit Finding: 'Warning: current user is configured for installers to auto-elevate to administrator rights. This settings is rarely appropriate and should be evaluated.'", outcome.getAuditFindings().get(0));
+		assertEquals(1, outcome.getOutput().size());
+		assertEquals("Audit Finding: 'Warning: current user is configured for installers to auto-elevate to administrator rights. This settings is rarely appropriate and should be evaluated.'", outcome.getOutput().get(0));
+		em.kill();
+	}
+	
+	@Test
+	void testFindsLmAutoElevate() {
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, true, false, false);
+		exec.submit(em);
+
+		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
+		macro.initialize(io, null);
+
+		MacroOutcome outcome = macro.processCmd(WindowsPrivescMisconfigurationAuditMacro.CMD, sessionId, "ignored");
+		assertEquals(1, outcome.getAuditFindings().size());
+		assertEquals("Audit Finding: 'Warning: local machine is configured for installers to auto-elevate to administrator rights. This settings is rarely appropriate and should be evaluated.'", outcome.getAuditFindings().get(0));
+		assertEquals(1, outcome.getOutput().size());
+		assertEquals("Audit Finding: 'Warning: local machine is configured for installers to auto-elevate to administrator rights. This settings is rarely appropriate and should be evaluated.'", outcome.getOutput().get(0));
+		em.kill();
 	}
 
 	@Test
-	void testHasNoFindingsOnCleanSystem() {
+	void findsBadIcacls() {
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, true, true, true);
+		exec.submit(em);
+
+		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
+		macro.initialize(io, null);
+		
+		MacroOutcome outcome = macro.processCmd(WindowsPrivescMisconfigurationAuditMacro.CMD, sessionId, "ignored");
+		assertEquals(1, outcome.getAuditFindings().size());
+		assertEquals(EXPECTED_BAD_ICACLS_MSG, outcome.getAuditFindings().get(0));
+		assertEquals(1, outcome.getOutput().size());
+		assertEquals(EXPECTED_BAD_ICACLS_MSG, outcome.getOutput().get(0));
+		em.kill();
+	}
+	
+	@Test
+	void testHasNoFindingsOnCleanSystemWithTextShell() {
+		testMain(TestConstants.WINDOWSNATIVE_TEST_EXE);
+	}
+	
+	void testMain(String clientStr) {
 		// Note: this test assumes the dev machine is fully patched and there are no
-		// audit findings. If the test fails, PATCH YOUR SYSTEM!!!
+				// audit findings. If the test fails, PATCH YOUR SYSTEM!!!
 
-		TestConfiguration.OS osConfig = TestConfiguration.getThisSystemOS();
-		if (osConfig == TestConfiguration.OS.WINDOWS) {
-			initiateServer();
-			spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
-			try {
-				Socket remote = LocalConnection.getSocket("127.0.0.1", 8012,
-						ClientServerTest.getDefaultSystemTestProperties());
-				OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
-				BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
+				TestConfiguration.OS osConfig = TestConfiguration.getThisSystemOS();
+				if (osConfig == TestConfiguration.OS.WINDOWS) {
+					initiateServer();
+					spawnClient(clientStr);
+					try {
+						Socket remote = LocalConnection.getSocket("127.0.0.1", 8012,
+								ClientServerTest.getDefaultSystemTestProperties());
+						OutputStreamWriter bw = new OutputStreamWriter(remote.getOutputStream());
+						BufferedReader br = new BufferedReader(new InputStreamReader(remote.getInputStream()));
 
-				// Ensure that python client has connected
-				Time.sleepWrapped(500);
+						// Ensure that python client has connected
+						Time.sleepWrapped(500);
 
-				RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, osConfig == TestConfiguration.OS.LINUX, false);
+						RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, osConfig == TestConfiguration.OS.LINUX, false);
 
-				OutputStreamWriterHelper.writeAndSend(bw, WindowsPrivescMisconfigurationAuditMacro.CMD);
-				assertEquals("Macro Executor: '" + WindowsPrivescMisconfigurationAuditMacro.ALL_CLEAR_MSG + "'",
-						br.readLine());
+						OutputStreamWriterHelper.writeAndSend(bw, WindowsPrivescMisconfigurationAuditMacro.CMD);
+						assertEquals("Macro Executor: '" + WindowsPrivescMisconfigurationAuditMacro.ALL_CLEAR_MSG + "'",
+								br.readLine());
 
-				OutputStreamWriterHelper.writeAndSend(bw, Commands.CLIENT_CMD_SHUTDOWN_DAEMON);
-			} catch (Exception ex) {
-				fail(ex.getMessage());
-			}
-		}
+						OutputStreamWriterHelper.writeAndSend(bw, Commands.CLIENT_CMD_SHUTDOWN_DAEMON);
+						//Client receive message
+						Time.sleepWrapped(2000);
+					} catch (Exception ex) {
+						fail(ex.getMessage());
+					}
+				}
+	}
+	
+	@Test
+	void testHasNoFindingsOnCleanSystem() {
+		testMain(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
 	}
 
 }

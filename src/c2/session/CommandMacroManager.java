@@ -12,6 +12,8 @@ import c2.rdp.WindowsRDPManager;
 import c2.session.macro.AbstractCommandMacro;
 import c2.session.macro.MacroOutcome;
 import c2.session.macro.enumeration.WindowsPrivescMisconfigurationAuditMacro;
+import c2.session.macro.enumeration.WindowsRegistryConfigurationAuditMacro;
+import c2.session.macro.enumeration.WindowsUnencryptedConfigurationPasswordAuditor;
 import c2.session.macro.enumeration.cve.WindowsPrivescCVE;
 
 /** This class processes commands received from commanding sessions before
@@ -62,6 +64,12 @@ public class CommandMacroManager {
 		WindowsPrivescMisconfigurationAuditMacro privescAudit = new WindowsPrivescMisconfigurationAuditMacro();
 		privescAudit.initialize(io, harvestProcessor);
 		macros.add(privescAudit);
+		WindowsRegistryConfigurationAuditMacro regAuditMacro = new WindowsRegistryConfigurationAuditMacro();
+		regAuditMacro.initialize(io, harvestProcessor);
+		macros.add(regAuditMacro);
+		WindowsUnencryptedConfigurationPasswordAuditor passwordAuditMacro = new WindowsUnencryptedConfigurationPasswordAuditor();
+		passwordAuditMacro.initialize(io, harvestProcessor);
+		macros.add(passwordAuditMacro);
 	}
 	
 	public String getListOfMacros() {

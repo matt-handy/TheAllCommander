@@ -62,7 +62,8 @@ class WinlogonMacroTest extends ClientServerTest {
 				assertTrue(response.contains("python.exe"));
 				assertTrue(response.contains("httpsAgent.py"));
 				assertTrue(response.startsWith("Sent Command: 'reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon"));
-				assertEquals("Received response: '", br.readLine());
+				assertEquals("Received response: 'ERROR: Access is denied.", br.readLine());
+				assertEquals("", br.readLine());
 				assertEquals("", br.readLine());
 				assertEquals("'", br.readLine());
 				assertEquals("Error: Unable to modify registry key, insufficient permissions.", br.readLine());

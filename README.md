@@ -182,6 +182,10 @@ audit_win_privesc_cve
 
 	This command audits for incorrect patch levels that an adversary might exploit for privilege escalation.
 
+audit_password_storage
+
+	This command audits for improper password storage on the file system.
+
 ## Server based macro commands
 The following commands are implemented serverside, where the server translates the instructions into
 commands for the daemon. Most of these commands are intended to trigger client side indicators of compromise to assist with threat mimicry and modeling. 

