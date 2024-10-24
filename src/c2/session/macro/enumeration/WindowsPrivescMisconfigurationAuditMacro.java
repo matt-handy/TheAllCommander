@@ -64,6 +64,9 @@ public class WindowsPrivescMisconfigurationAuditMacro extends AbstractAuditMacro
 			if(WindowsServiceBinaryPermissionChecker.processListOfServiceBinariesForProblematicPermissions(io, sessionId, parser.getServices(), io.getSessionDescriptor(sessionId).username, outcome)) {
 				hasFindings = true;
 			}
+			if(WindowsServiceBinaryPermissionChecker.processListOfServicesForAccessibleArgumentFiles(io, sessionId, parser.getServices(), io.getSessionDescriptor(sessionId).username, outcome)) {
+				hasFindings = true;
+			}
 		}catch(WindowsToolOutputParseException ex) {
 			outcome.addError("Could not audit Windows Services");
 		}

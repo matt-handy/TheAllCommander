@@ -20,6 +20,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.ctc.wstx.sw.RepairingNsStreamWriter;
+
 import c2.Commands;
 import c2.Constants;
 import c2.WindowsConstants;
@@ -140,14 +142,14 @@ class WindowsPrivescCVETest extends ClientServerTest {
 						session.sendIO(sessionId, "18000\r\n");
 						session.sendIO(sessionId, "7600\r\n");
 						session.sendIO(sessionId, "18000\r\n");
-						session.sendIO(sessionId, "Pretend powershell error\r\n");
+						session.sendIO(sessionId, "Get-Item : Cannot find path 'C:\\System32\\win32k.sys' because it does not exist.At line:1 char:2+ (Get-Item C:\\System32\\win32k.sys).VersionInfo.FileBuildPart+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    + CategoryInfo          : ObjectNotFound: (C:\\System32\\win32k.sys:String) [Get-Item], ItemNotFoundException    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetItemCommand\r\n");
 					}else {
 						//These numbers don't really matter when we aren't trying to trigger the vuln detection
 						session.sendIO(sessionId, "22631\r\n");
 						session.sendIO(sessionId, "22631\r\n");
 						session.sendIO(sessionId, "22631\r\n");
 						session.sendIO(sessionId, "22631\r\n");
-						session.sendIO(sessionId, "Pretend powershell error\r\n");
+						session.sendIO(sessionId, "Get-Item : Cannot find path 'C:\\System32\\win32k.sys' because it does not exist.At line:1 char:2+ (Get-Item C:\\System32\\win32k.sys).VersionInfo.FileBuildPart+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    + CategoryInfo          : ObjectNotFound: (C:\\System32\\win32k.sys:String) [Get-Item], ItemNotFoundException    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetItemCommand\r\n");
 					}
 					
 					alive = false;
@@ -202,14 +204,23 @@ class WindowsPrivescCVETest extends ClientServerTest {
 	}
 
 	@Test
-	void testReturnsNoCVEs() {
+	void testPython() {
+		testReturnsNoCVEs(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
+	}
+	
+	@Test
+	void testNative() {
+		testReturnsNoCVEs(TestConstants.WINDOWSNATIVE_TEST_EXE);
+	}
+	
+	void testReturnsNoCVEs(String client) {
 		// Note: this test assumes the dev machine is fully patched and there are no
 		// audit findings. If the test fails, PATCH YOUR SYSTEM!!!
 
 		TestConfiguration.OS osConfig = TestConfiguration.getThisSystemOS();
 		if (osConfig == TestConfiguration.OS.WINDOWS) {
 			initiateServer();
-			spawnClient(TestConstants.PYTHON_HTTPSDAEMON_TEST_EXE);
+			spawnClient(client);
 			try {
 				Socket remote = LocalConnection.getSocket("127.0.0.1", 8012,
 						ClientServerTest.getDefaultSystemTestProperties());
@@ -222,9 +233,11 @@ class WindowsPrivescCVETest extends ClientServerTest {
 				RunnerTestGeneric.connectionSetupGeneric(remote, bw, br, osConfig == TestConfiguration.OS.LINUX, false);
 				
 				OutputStreamWriterHelper.writeAndSend(bw, WindowsPrivescCVE.CMD);
-				assertEquals("Macro Executor: 'No findings'", br.readLine());
+				assertEquals("Macro Executor: 'Windows Privesc CVE Enumerator: No findings'", br.readLine());
 
 				OutputStreamWriterHelper.writeAndSend(bw, Commands.CLIENT_CMD_SHUTDOWN_DAEMON);
+				
+				Time.sleepWrapped(2000);
 			} catch (Exception ex) {
 				fail(ex.getMessage());
 			}

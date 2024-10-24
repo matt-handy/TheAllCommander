@@ -82,3 +82,6 @@ Add Event Viewer registry key UAC bypass macro
 Add support for one-time commands to be added by macros
 Alpha feature - adds audit commands
 Alpha feature - improved support for Python service testing
+
+# Release 2.1.3 - October 2024
+Move audit feature from alpha to beta with more features and robust test support, consolidate to single command "audit_all_the_things"

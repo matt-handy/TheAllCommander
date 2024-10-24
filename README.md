@@ -3,7 +3,7 @@
 # TheAllCommander
 Framework for modeling and researching C2 communications for developing efficient filtering and detection logic.
 
-New with TheAllCommander 2.1.2 -> Additional UAC bypass macros and alpha release of Audits
+New with TheAllCommander 2.1.3 -> Beta Release Audit Mode!
 
 Featured in: DEFCON Demolabs 2022 and 2024, Black Hat USA Arsenal 2024
 
@@ -30,6 +30,11 @@ Daemons are uniquely identified by the combination of user account, hostname, an
 
 # Defense Recommendations
 TheAllCommander has an evolving guide for detection of as many client side indicators of compromise emulated by this tool as possible. It can be found here: [Blue Team Guide](blue_team/IOC_Guide.md) 
+
+# Audit Mode
+TheAllCommander can audit for systems for common misconfiguration, including service quoting errors, service argument permissions issues, improper registry settings, etc. The audit sequence is intended to be running with a daemon running as a normal, low permission user. A higher number of false positives will be identified if running as an administrative user, as the daemon will identify permissions for things that a nominal user should be able to to. Compatibility for audits has been tested with both text-only command channels and the python daemon. 
+
+audit_all_the_things - The command macro to invoke the audit suite. 
 
 # Interfaces
 Check out the [Developers Guide](DevelopersGuide.md)

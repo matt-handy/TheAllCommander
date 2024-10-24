@@ -93,4 +93,15 @@ public class MacroOutcome {
 		outputLines.add(formattedMessage);
 		auditFindings.add(formattedMessage);
 	}
+	
+	/**
+	 * This method takes another MacroOutcome and appends it to this object
+	 * 
+	 * @param outcome
+	 */
+	public void appendMacro(MacroOutcome outcome) {
+		errors.addAll(outcome.errors);
+		outputLines.addAll(outcome.outputLines);
+		auditFindings.addAll(outcome.auditFindings);
+	}
 }

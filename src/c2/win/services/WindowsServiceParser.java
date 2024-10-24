@@ -2,9 +2,10 @@ package c2.win.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import c2.win.WindowsToolOutputParseException;
-
+import java.util.regex.Matcher;
 public class WindowsServiceParser {
 
 	private WindowsServiceParser() {
@@ -50,9 +51,10 @@ public class WindowsServiceParser {
 				if (elements.length == 2) {
 					String name = trimQuotes(elements[0]);
 					String rawPathname = trimQuotes(elements[1]);
+					Pattern regex = Pattern.compile("[^\\s\"']+|\"[^\"]*\"|'[^']*'");
+					List<String> args = new ArrayList<>();
 					String pathname = rawPathname;
 					if (pathname.contains(".exe")) {
-						String fullArgument = pathname;
 						pathname = pathname.substring(0, pathname.indexOf(".exe") + 4);
 						if(pathname.startsWith("\"")) {
 							pathname = pathname.substring(1);
@@ -61,11 +63,14 @@ public class WindowsServiceParser {
 								serviceParser.unquotedServices.add(line);
 							}
 						}
-						serviceParser.services.add(new WindowsServiceInfo(name, fullArgument, pathname));
-					} else {
-						serviceParser.services.add(new WindowsServiceInfo(name, pathname, pathname));
-					}
-		
+						if(rawPathname.indexOf(".exe") + 4 < rawPathname.length()) {
+						Matcher regexMatcher = regex.matcher(rawPathname.substring(rawPathname.indexOf(".exe") + 4));
+							while(regexMatcher.find()) {
+								args.add(regexMatcher.group());
+							}
+						}
+					} 
+					serviceParser.services.add(new WindowsServiceInfo(name, rawPathname, pathname, args));
 				}
 			}
 			return serviceParser;
@@ -74,6 +79,7 @@ public class WindowsServiceParser {
 		}
 	}
 	
+	//Deprecated
 	public static WindowsServiceParser parseServicesQueryOutput(String output) throws WindowsToolOutputParseException {
 		try {
 			WindowsServiceParser serviceParser = new WindowsServiceParser();
@@ -95,9 +101,9 @@ public class WindowsServiceParser {
 								serviceParser.unquotedServices.add(line);
 							}
 						}
-						serviceParser.services.add(new WindowsServiceInfo(name, fullArgument, pathname));
+						serviceParser.services.add(new WindowsServiceInfo(name, fullArgument, pathname, new ArrayList<>()));
 					} else {
-						serviceParser.services.add(new WindowsServiceInfo(name, pathname, pathname));
+						serviceParser.services.add(new WindowsServiceInfo(name, pathname, pathname, new ArrayList<>()));
 					}
 					
 				}

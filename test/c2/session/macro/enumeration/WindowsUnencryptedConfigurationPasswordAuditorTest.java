@@ -29,14 +29,10 @@ class WindowsUnencryptedConfigurationPasswordAuditorTest extends ClientServerTes
 	void clean() {
 		awaitClient();
 		teardown();
-		try {
-			Files.deleteIfExists(testPasswordPath);
-		} catch (IOException e) {
-			//keep going!
-		}
+		cleanupSamplePasswordFile();
 	}
 	
-	private static final Path testPasswordPath = Paths.get("TAC_PASSWORD_TEST.xml");
+	public static final Path testPasswordPath = Paths.get("TAC_PASSWORD_TEST.xml");
 	
 	@Test
 	void testCommandMatches() {
@@ -46,8 +42,16 @@ class WindowsUnencryptedConfigurationPasswordAuditorTest extends ClientServerTes
 		assertFalse(macro.isCommandMatch("barf"));
 	}
 
-	private void writeSamplePasswordFile() throws IOException {
+	public static void writeSamplePasswordFile() throws IOException {
 		Files.writeString(testPasswordPath, "<password>THIS_IS_FAKE_TEST_DATA</password>");
+	}
+	
+	public static void cleanupSamplePasswordFile() {
+		try {
+			Files.deleteIfExists(testPasswordPath);
+		} catch (IOException e) {
+			//keep going!
+		}
 	}
 	
 	void testLiveRunner(String client) {

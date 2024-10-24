@@ -276,7 +276,6 @@ class WindowsRegistryConfigurationAuditMacroTest extends ClientServerTest {
 						OutputStreamWriterHelper.writeAndSend(bw, WindowsRegistryConfigurationAuditMacro.CMD);
 						assertEquals("Audit Finding: 'Warning: LSA protection may not be enabled. LSA protection provides additional protection against credential dumping and should be enabled if possible. Check the following registry settings to validate REG QUERY HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA /v RunAsPPL'", br.readLine());
 						assertEquals("Audit Finding: 'Warning: LSA Credential Guard protection may not be enabled. LSA protection provides additional protection against credential dumping and should be enabled if possible. Check the following registry settings to validate REG QUERY HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA /v LsaCfgFlags'", br.readLine());
-
 						OutputStreamWriterHelper.writeAndSend(bw, Commands.CLIENT_CMD_SHUTDOWN_DAEMON);
 						//Client receive message
 						Time.sleepWrapped(2000);

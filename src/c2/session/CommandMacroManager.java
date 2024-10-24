@@ -9,8 +9,11 @@ import c2.Constants;
 import c2.HarvestProcessor;
 import c2.rdp.RDPSessionInfo;
 import c2.rdp.WindowsRDPManager;
+import c2.session.macro.AbstractAuditMacro;
 import c2.session.macro.AbstractCommandMacro;
 import c2.session.macro.MacroOutcome;
+import c2.session.macro.enumeration.AuditAllTheThingsMacro;
+import c2.session.macro.enumeration.WindowsAuditDllIntegrityMacro;
 import c2.session.macro.enumeration.WindowsPrivescMisconfigurationAuditMacro;
 import c2.session.macro.enumeration.WindowsRegistryConfigurationAuditMacro;
 import c2.session.macro.enumeration.WindowsUnencryptedConfigurationPasswordAuditor;
@@ -70,6 +73,19 @@ public class CommandMacroManager {
 		WindowsUnencryptedConfigurationPasswordAuditor passwordAuditMacro = new WindowsUnencryptedConfigurationPasswordAuditor();
 		passwordAuditMacro.initialize(io, harvestProcessor);
 		macros.add(passwordAuditMacro);
+		WindowsAuditDllIntegrityMacro dllIntegrityMacro = new WindowsAuditDllIntegrityMacro();
+		dllIntegrityMacro.initialize(io, harvestProcessor);
+		macros.add(dllIntegrityMacro);
+		
+		List<AbstractAuditMacro> auditMacros = new ArrayList<>();
+		auditMacros.add(windowsPrivescCVEMacro);
+		auditMacros.add(privescAudit);
+		auditMacros.add(regAuditMacro);
+		auditMacros.add(passwordAuditMacro);
+		auditMacros.add(dllIntegrityMacro);
+		AuditAllTheThingsMacro mainAuditMacro = new AuditAllTheThingsMacro(auditMacros);
+		mainAuditMacro.initialize(io, harvestProcessor);
+		macros.add(mainAuditMacro);
 	}
 	
 	public String getListOfMacros() {

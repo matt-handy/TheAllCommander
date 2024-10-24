@@ -102,9 +102,10 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 		private boolean giveNoRegCu;
 		private boolean giveNoRegLm;
 		private boolean giveOneWeakServiceACL;
+		private boolean giveModifiableArgument;
 
 		public ClientStartCmdEmulator(int sessionid, IOManager session, boolean giveCleanServices,
-				boolean giveCleanPrivs, boolean giveNoRegCu, boolean giveNoRegLm, boolean giveOneWeakServiceACL) {
+				boolean giveCleanPrivs, boolean giveNoRegCu, boolean giveNoRegLm, boolean giveOneWeakServiceACL, boolean giveModifiableArgument) {
 			this.session = session;
 			this.sessionId = sessionid;
 			this.giveCleanServices = giveCleanServices;
@@ -112,6 +113,7 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 			this.giveNoRegCu = giveNoRegCu;
 			this.giveNoRegLm = giveNoRegLm;
 			this.giveOneWeakServiceACL = giveOneWeakServiceACL;
+			this.giveModifiableArgument = giveModifiableArgument;
 		}
 
 		public void kill() {
@@ -131,8 +133,10 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 						session.sendIO(sessionId, WindowsQuotedServiceCheckerTest.MISSING_QUOTED_SVCS);
 					}
 				}else if (command.equalsIgnoreCase(WindowsServiceParser.CAT_CSV)) {
-					if (giveCleanServices) {
+					if (giveCleanServices && !giveModifiableArgument) {
 						session.sendIO(sessionId, WindowsQuotedServiceCheckerTest.ALL_QUOTED_SVCS_CSV);
+					}else if(giveModifiableArgument) {
+						session.sendIO(sessionId, WindowsQuotedServiceCheckerTest.ALL_QUOTED_SVCS_CSV_ACCESSIBLE_ARG);
 					} else {
 						session.sendIO(sessionId, WindowsQuotedServiceCheckerTest.MISSING_QUOTED_SVCS_CSV);
 					}
@@ -160,6 +164,8 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 					}
 				}else if(command.startsWith("icacls")) {
 					if(command.contains("DDVCollectorSvcApi") && giveOneWeakServiceACL) {
+						session.sendIO(sessionId, WEAK_ICACLS);
+					}else if(command.contains(".xml")) {//icacls queries for the XML file
 						session.sendIO(sessionId, WEAK_ICACLS);
 					}else {
 						session.sendIO(sessionId, HARD_ICACLS);
@@ -191,7 +197,7 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 	@Test
 	void testFindsMisquotedService() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, false, true, true, true, false);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, false, true, true, true, false, false);
 		exec.submit(em);
 
 		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
@@ -208,7 +214,7 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 	@Test
 	void testFindsSeImpersonate() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, false, true, true, false);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, false, true, true, false, false);
 		exec.submit(em);
 
 		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
@@ -225,7 +231,7 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 	@Test
 	void testFindsCuAutoElevate() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, false, true, false);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, false, true, false, false);
 		exec.submit(em);
 
 		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
@@ -242,7 +248,7 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 	@Test
 	void testFindsLmAutoElevate() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, true, false, false);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, true, false, false, false);
 		exec.submit(em);
 
 		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
@@ -259,7 +265,7 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 	@Test
 	void findsBadIcacls() {
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, true, true, true);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, true, true, true, false);
 		exec.submit(em);
 
 		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
@@ -276,6 +282,29 @@ class WindowsPrivescMisconfigurationAuditMacroTest extends ClientServerTest {
 	@Test
 	void testHasNoFindingsOnCleanSystemWithTextShell() {
 		testMain(TestConstants.WINDOWSNATIVE_TEST_EXE);
+	}
+	
+	@Test
+	void testCanFindServiceWithOpenConfigFile() {
+		String expectedMsg = "Audit Finding: 'Warning: Service FakeSvc has potentially insecure permissions on argument, please review: C:\\Program Files\\Dell\\DellDataVault\\DDVCollectorSvcApi.exe NT AUTHORITY\\SYSTEM:(I)(F)\r\n"
+				+ "                BUILTIN\\Administrators:(I)(F)\r\n"
+				+ "                BUILTIN\\Everyone:(I)(F)\r\n"
+				+ "\r\n"
+				+ "Successfully processed 1 files; Failed processing 0 files\r\n"
+				+ "'";
+		ExecutorService exec = Executors.newFixedThreadPool(2);
+		ClientStartCmdEmulator em = new ClientStartCmdEmulator(sessionId, io, true, true, true, true, false, true);
+		exec.submit(em);
+
+		WindowsPrivescMisconfigurationAuditMacro macro = new WindowsPrivescMisconfigurationAuditMacro();
+		macro.initialize(io, null);
+
+		MacroOutcome outcome = macro.processCmd(WindowsPrivescMisconfigurationAuditMacro.CMD, sessionId, "ignored");
+		assertEquals(1, outcome.getAuditFindings().size());
+		assertEquals(expectedMsg, outcome.getAuditFindings().get(0));
+		assertEquals(1, outcome.getOutput().size());
+		assertEquals(expectedMsg, outcome.getOutput().get(0));
+		em.kill();
 	}
 	
 	void testMain(String clientStr) {

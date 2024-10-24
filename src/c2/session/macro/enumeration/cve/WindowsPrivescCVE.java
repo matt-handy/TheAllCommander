@@ -9,14 +9,16 @@ import c2.win.WindowsPatchLevelCVEChecker;
 import c2.win.WindowsSystemInfoParser;
 import c2.win.remotefiles.WindowsRemoteFileGatherer;
 import c2.win.remotefiles.WindowsRemoteFileInfo;
+import c2.win.remotefiles.WindowsRemoteFileNotFound;
 
 public class WindowsPrivescCVE extends AbstractAuditMacro {
 
+	public static final String READABLE_NAME= "Windows Privesc CVE Enumerator";
 	public static final String CMD = "audit_win_privesc_cve";
 
 	@Override
 	public String getReadableName() {
-		return "Windows Privesc CVE Enumerator";
+		return READABLE_NAME;
 	}
 
 	@Override
@@ -47,7 +49,7 @@ public class WindowsPrivescCVE extends AbstractAuditMacro {
 			}
 			boolean foundLegacyMS = testLegacyMicrosoftBulletins(sessionId, macro);
 			if (cves.size() == 0 && !foundLegacyMS) {
-				macro.addMacroMessage("No findings");
+				macro.addMacroMessage(READABLE_NAME + ": No findings");
 			}
 		} catch (Exception ex) {
 			macro.addError("Cannot process Windows Privesc CVE Audit Data: " + ex.getMessage());
@@ -65,6 +67,8 @@ public class WindowsPrivescCVE extends AbstractAuditMacro {
 				outcome.addAuditFinding("Applicable Vulnerability: MS10-092");
 				hasHadFinding = true;
 			}
+		}catch(WindowsRemoteFileNotFound ex) {
+			//Ignore, vulnerabile file not present
 		} catch (Exception ex) {
 			outcome.addError("Cannot audit MS10-092");
 		}
@@ -110,8 +114,10 @@ public class WindowsPrivescCVE extends AbstractAuditMacro {
 				outcome.addAuditFinding("Applicable Vulnerability: MS16-135");
 				hasHadFinding = true;
 	            }
+		}catch(WindowsRemoteFileNotFound ex) {
+			//Ignore, vulnerabile file not present
 		} catch (Exception ex) {
-			outcome.addError("Cannot audit MS14-058 or MS15-051");
+			outcome.addError("Cannot audit MS14-058, MS15-051, MS16-034, or MS16-135");
 		}
 
 		//MS15-078
@@ -122,8 +128,10 @@ public class WindowsPrivescCVE extends AbstractAuditMacro {
 				outcome.addAuditFinding("Applicable Vulnerability: MS15-078");
 				hasHadFinding = true;
 			}
+		}catch(WindowsRemoteFileNotFound ex) {
+			//Ignore, vulnerabile file not present
 		} catch (Exception ex) {
-			//Ignore, modern Windows doesn't have this file so it may not show up
+			outcome.addError("Cannot audit MS15-078");
 		}
 		
 		return hasHadFinding;
